@@ -1,0 +1,139 @@
+.admin-page {
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  padding: 60px 4%;
+}
+
+.admin-table-wrapper {
+  max-width: 1400px;
+  margin: auto;
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 16px;
+  padding: 30px;
+}
+
+.admin-header {
+  margin-bottom: 25px;
+}
+
+.admin-header h1 {
+  color: #d4af37;
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+
+.admin-header p {
+  color: #ddd;
+}
+
+.admin-message {
+  background: #0f2a17;
+  border: 1px solid #00c853;
+  color: #fff;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.admin-table-scroll {
+  overflow-x: auto;
+}
+
+.admin-product-table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+}
+
+.admin-product-table th {
+  color: #d4af37;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #333;
+}
+
+.admin-product-table td {
+  padding: 10px;
+  border-bottom: 1px solid #222;
+}
+
+.admin-product-table input,
+.admin-product-table select {
+  width: 100%;
+  padding: 12px;
+  background: #000;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 8px;
+}
+
+.admin-table-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.add-row-btn,
+.upload-all-btn,
+.remove-row-btn {
+  border: none;
+  border-radius: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.add-row-btn {
+  background: #fff;
+  color: #000;
+  padding: 15px 25px;
+}
+
+.upload-all-btn {
+  background: #d4af37;
+  color: #000;
+  padding: 15px 25px;
+}
+
+.remove-row-btn {
+  background: #b00020;
+  color: #fff;
+  padding: 10px 14px;
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 35px 4%;
+  }
+
+  .admin-header h1 {
+    font-size: 26px;
+  }
+}
+
+
+.admin-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.logout-btn {
+  background: #b00020;
+  color: #fff;
+  border: none;
+  padding: 13px 22px;
+  border-radius: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .admin-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

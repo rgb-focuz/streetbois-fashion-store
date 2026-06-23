@@ -1,0 +1,143 @@
+.shop-page {
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.shop-header {
+  text-align: center;
+  padding: 70px 8% 30px;
+}
+
+.shop-header h1 {
+  color: #d4af37;
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.shop-header p {
+  color: #ddd;
+  font-size: 18px;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px;
+}
+
+.filter-btn {
+  padding: 12px 24px;
+  border: 1px solid #d4af37;
+  background: transparent;
+  color: #fff;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.filter-btn:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+.active-filter {
+  background: #d4af37;
+  color: #000;
+}
+
+.shop-coming-soon {
+  max-width: 900px;
+  margin: 60px auto;
+  text-align: center;
+  padding: 50px;
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+}
+
+.shop-coming-soon h2 {
+  color: #d4af37;
+  margin-bottom: 15px;
+}
+
+.shop-coming-soon p {
+  color: #ddd;
+  line-height: 1.8;
+}
+
+.shop-message {
+  text-align: center;
+  color: #d4af37;
+  font-size: 22px;
+  margin-top: 50px;
+}
+
+.shop-product-grid {
+  padding: 50px 8%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 320px));
+  justify-content: center;
+  gap: 30px;
+}
+
+.shop-product-card {
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.shop-product-card {
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  overflow: hidden;
+  width: 320px;
+}
+
+.shop-product-card img {
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  background: #fff;
+  display: block;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.shop-product-info {
+  padding: 22px;
+}
+
+.shop-product-info h3 {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.shop-price {
+  color: #d4af37;
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.shop-product-info p {
+  color: #ddd;
+  margin-bottom: 12px;
+}
+
+.shop-product-info a {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  background: #00c853;
+  color: #fff;
+  padding: 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 800;
+}

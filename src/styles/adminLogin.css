@@ -1,0 +1,56 @@
+.admin-login-page {
+  background: #000;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+}
+
+.admin-login-box {
+  width: 100%;
+  max-width: 450px;
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 16px;
+  padding: 35px;
+  color: #fff;
+}
+
+.admin-login-box h1 {
+  color: #d4af37;
+  margin-bottom: 10px;
+}
+
+.admin-login-box p {
+  color: #ddd;
+  margin-bottom: 25px;
+}
+
+.admin-login-box input {
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #000;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 8px;
+}
+
+.admin-login-box button {
+  width: 100%;
+  padding: 16px;
+  background: #d4af37;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.login-error {
+  background: #3a1111;
+  border: 1px solid #ff4444;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}

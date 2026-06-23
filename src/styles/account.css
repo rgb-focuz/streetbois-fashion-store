@@ -1,0 +1,90 @@
+.account-page {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 5%;
+  background: #000;
+}
+
+.account-card {
+  width: 100%;
+  max-width: 600px;
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  padding: 40px;
+}
+
+.account-card h1 {
+  color: #d4af37;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.account-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.account-tabs button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #222;
+  color: white;
+}
+
+.account-tabs button.active {
+  background: #d4af37;
+  color: black;
+}
+
+.account-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.account-card input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: white;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.account-card input:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+.account-card button[type="submit"] {
+  background: #d4af37;
+  color: black;
+  border: none;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-card button[type="submit"]:hover {
+  opacity: 0.9;
+}
+
+.account-message {
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid #d4af37;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
