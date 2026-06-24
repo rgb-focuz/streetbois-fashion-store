@@ -84,3 +84,32 @@
 .collection-card:hover .category-image {
   transform: scale(1.08);
 }
+
+@media (max-width: 768px) {
+  .collection-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .collection-card img {
+    height: 130px !important;
+    object-fit: contain !important;
+    background: #fff !important;
+    padding: 6px !important;
+  }
+
+  .collection-info {
+    padding: 10px !important;
+  }
+
+  .collection-info h3 {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+
+  .collection-info button {
+    font-size: 12px !important;
+    padding: 8px !important;
+  }
+}
