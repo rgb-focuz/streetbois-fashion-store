@@ -404,3 +404,48 @@ body {
     line-height: 1.1;
   }
 }
+
+@media (max-width: 768px) {
+  .collections-grid,
+  .featured-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 10px;
+  }
+
+  .collection-card,
+  .featured-card {
+    border-radius: 12px;
+  }
+
+  .collection-card img,
+  .featured-card img {
+    height: 130px !important;
+    object-fit: contain !important;
+    padding: 6px;
+    background: #fff;
+  }
+
+  .collection-card h3,
+  .featured-card h3 {
+    font-size: 14px !important;
+    margin: 8px !important;
+    line-height: 1.2;
+  }
+
+  .collection-card p,
+  .featured-card p {
+    font-size: 12px !important;
+    margin: 0 8px 8px !important;
+  }
+
+  .collection-card a,
+  .featured-card a,
+  .collection-card button,
+  .featured-card button {
+    font-size: 12px !important;
+    padding: 8px !important;
+    margin: 8px !important;
+    width: calc(100% - 16px) !important;
+  }
+}
