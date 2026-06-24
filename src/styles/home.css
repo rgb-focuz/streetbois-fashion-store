@@ -325,11 +325,26 @@ body {
 }
 
 @media (max-width: 768px) {
-  .simple-modal {
-    grid-template-columns: 1fr;
+  .collections-grid,
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
-  .modal-product-img {
-    max-height: 360px;
+  .featured-card img,
+  .collection-card img {
+    height: 120px;
+    object-fit: cover;
+  }
+
+  .featured-card h3,
+  .collection-card h3 {
+    font-size: 14px;
+  }
+
+  .featured-card p,
+  .collection-card p {
+    font-size: 12px;
   }
 }
