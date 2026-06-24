@@ -374,3 +374,68 @@ body {
     font-size: 12px;
   }
 }
+
+@media (max-width: 768px) {
+  .collections-grid,
+  .featured-grid,
+  .featured-products-grid,
+  .products-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 10px !important;
+  }
+
+  .collection-card,
+  .featured-card,
+  .product-card {
+    width: 100% !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  }
+
+  .collection-card img,
+  .featured-card img,
+  .product-card img {
+    width: 100% !important;
+    height: 130px !important;
+    object-fit: contain !important;
+    background: #fff !important;
+    padding: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .collection-card h3,
+  .featured-card h3,
+  .product-card h3 {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    margin: 8px !important;
+  }
+
+  .collection-card p,
+  .featured-card p,
+  .product-card p {
+    font-size: 12px !important;
+    margin: 0 8px 8px !important;
+  }
+
+  .collection-card a,
+  .featured-card a,
+  .product-card a,
+  .collection-card button,
+  .featured-card button,
+  .product-card button {
+    font-size: 12px !important;
+    padding: 8px !important;
+    margin: 8px !important;
+    width: calc(100% - 16px) !important;
+  }
+
+  .featured-products h2,
+  .featured-section h2,
+  .collections-section h2 {
+    font-size: 32px !important;
+    line-height: 1.1 !important;
+  }
+}
