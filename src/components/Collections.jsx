@@ -1,32 +1,25 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
 import "../styles/collections.css";
 
 function Collections() {
-  const categories = [
-    {
-      name: "Men's Official Wear",
-      image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c"
-    },
-    {
-      name: "Men's Casual Wear",
-      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
-    },
-    {
-      name: "Shoes",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff"
-    },
-    {
-      name: "Slippers",
-      image: "https://images.unsplash.com/photo-1603487742131-4160ec999306"
-    },
-    {
-      name: "Perfumes",
-      image: "https://images.unsplash.com/photo-1541643600914-78b084683601"
-    },
-    {
-      name: "Caps",
-      image: "https://images.unsplash.com/photo-1521369909029-2afed882baee"
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetchCollections();
+  }, []);
+
+  const fetchCollections = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .not("image_url", "is", null)
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setCategories(data || []);
     }
-  ];
+  };
 
   return (
     <section className="collections">
@@ -36,10 +29,10 @@ function Collections() {
       </div>
 
       <div className="collection-grid">
-        {categories.map((category, index) => (
-          <div className="collection-card" key={index}>
+        {categories.map((category) => (
+          <div className="collection-card" key={category.id}>
             <img
-              src={category.image}
+              src={category.image_url}
               alt={category.name}
               className="category-image"
             />

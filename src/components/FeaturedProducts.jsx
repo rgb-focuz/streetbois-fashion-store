@@ -1,51 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
 import "../styles/home.css";
 
-import sleevelessTop from "../assets/products/sleeveless-top.png";
-import tshirt from "../assets/products/tshirt.png";
-import cap from "../assets/products/cap.png";
-import hoodies from "../assets/products/hoodies.png";
-import jeans from "../assets/products/jeans.png";
-import joggers from "../assets/products/joggers.png";
-import shorts from "../assets/products/shorts.png";
-import sweater from "../assets/products/sweater.png";
-import trousers from "../assets/products/trousers.png";
-import shoes from "../assets/products/shoes.png";
-import slides from "../assets/products/slides.png";
-
 function FeaturedProducts() {
+  const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const products = [
-    { name: "Sleeveless Top", image: sleevelessTop },
-    { name: "T-Shirt", image: tshirt },
-    { name: "Caps", image: cap },
-    { name: "Hoodies", image: hoodies },
-    { name: "Jeans", image: jeans },
-    { name: "Joggers", image: joggers },
-    { name: "Shorts", image: shorts },
-    { name: "Sweater", image: sweater },
-    { name: "Trousers", image: trousers },
-    { name: "Shoes", image: shoes },
-    { name: "Slides", image: slides },
-  ];
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("featured", true)
+      .eq("status", "Active")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setProducts(data);
+    }
+  };
 
   return (
     <section className="featured-products">
       <h2>Featured Products</h2>
 
       <div className="product-grid">
-        {products.map((product, index) => (
-          <div className="product-card" key={index}>
+        {products.map((product) => (
+          <div className="product-card" key={product.id}>
             <img
-              src={product.image}
+              src={product.image_url}
               alt={product.name}
               className="product-img"
             />
 
             <div className="product-info">
               <h3>{product.name}</h3>
-              <p>Available in Store</p>
+              <p>GH₵ {product.price}</p>
 
               <button onClick={() => setSelectedProduct(product)}>
                 View Details
@@ -66,14 +59,17 @@ function FeaturedProducts() {
             </button>
 
             <img
-              src={selectedProduct.image}
+              src={selectedProduct.image_url}
               alt={selectedProduct.name}
               className="modal-product-img"
             />
 
             <div className="modal-details">
               <h2>{selectedProduct.name}</h2>
-              <h3>Available in Store</h3>
+
+              <h3>GH₵ {selectedProduct.price}</h3>
+
+              <p>{selectedProduct.description}</p>
 
               <a
                 href={`https://wa.me/233202430406?text=Hello StreetBois Fashion, I am interested in ${selectedProduct.name}`}

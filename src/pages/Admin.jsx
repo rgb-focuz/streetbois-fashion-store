@@ -14,12 +14,21 @@ function Admin() {
     image_url: "",
     description: "",
     stock: "",
+    featured: false,
+  };
+
+  const emptyCollection = {
+    name: "",
+    image_file: null,
   };
 
   const [rows, setRows] = useState([{ ...emptyRow }]);
+  const [collectionForm, setCollectionForm] = useState({ ...emptyCollection });
   const [products, setProducts] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [collectionLoading, setCollectionLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const categories = [
@@ -37,6 +46,7 @@ function Admin() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCollections();
     fetchProfiles();
   }, []);
 
@@ -47,6 +57,15 @@ function Admin() {
       .order("created_at", { ascending: false });
 
     setProducts(data || []);
+  };
+
+  const fetchCollections = async () => {
+    const { data } = await supabase
+      .from("categories")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    setCollections(data || []);
   };
 
   const fetchProfiles = async () => {
@@ -98,6 +117,27 @@ function Admin() {
     return data.publicUrl;
   };
 
+  const uploadCollectionImage = async (file) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
+
+    const filePath = `collections/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("category-images")
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from("category-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const uploadAllProducts = async () => {
     setLoading(true);
     setMessage("");
@@ -120,7 +160,7 @@ function Admin() {
           description: item.description,
           stock: Number(item.stock || 0),
           in_stock: true,
-          featured: false,
+          featured: item.featured,
           status: "Active",
         });
       }
@@ -146,11 +186,52 @@ function Admin() {
     setLoading(false);
   };
 
+  const uploadCollection = async () => {
+  setCollectionLoading(true);
+  setMessage("");
+
+  try {
+    console.log("Starting upload...");
+
+    const imageUrl = await uploadCollectionImage(collectionForm.image_file);
+
+    console.log("Image URL:", imageUrl);
+
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({
+        name: collectionForm.name,
+        image_url: imageUrl,
+      })
+      .select();
+
+    console.log("Insert Result:", data);
+    console.log("Insert Error:", error);
+
+    if (error) throw error;
+
+    setMessage("Collection uploaded successfully.");
+    fetchCollections();
+  } catch (error) {
+    console.error(error);
+    setMessage(error.message);
+  }
+
+  setCollectionLoading(false);
+};
+
   const deleteProduct = async (id) => {
     if (!window.confirm("Delete this product?")) return;
 
     await supabase.from("products").delete().eq("id", id);
     fetchProducts();
+  };
+
+  const deleteCollection = async (id) => {
+    if (!window.confirm("Delete this collection?")) return;
+
+    await supabase.from("categories").delete().eq("id", id);
+    fetchCollections();
   };
 
   return (
@@ -159,7 +240,7 @@ function Admin() {
         <div className="admin-header admin-header-flex">
           <div>
             <h1>StreetBois Admin Dashboard</h1>
-            <p>Add products with image upload.</p>
+            <p>Add products and manage homepage collections.</p>
           </div>
 
           <button className="logout-btn" onClick={handleLogout}>
@@ -168,6 +249,8 @@ function Admin() {
         </div>
 
         {message && <div className="admin-message">{message}</div>}
+
+        <h2>Add Products</h2>
 
         <div className="admin-table-scroll">
           <table className="admin-product-table">
@@ -179,6 +262,7 @@ function Admin() {
                 <th>Image Upload</th>
                 <th>Description</th>
                 <th>Stock</th>
+                <th>Featured</th>
                 <th>Remove</th>
               </tr>
             </thead>
@@ -255,6 +339,16 @@ function Admin() {
                   </td>
 
                   <td>
+                    <input
+                      type="checkbox"
+                      checked={row.featured}
+                      onChange={(e) =>
+                        handleChange(index, "featured", e.target.checked)
+                      }
+                    />
+                  </td>
+
+                  <td>
                     <button onClick={() => removeRow(index)}>Remove</button>
                   </td>
                 </tr>
@@ -272,6 +366,100 @@ function Admin() {
 
         <hr style={{ margin: "40px 0" }} />
 
+        <h2>Add Explore Collection</h2>
+
+        <div className="admin-table-scroll">
+          <table className="admin-product-table">
+            <thead>
+              <tr>
+                <th>Collection Name</th>
+                <th>Collection Image</th>
+                <th>Upload</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>
+                  <input
+                    value={collectionForm.name}
+                    onChange={(e) =>
+                      setCollectionForm({
+                        ...collectionForm,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. Men Clothing"
+                  />
+                </td>
+
+                <td>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setCollectionForm({
+                        ...collectionForm,
+                        image_file: e.target.files[0],
+                      })
+                    }
+                  />
+                </td>
+
+                <td>
+                  <button onClick={uploadCollection} disabled={collectionLoading}>
+                    {collectionLoading ? "Uploading..." : "Upload Collection"}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr style={{ margin: "40px 0" }} />
+
+        <h2>Uploaded Collections</h2>
+
+        <table className="admin-product-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {collections.map((collection) => (
+              <tr key={collection.id}>
+                <td>
+                  <img
+                    src={collection.image_url}
+                    alt={collection.name}
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      objectFit: "contain",
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                <td>{collection.name}</td>
+                <td>
+                  <button
+                    className="remove-row-btn"
+                    onClick={() => deleteCollection(collection.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <hr style={{ margin: "40px 0" }} />
+
         <h2>Uploaded Products</h2>
 
         <table className="admin-product-table">
@@ -281,6 +469,7 @@ function Admin() {
               <th>Name</th>
               <th>Price</th>
               <th>Category</th>
+              <th>Featured</th>
               <th>Delete</th>
             </tr>
           </thead>
@@ -303,6 +492,7 @@ function Admin() {
                 <td>{product.name}</td>
                 <td>GH₵ {product.price}</td>
                 <td>{product.category}</td>
+                <td>{product.featured ? "Yes" : "No"}</td>
                 <td>
                   <button
                     className="remove-row-btn"
