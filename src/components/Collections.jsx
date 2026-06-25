@@ -1,20 +1,31 @@
 import "../styles/collections.css";
 
-import officialWear from "../assets/categories/official-wear.jpg";
-import casualWear from "../assets/categories/casual-wear.jpg";
-import shoes from "../assets/categories/shoes.jpg";
-import slippers from "../assets/categories/slippers.jpg";
-import perfumes from "../assets/categories/perfumes.jpg";
-import caps from "../assets/categories/caps.jpg";
-
 function Collections() {
   const categories = [
-    { name: "Men's Official Wear", image: officialWear },
-    { name: "Men's Casual Wear", image: casualWear },
-    { name: "Shoes", image: shoes },
-    { name: "Slippers", image: slippers },
-    { name: "Perfumes", image: perfumes },
-    { name: "Caps", image: caps },
+    {
+      name: "Men's Official Wear",
+      image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c"
+    },
+    {
+      name: "Men's Casual Wear",
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
+    },
+    {
+      name: "Shoes",
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff"
+    },
+    {
+      name: "Slippers",
+      image: "https://images.unsplash.com/photo-1603487742131-4160ec999306"
+    },
+    {
+      name: "Perfumes",
+      image: "https://images.unsplash.com/photo-1541643600914-78b084683601"
+    },
+    {
+      name: "Caps",
+      image: "https://images.unsplash.com/photo-1521369909029-2afed882baee"
+    }
   ];
 
   return (

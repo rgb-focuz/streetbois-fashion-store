@@ -10,22 +10,15 @@ function Admin() {
     name: "",
     price: "",
     category: "",
-    product_type: "",
-    brand: "",
-    sku: "",
-    sizes: "",
-    stock: "",
+    image_file: null,
     image_url: "",
     description: "",
-    in_stock: true,
-    featured: false,
-    status: "Active",
+    stock: "",
   };
 
   const [rows, setRows] = useState([{ ...emptyRow }]);
   const [products, setProducts] = useState([]);
   const [profiles, setProfiles] = useState([]);
-  const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -48,21 +41,21 @@ function Admin() {
   }, []);
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) setProducts(data);
+    setProducts(data || []);
   };
 
   const fetchProfiles = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) setProfiles(data);
+    setProfiles(data || []);
   };
 
   const handleLogout = async () => {
@@ -83,38 +76,71 @@ function Admin() {
     setRows(rows.filter((_, i) => i !== index));
   };
 
+  const uploadImage = async (file, category) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
+
+    const folder = category.toLowerCase().replaceAll(" ", "-");
+    const filePath = `${folder}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const uploadAllProducts = async () => {
     setLoading(true);
     setMessage("");
 
-    const validRows = rows.filter(
-      (item) => item.name && item.price && item.category && item.image_url
-    );
+    try {
+      const productsToUpload = [];
 
-    const productsToUpload = validRows.map((item) => ({
-      name: item.name,
-      price: Number(item.price),
-      category: item.category,
-      product_type: item.product_type,
-      brand: item.brand,
-      sku: item.sku,
-      sizes: item.sizes,
-      stock: Number(item.stock || 0),
-      image_url: item.image_url,
-      description: item.description,
-      in_stock: item.in_stock,
-      featured: item.featured,
-      status: item.status,
-    }));
+      for (const item of rows) {
+        if (!item.name || !item.price || !item.category || !item.image_file) {
+          continue;
+        }
 
-    const { error } = await supabase.from("products").insert(productsToUpload);
+        const imageUrl = await uploadImage(item.image_file, item.category);
 
-    if (error) {
-      setMessage("Upload failed.");
-    } else {
-      setMessage(`${validRows.length} products uploaded successfully.`);
+        productsToUpload.push({
+          name: item.name,
+          price: Number(item.price),
+          category: item.category,
+          image_url: imageUrl,
+          description: item.description,
+          stock: Number(item.stock || 0),
+          in_stock: true,
+          featured: false,
+          status: "Active",
+        });
+      }
+
+      if (productsToUpload.length === 0) {
+        setMessage("Please fill product name, price, category and image.");
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.from("products").insert(productsToUpload);
+
+      if (error) throw error;
+
+      setMessage(`${productsToUpload.length} products uploaded successfully.`);
       setRows([{ ...emptyRow }]);
       fetchProducts();
+    } catch (error) {
+      console.log(error);
+      setMessage(error.message);
     }
 
     setLoading(false);
@@ -123,45 +149,8 @@ function Admin() {
   const deleteProduct = async (id) => {
     if (!window.confirm("Delete this product?")) return;
 
-    const { error } = await supabase.from("products").delete().eq("id", id);
-
-    if (!error) fetchProducts();
-  };
-
-  const startEdit = (product) => {
-    setEditingProduct({ ...product });
-  };
-
-  const cancelEdit = () => {
-    setEditingProduct(null);
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditingProduct({
-      ...editingProduct,
-      [field]: value,
-    });
-  };
-
-  const saveEdit = async () => {
-    const { id, created_at, ...updateData } = editingProduct;
-
-    const { error } = await supabase
-      .from("products")
-      .update({
-        ...updateData,
-        price: Number(updateData.price),
-        stock: Number(updateData.stock || 0),
-      })
-      .eq("id", id);
-
-    if (error) {
-      setMessage("Update failed.");
-    } else {
-      setMessage("Product updated successfully.");
-      setEditingProduct(null);
-      fetchProducts();
-    }
+    await supabase.from("products").delete().eq("id", id);
+    fetchProducts();
   };
 
   return (
@@ -170,7 +159,7 @@ function Admin() {
         <div className="admin-header admin-header-flex">
           <div>
             <h1>StreetBois Admin Dashboard</h1>
-            <p>Add, edit and manage products.</p>
+            <p>Add products with image upload.</p>
           </div>
 
           <button className="logout-btn" onClick={handleLogout}>
@@ -182,24 +171,89 @@ function Admin() {
 
         <div className="admin-table-scroll">
           <table className="admin-product-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Image Upload</th>
+                <th>Description</th>
+                <th>Stock</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+
             <tbody>
               {rows.map((row, index) => (
                 <tr key={index}>
                   <td>
-                    <input value={row.name} onChange={(e) => handleChange(index, "name", e.target.value)} placeholder="Name" />
+                    <input
+                      value={row.name}
+                      onChange={(e) =>
+                        handleChange(index, "name", e.target.value)
+                      }
+                      placeholder="Product name"
+                    />
                   </td>
+
                   <td>
-                    <input value={row.price} onChange={(e) => handleChange(index, "price", e.target.value)} placeholder="Price" />
+                    <input
+                      type="number"
+                      value={row.price}
+                      onChange={(e) =>
+                        handleChange(index, "price", e.target.value)
+                      }
+                      placeholder="Price"
+                    />
                   </td>
+
                   <td>
-                    <select value={row.category} onChange={(e) => handleChange(index, "category", e.target.value)}>
+                    <select
+                      value={row.category}
+                      onChange={(e) =>
+                        handleChange(index, "category", e.target.value)
+                      }
+                    >
                       <option value="">Select</option>
-                      {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
                     </select>
                   </td>
+
                   <td>
-                    <input value={row.image_url} onChange={(e) => handleChange(index, "image_url", e.target.value)} placeholder="Image URL" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleChange(index, "image_file", e.target.files[0])
+                      }
+                    />
                   </td>
+
+                  <td>
+                    <input
+                      value={row.description}
+                      onChange={(e) =>
+                        handleChange(index, "description", e.target.value)
+                      }
+                      placeholder="Description"
+                    />
+                  </td>
+
+                  <td>
+                    <input
+                      type="number"
+                      value={row.stock}
+                      onChange={(e) =>
+                        handleChange(index, "stock", e.target.value)
+                      }
+                      placeholder="Stock"
+                    />
+                  </td>
+
                   <td>
                     <button onClick={() => removeRow(index)}>Remove</button>
                   </td>
@@ -212,7 +266,7 @@ function Admin() {
         <div className="admin-table-actions">
           <button onClick={addRow}>+ Add Row</button>
           <button onClick={uploadAllProducts} disabled={loading}>
-            {loading ? "Uploading..." : "Upload All Products"}
+            {loading ? "Uploading..." : "Upload Products"}
           </button>
         </div>
 
@@ -223,10 +277,10 @@ function Admin() {
         <table className="admin-product-table">
           <thead>
             <tr>
+              <th>Image</th>
               <th>Name</th>
               <th>Price</th>
               <th>Category</th>
-              <th>Edit</th>
               <th>Delete</th>
             </tr>
           </thead>
@@ -234,12 +288,26 @@ function Admin() {
           <tbody>
             {products.map((product) => (
               <tr key={product.id}>
+                <td>
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      objectFit: "contain",
+                      background: "#fff",
+                    }}
+                  />
+                </td>
                 <td>{product.name}</td>
                 <td>GH₵ {product.price}</td>
                 <td>{product.category}</td>
-                <td><button onClick={() => startEdit(product)}>Edit</button></td>
                 <td>
-                  <button className="remove-row-btn" onClick={() => deleteProduct(product.id)}>
+                  <button
+                    className="remove-row-btn"
+                    onClick={() => deleteProduct(product.id)}
+                  >
                     Delete
                   </button>
                 </td>
@@ -247,29 +315,6 @@ function Admin() {
             ))}
           </tbody>
         </table>
-
-        {editingProduct && (
-          <div className="edit-product-box">
-            <h2>Edit Product</h2>
-
-            <input value={editingProduct.name || ""} onChange={(e) => handleEditChange("name", e.target.value)} placeholder="Product name" />
-            <input type="number" value={editingProduct.price || ""} onChange={(e) => handleEditChange("price", e.target.value)} placeholder="Price" />
-
-            <select value={editingProduct.category || ""} onChange={(e) => handleEditChange("category", e.target.value)}>
-              <option value="">Select</option>
-              {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-
-            <input value={editingProduct.image_url || ""} onChange={(e) => handleEditChange("image_url", e.target.value)} placeholder="Image URL" />
-            <input value={editingProduct.description || ""} onChange={(e) => handleEditChange("description", e.target.value)} placeholder="Description" />
-            <input type="number" value={editingProduct.stock || ""} onChange={(e) => handleEditChange("stock", e.target.value)} placeholder="Stock" />
-
-            <div className="admin-table-actions">
-              <button onClick={saveEdit}>Save Changes</button>
-              <button onClick={cancelEdit}>Cancel</button>
-            </div>
-          </div>
-        )}
 
         <hr style={{ margin: "40px 0" }} />
 
