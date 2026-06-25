@@ -1,0 +1,191 @@
+.product-details-page {
+  background: #050505;
+  color: #fff;
+  min-height: 80vh;
+  padding: 80px 8%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.product-details-image img {
+  width: 100%;
+  height: 520px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.breadcrumb {
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.product-details-info h1 {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.product-details-info h2 {
+  color: #f6b800;
+  font-size: 34px;
+  margin-bottom: 20px;
+}
+
+.product-category {
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.product-description {
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.stock-status {
+  color: #f6b800;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+.details-whatsapp-btn {
+  display: inline-block;
+  background: #00c853;
+  color: #fff;
+  padding: 16px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.product-details-message {
+  background: #000;
+  color: #fff;
+  min-height: 80vh;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+
+.related-products-section {
+  background: #050505;
+  color: #fff;
+  padding: 40px 8% 90px;
+}
+
+.related-products-section h2 {
+  color: #f6b800;
+  font-size: 34px;
+  margin-bottom: 30px;
+}
+
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 28px;
+}
+
+.related-product-card {
+  cursor: pointer;
+}
+
+.related-product-card img {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.related-product-card h3 {
+  margin-top: 12px;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.related-product-card p {
+  color: #f6b800;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.quantity-box {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.quantity-box button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #f6b800;
+  background: transparent;
+  color: #f6b800;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.quantity-box span {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.add-cart-btn {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  background: #f6b800;
+  color: #000;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+
+@media (max-width: 768px) {
+  .product-details-page {
+    grid-template-columns: 1fr;
+    padding: 40px 5%;
+    gap: 30px;
+  }
+
+  .product-details-image img {
+    height: 360px;
+  }
+
+  .product-details-info h1 {
+    font-size: 32px;
+  }
+
+  .product-details-info h2 {
+    font-size: 26px;
+  }
+
+  .details-whatsapp-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .related-products-section {
+    padding: 30px 5% 70px;
+  }
+
+  .related-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .related-product-card img {
+    height: 170px;
+  }
+
+  .related-products-section h2 {
+    font-size: 28px;
+  }
+}

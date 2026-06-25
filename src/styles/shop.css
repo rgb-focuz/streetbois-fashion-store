@@ -215,3 +215,37 @@ font-size: 14px;
 border-radius: 8px;
 }
 }
+
+.shop-add-cart-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f6b800;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.shop-product-card img,
+.shop-product-info h3 {
+  cursor: pointer;
+}
+
+.wishlist-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: #f6b800;
+  border: 1px solid #f6b800;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.wishlist-btn:hover {
+  background: #f6b800;
+  color: #000;
+}

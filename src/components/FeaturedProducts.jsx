@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/home.css";
 
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -29,7 +31,12 @@ function FeaturedProducts() {
 
       <div className="product-grid">
         {products.map((product) => (
-          <div className="product-card" key={product.id}>
+          <div
+  className="product-card"
+  key={product.id}
+  onClick={() => navigate(`/product/${product.id}`)}
+  style={{ cursor: "pointer" }}
+>
             <img
               src={product.image_url}
               alt={product.name}
