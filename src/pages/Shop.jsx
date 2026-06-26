@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ProductCard from "../components/ProductCard";
 import { supabase } from "../supabaseClient";
 import "../styles/shop.css";
 
 function Shop() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
@@ -45,72 +48,20 @@ function Shop() {
     fetchProducts();
   }, []);
 
-  const addToCart = (product) => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      quantity: 1,
-    };
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      activeCategory === "All" || product.category === activeCategory;
 
-    const existingCart =
-      JSON.parse(localStorage.getItem("streetbois-cart")) || [];
+    const matchesSearch =
+      searchQuery === "" ||
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    const existingItem = existingCart.find((item) => item.id === product.id);
-
-    let updatedCart;
-
-    if (existingItem) {
-      updatedCart = existingCart.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    } else {
-      updatedCart = [...existingCart, cartItem];
-    }
-
-    localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-    alert("Product added to cart.");
-  };
-
-  const addToWishlist = (product) => {
-    const wishlistItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      category: product.category,
-    };
-
-    const existingWishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-
-    const alreadyExists = existingWishlist.find(
-      (item) => item.id === product.id
-    );
-
-    if (alreadyExists) {
-      alert("Product already in wishlist.");
-      return;
-    }
-
-    const updatedWishlist = [...existingWishlist, wishlistItem];
-
-    localStorage.setItem(
-      "streetbois-wishlist",
-      JSON.stringify(updatedWishlist)
-    );
-
-    alert("Product added to wishlist.");
-  };
-
-  const filteredProducts =
-    activeCategory === "All"
-      ? products
-      : products.filter((product) => product.category === activeCategory);
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <>
@@ -119,7 +70,20 @@ function Shop() {
       <section className="shop-page">
         <div className="shop-header">
           <h1>Shop StreetBois Fashion</h1>
-          <p>Browse our latest products.</p>
+
+          {searchQuery ? (
+            <>
+              <p>Search results for: "{searchQuery}"</p>
+              <button
+                className="clear-search-btn"
+                onClick={() => navigate("/shop")}
+              >
+                Clear Search
+              </button>
+            </>
+          ) : (
+            <p>Browse our latest products.</p>
+          )}
         </div>
 
         <div className="filter-container">
@@ -143,48 +107,9 @@ function Shop() {
         ) : filteredProducts.length === 0 ? (
           <div className="shop-message">No products found in this category.</div>
         ) : (
-          <div className="shop-product-grid">
+          <div className="product-grid-universal">
             {filteredProducts.map((product) => (
-              <div className="shop-product-card" key={product.id}>
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                />
-
-                <div className="shop-product-info">
-                  <h3 onClick={() => navigate(`/product/${product.id}`)}>
-                    {product.name}
-                  </h3>
-
-                  <p className="shop-price">GH₵ {product.price}</p>
-                  <p>{product.category}</p>
-
-                  <button
-                    className="shop-add-cart-btn"
-                    onClick={() => addToCart(product)}
-                  >
-                    Add to Cart
-                  </button>
-
-                  <button
-                    className="wishlist-btn"
-                    onClick={() => addToWishlist(product)}
-                  >
-                    ❤ Add to Wishlist
-                  </button>
-
-                  <a
-                    href={`https://wa.me/233202430406?text=Hello%20StreetBois%20Fashion,%20I%20am%20interested%20in%20${encodeURIComponent(
-                      product.name
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Order on WhatsApp
-                  </a>
-                </div>
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

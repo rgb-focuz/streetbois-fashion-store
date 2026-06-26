@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ProductCard from "../components/ProductCard";
 import "../styles/wishlist.css";
 
 function Wishlist() {
@@ -11,15 +12,6 @@ function Wishlist() {
       JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
     setWishlist(savedWishlist);
   }, []);
-
-  const removeFromWishlist = (id) => {
-    const updatedWishlist = wishlist.filter((item) => item.id !== id);
-    setWishlist(updatedWishlist);
-    localStorage.setItem(
-      "streetbois-wishlist",
-      JSON.stringify(updatedWishlist)
-    );
-  };
 
   if (wishlist.length === 0) {
     return (
@@ -53,19 +45,9 @@ function Wishlist() {
           <p>Your saved StreetBois Fashion favourites.</p>
         </div>
 
-        <div className="wishlist-grid">
-          {wishlist.map((item) => (
-            <div className="wishlist-card" key={item.id}>
-              <img src={item.image_url} alt={item.name} />
-
-              <h3>{item.name}</h3>
-              <p>GH₵ {item.price}</p>
-              <span>{item.category}</span>
-
-              <button onClick={() => removeFromWishlist(item.id)}>
-                Remove
-              </button>
-            </div>
+        <div className="product-grid-universal">
+          {wishlist.map((product) => (
+            <ProductCard key={product.id} product={product} showWishlist={false} />
           ))}
         </div>
       </section>

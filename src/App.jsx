@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
+import RecentlyViewed from "./pages/RecentlyViewed";
 import Wishlist from "./pages/Wishlist";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -25,6 +25,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/recently-viewed" element={<RecentlyViewed />} />
         <Route path="/account" element={<Account />} />
         <Route path="/admin-login" element={<AdminLogin />} />
 

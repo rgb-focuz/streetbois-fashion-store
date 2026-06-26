@@ -51,6 +51,10 @@ function Navbar() {
           </Link>
         </li>
 
+        <li>
+  <Link to="/recently-viewed">Recently Viewed</Link>
+</li>
+
         <li><Link to="/account">Account</Link></li>
       </ul>
 

@@ -1,0 +1,77 @@
+/* ===============================
+   StreetBois Universal Buttons
+=================================*/
+
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .3s ease;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+/* Gold */
+.btn-primary {
+  background: #d4af37;
+  color: #000;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #e5bf48;
+}
+
+/* Outline Gold */
+.btn-secondary {
+  background: transparent;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+}
+
+.btn-secondary:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+/* WhatsApp */
+.btn-success {
+  background: #25D366;
+  color: #fff;
+  border: none;
+}
+
+.btn-success:hover {
+  background: #1fb857;
+}
+
+/* Remove/Delete */
+.btn-danger {
+  background: #d62828;
+  color: #fff;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #b71c1c;
+}
+
+@media (max-width:768px){
+
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger{
+    padding:10px;
+    font-size:12px;
+}
+
+}
