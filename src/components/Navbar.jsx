@@ -42,7 +42,7 @@ function Navbar() {
 
         <Link to="/" className="logo">
           <img src={logo} alt="StreetBois Fashion Logo" />
-          <h2>StreetBois Fashion</h2>
+          <h2>STREETBOIS FASHION</h2>
         </Link>
 
         <Link to="/cart" className="mobile-cart">

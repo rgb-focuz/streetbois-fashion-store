@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/hero.css";
 
 import banner1 from "../assets/banner1.png";
@@ -19,7 +20,7 @@ function Hero() {
   ];
 
   const [current, setCurrent] = useState(0);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const slider = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length);
@@ -58,7 +59,9 @@ function Hero() {
         </p>
 
         <div className="hero-buttons">
-          <button>Shop Collection</button>
+          <button onClick={() => navigate("/shop")}>
+  Shop Collection
+</button>
           <button className="outline">Contact Us</button>
         </div>
       </div>
