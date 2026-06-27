@@ -1,6 +1,5 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import SearchSection from "../components/SearchSection";
 import Collections from "../components/Collections";
 import FeaturedProducts from "../components/FeaturedProducts";
 import Stats from "../components/Stats";
@@ -14,8 +13,6 @@ function Home() {
       <Navbar />
 
       <Hero />
-
-      <SearchSection />
 
       <Collections />
 
