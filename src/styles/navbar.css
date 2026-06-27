@@ -126,6 +126,14 @@
     height: 40px;
   }
 
+  .logo {
+    text-decoration: none;
+}
+
+  .logo h2 {
+    text-decoration: none;
+}
+
   .logo h2 {
     font-size: 18px;
     white-space: nowrap;

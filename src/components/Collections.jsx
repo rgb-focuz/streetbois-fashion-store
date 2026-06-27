@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/collections.css";
 
 function Collections() {
   const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCollections();
@@ -21,6 +23,10 @@ function Collections() {
     }
   };
 
+  const openCategory = (categoryName) => {
+    navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
+  };
+
   return (
     <section className="collections">
       <div className="section-title">
@@ -35,11 +41,15 @@ function Collections() {
               src={category.image_url}
               alt={category.name}
               className="category-image"
+              onClick={() => openCategory(category.name)}
             />
 
             <div className="collection-info">
               <h3>{category.name}</h3>
-              <button>Shop Now</button>
+
+              <button onClick={() => openCategory(category.name)}>
+                Shop Now
+              </button>
             </div>
           </div>
         ))}

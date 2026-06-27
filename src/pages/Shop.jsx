@@ -10,8 +10,8 @@ function Shop() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
-
-  const [activeCategory, setActiveCategory] = useState("All");
+  const categoryQuery = searchParams.get("category") || "All";
+  const [activeCategory, setActiveCategory] = useState(categoryQuery);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +47,10 @@ function Shop() {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+  setActiveCategory(categoryQuery);
+}, [categoryQuery]);
 
   const filteredProducts = products.filter((product) => {
     const matchesCategory =

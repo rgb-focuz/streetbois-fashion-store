@@ -62,7 +62,12 @@ function Hero() {
           <button onClick={() => navigate("/shop")}>
   Shop Collection
 </button>
-          <button className="outline">Contact Us</button>
+          <button
+  className="outline"
+  onClick={() => navigate("/contact")}
+>
+  Contact Us
+</button>
         </div>
       </div>
 
