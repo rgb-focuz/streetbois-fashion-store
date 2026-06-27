@@ -88,134 +88,12 @@
 
 /* MOBILE */
 
-@media(max-width:768px){
-
-.navbar{
-    height:75px;
-    padding:0 18px;
-}
-
-.logo img{
-    width:42px;
-    height:42px;
-}
-
-.logo h2{
-    font-size:18px;
-}
-
-.shop-btn{
-    display:none;
-}
-
-.hamburger{
-    display:block;
-    z-index:10001;
-}
-
-.nav-links{
-    position:fixed;
-    top:75px;
-    right:-100%;
-    width:280px;
-    height:calc(100vh - 75px);
-    background:#111;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:0;
-    padding:25px;
-    transition:.35s;
-    border-left:1px solid #333;
-}
-
-.nav-links.active{
-    right:0;
-}
-
-.nav-links li{
-    width:100%;
-}
-
-.nav-links a{
-    display:block;
-    width:100%;
-    padding:15px 0;
-    border-bottom:1px solid #222;
-    font-size:17px;
-}
-
-.cart-count{
-    right:0;
-}
-
-}
-
-/* Amazon-style mobile search */
-
 .mobile-search-bar {
   display: none;
 }
 
 .mobile-cart {
   display: none;
-}
-
-@media (max-width: 768px) {
-
-  .mobile-search-bar {
-    display: flex;
-    width: 100%;
-    background: #111;
-    padding: 12px 18px;
-    gap: 0;
-    box-sizing: border-box;
-  }
-
-  .mobile-search-bar input {
-    flex: 1;
-    height: 50px;
-    border: none;
-    outline: none;
-    padding: 0 18px;
-    font-size: 17px;
-    border-radius: 10px 0 0 10px;
-    background: #fff;
-    color: #000;
-  }
-
-  .mobile-search-bar button {
-    width: 60px;
-    border: none;
-    background: #d4af37;
-    color: #000;
-    font-size: 24px;
-    border-radius: 0 10px 10px 0;
-    cursor: pointer;
-  }
-
-  .mobile-cart {
-    display: block;
-    position: relative;
-    color: #fff;
-    text-decoration: none;
-    font-size: 28px;
-  }
-
-  .mobile-cart span {
-    position: absolute;
-    top: -8px;
-    right: -10px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #f6b800;
-    color: #000;
-    font-size: 11px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-  }
 }
 
 .mobile-header-wrap {
@@ -225,24 +103,123 @@
   background: #000;
 }
 
-@media (min-width: 769px) {
-  .mobile-search-bar,
-  .mobile-cart {
-    display: none !important;
-  }
-
-  .mobile-header-wrap {
-    position: sticky;
-    top: 0;
-  }
-}
-
 @media (max-width: 768px) {
   .navbar {
     position: relative;
+    height: 74px;
+    padding: 0 18px;
+  }
+
+  .hamburger {
+    display: block;
+    font-size: 28px;
+    color: #d4af37;
+    z-index: 10001;
+  }
+
+  .logo {
+    gap: 8px;
+  }
+
+  .logo img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo h2 {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  .desktop-shop-btn,
+  .shop-btn {
+    display: none;
+  }
+
+  .mobile-cart {
+    display: block;
+    position: relative;
+    color: #fff;
+    text-decoration: none;
+    font-size: 26px;
+  }
+
+  .mobile-cart span {
+    position: absolute;
+    top: -8px;
+    right: -9px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #f6b800;
+    color: #000;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 74px;
+    right: -100%;
+    width: 280px;
+    height: calc(100vh - 74px);
+    background: #111;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 25px;
+    transition: 0.35s;
+    border-left: 1px solid #333;
+  }
+
+  .nav-links.active {
+    right: 0;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a {
+    display: block;
+    width: 100%;
+    padding: 15px 0;
+    border-bottom: 1px solid #222;
+    font-size: 16px;
   }
 
   .mobile-search-bar {
-    display: flex !important;
+    display: flex;
+    width: 100%;
+    background: #111;
+    padding: 12px 14px;
+    box-sizing: border-box;
+  }
+
+  .mobile-search-bar input {
+    flex: 1;
+    height: 48px;
+    border: none;
+    outline: none;
+    padding: 0 16px;
+    font-size: 16px;
+    border-radius: 10px 0 0 10px;
+    background: #fff;
+    color: #000;
+    min-width: 0;
+  }
+
+  .mobile-search-bar button {
+    width: 58px;
+    height: 48px;
+    border: none;
+    background: #d4af37;
+    color: #000;
+    font-size: 22px;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
   }
 }
