@@ -28,10 +28,9 @@ function Cart() {
   const updateQuantity = (id, change) => {
     const updatedCart = cart.map((item) => {
       if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + change);
         return {
           ...item,
-          quantity: newQuantity,
+          quantity: Math.max(1, item.quantity + change),
         };
       }
       return item;
@@ -46,9 +45,9 @@ function Cart() {
     const message = cart
       .map(
         (item) =>
-          `• ${item.name}\nQty: ${item.quantity}\nPrice: GH₵ ${item.price}\nSubtotal: GH₵ ${
-            item.price * item.quantity
-          }`
+          `• ${item.name}\nQty: ${item.quantity}\nPrice: GH₵ ${
+            item.price
+          }\nSubtotal: GH₵ ${item.price * item.quantity}`
       )
       .join("\n\n");
 
@@ -110,6 +109,7 @@ Please assist me with my order.`;
       <section className="cart-page">
         <div className="cart-header">
           <h1>Your Cart</h1>
+          <p>Review your selected products before checkout.</p>
         </div>
 
         <div className="cart-items">
@@ -119,14 +119,17 @@ Please assist me with my order.`;
 
               <div className="cart-details">
                 <h3>{item.name}</h3>
-                <p>GH₵ {item.price}</p>
+                <p className="cart-price">GH₵ {item.price}</p>
 
                 <div className="cart-quantity">
                   <button onClick={() => updateQuantity(item.id, -1)}>-</button>
                   <span>{item.quantity}</span>
                   <button onClick={() => updateQuantity(item.id, 1)}>+</button>
                 </div>
+              </div>
 
+              <div className="cart-subtotal">
+                <span>Subtotal</span>
                 <h4>GH₵ {item.price * item.quantity}</h4>
 
                 <button
@@ -141,15 +144,29 @@ Please assist me with my order.`;
         </div>
 
         <div className="cart-total">
-          <h2>Total: GH₵ {total}</h2>
+          <div>
+            <span>Total</span>
+            <h2>GH₵ {total}</h2>
+          </div>
 
-          <button className="checkout-btn" onClick={checkoutOnWhatsApp}>
-            Checkout on WhatsApp
-          </button>
+          <div className="cart-total-actions">
+            <button className="checkout-btn" onClick={checkoutOnWhatsApp}>
+              Checkout on WhatsApp
+            </button>
 
-          <button className="clear-cart-btn" onClick={clearCart}>
-            Clear Cart
-          </button>
+            <button className="clear-cart-btn" onClick={clearCart}>
+              Clear Cart
+            </button>
+          </div>
+        </div>
+
+        <div className="continue-shopping">
+          <div>
+            <h3>Continue Shopping</h3>
+            <p>Discover more StreetBois Fashion products.</p>
+          </div>
+
+          <Link to="/shop">Shop Now</Link>
         </div>
       </section>
 
