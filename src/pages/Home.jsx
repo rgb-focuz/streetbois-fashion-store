@@ -12,13 +12,21 @@ function Home() {
   return (
     <>
       <Navbar />
+
       <Hero />
+
       <SearchSection />
+
       <Collections />
-      <Stats />
+
       <FeaturedProducts />
+
+      <Stats />
+
       <ContactSection />
+
       <Footer />
+
       <WhatsAppButton />
     </>
   );

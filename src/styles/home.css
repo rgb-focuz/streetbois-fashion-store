@@ -16,6 +16,16 @@ body {
   margin-bottom: 35px;
 }
 
+.search-section input {
+  width: 70%;
+  max-width: 900px;
+  padding: 22px;
+  background: transparent;
+  border: 1px solid #f6b800;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+}
 
 /* Stats */
 .stats {
