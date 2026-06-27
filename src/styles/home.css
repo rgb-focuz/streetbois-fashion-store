@@ -16,16 +16,6 @@ body {
   margin-bottom: 35px;
 }
 
-.search-section input {
-  width: 70%;
-  max-width: 900px;
-  padding: 22px;
-  background: transparent;
-  border: 1px solid #f6b800;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 18px;
-}
 
 /* Stats */
 .stats {
@@ -329,13 +319,20 @@ body {
 
 @media (max-width: 768px) {
   .search-box {
+    width: 100%;
+    padding: 0 5%;
+    display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 15px;
+    box-sizing: border-box;
   }
 
   .search-box input,
   .search-box button {
     width: 100%;
+    max-width: 640px;
+    box-sizing: border-box;
     border-radius: 8px;
   }
 
