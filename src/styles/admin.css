@@ -1116,3 +1116,144 @@
     width: 100%;
   }
 }
+
+/* ================= ADMIN MOBILE FIX ================= */
+
+@media (max-width: 768px) {
+  .admin-page {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    height: auto;
+    padding: 14px;
+    border-right: none;
+    border-bottom: 1px solid #d4af37;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: block;
+  }
+
+  .admin-sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .admin-sidebar button {
+    display: inline-block;
+    width: auto;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .admin-main {
+    padding: 18px 4%;
+  }
+
+  .admin-topbar {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .admin-topbar h1 {
+    font-size: 24px;
+  }
+
+  .admin-topbar p {
+    font-size: 14px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .dashboard-card {
+    padding: 20px;
+  }
+
+  .dashboard-card h1 {
+    font-size: 34px;
+  }
+
+  .dashboard-lists {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-card {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .admin-card h2 {
+    font-size: 22px;
+  }
+
+  .admin-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-product-table {
+    min-width: 900px;
+  }
+
+  .admin-filter-row,
+  .bulk-actions-bar,
+  .admin-table-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-search-box,
+  .admin-category-filter,
+  .bulk-actions-bar button,
+  .admin-table-actions button {
+    width: 100%;
+  }
+
+  .bulk-actions-bar p {
+    margin-left: 0;
+  }
+
+  .bulk-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-modal {
+    width: 95%;
+    grid-template-columns: 1fr;
+    max-height: 90vh;
+  }
+
+  .modal-product-img {
+    min-height: 260px;
+  }
+
+  .modal-details {
+    padding: 24px;
+  }
+
+  .modal-details h2 {
+    font-size: 26px;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pagination-controls button {
+    width: 100%;
+  }
+
+  .logout-btn.sidebar-logout {
+    margin-top: 10px;
+  }
+}
