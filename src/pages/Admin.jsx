@@ -874,6 +874,33 @@ const handleMultipleImages = (files) => {
     doc.save("streetbois-orders-report.pdf");
   };
 
+
+  const pageTitles = {
+    dashboard: "Dashboard",
+    products: "Add Products",
+    collections: "Collections",
+    manage: "Products",
+    analytics: "Analytics",
+    orders: "Orders",
+    reports: "Reports",
+    messages: "Messages",
+    settings: "Settings",
+    users: "Users",
+  };
+
+  const pageSubtitles = {
+    dashboard: "Welcome back, Admin 👋",
+    products: "Upload and manage product entries.",
+    collections: "Create and organize product collections.",
+    manage: "Search, edit, preview and manage inventory.",
+    analytics: "Track sales, revenue and store performance.",
+    orders: "Review customer orders and update status.",
+    reports: "Export product and order reports.",
+    messages: "Read customer contact messages.",
+    settings: "Manage store business details.",
+    users: "View registered customer accounts.",
+  };
+
   return (
     <section className={`admin-page ${isMobileMenuOpen ? "mobile-menu-open" : ""}`}>
       <div className="admin-mobile-topbar">
@@ -1005,17 +1032,16 @@ const handleMultipleImages = (files) => {
       </aside>
 
       <main className="admin-main">
-        <div className="admin-topbar">
+        <div className="admin-topbar premium-topbar">
           <div>
-            <h1>Admin Dashboard</h1>
-            <p>Manage products, collections, users and inventory.</p>
+            <h1>{pageTitles[activeTab] || "Dashboard"}</h1>
+            <p>{pageSubtitles[activeTab] || "Welcome back, Admin 👋"}</p>
           </div>
 
           <div className="admin-topbar-actions">
-            <div className="admin-date-card">
-              <span>Today</span>
+            <div className="admin-date-card premium-date-card">
               <strong>{formattedDate}</strong>
-              <small>{formattedTime}</small>
+              <small>🗓</small>
             </div>
 
             <button
@@ -1032,63 +1058,140 @@ const handleMultipleImages = (files) => {
         {message && <div className="admin-message">{message}</div>}
 
         {activeTab === "dashboard" && (
-          <div className="admin-dashboard">
-            <div className="dashboard-cards">
-              <div className="dashboard-card">
-                <h3>Total Products</h3>
-                <h1>{products.length}</h1>
+          <div className="admin-dashboard premium-dashboard">
+            <div className="dashboard-cards premium-stat-grid">
+              <div className="dashboard-card premium-stat-card">
+                <div className="stat-icon money">$</div>
+                <div>
+                  <h3>Total Revenue</h3>
+                  <h1>GH₵ {totalRevenue.toFixed(0)}</h1>
+                  <p className="stat-growth positive">+{Math.abs(growthCards[2].value).toFixed(1)}% from last month</p>
+                </div>
               </div>
 
-              <div className="dashboard-card">
-                <h3>Collections</h3>
-                <h1>{collections.length}</h1>
+              <div className="dashboard-card premium-stat-card">
+                <div className="stat-icon cart">🛒</div>
+                <div>
+                  <h3>Total Orders</h3>
+                  <h1>{orders.length}</h1>
+                  <p className="stat-growth positive">{pendingOrdersCount} pending orders</p>
+                </div>
               </div>
 
-              <div className="dashboard-card">
-                <h3>Registered Users</h3>
-                <h1>{profiles.length}</h1>
+              <div className="dashboard-card premium-stat-card">
+                <div className="stat-icon box">📦</div>
+                <div>
+                  <h3>Total Products</h3>
+                  <h1>{products.length}</h1>
+                  <p className="stat-growth positive">{collections.length} collections</p>
+                </div>
               </div>
 
-              <div className="dashboard-card">
-                <h3>Orders</h3>
-                <h1>{orders.length}</h1>
+              <div className="dashboard-card premium-stat-card">
+                <div className="stat-icon alert">⚠</div>
+                <div>
+                  <h3>Low Stock Items</h3>
+                  <h1>{restockProducts.length}</h1>
+                  <p className="stat-link" onClick={() => changeTab("manage")}>View and restock</p>
+                </div>
               </div>
             </div>
 
-            <div className="dashboard-lists">
-              <div className="admin-card">
-                <h2>Recent Products</h2>
+            <div className="premium-dashboard-grid">
+              <div className="admin-card sales-overview-card">
+                <div className="premium-card-header">
+                  <h2>Sales Overview</h2>
+                  <select className="mini-select" defaultValue="month">
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                  </select>
+                </div>
 
-                {products.slice(0, 5).map((product) => (
-                  <div className="dashboard-list-item" key={product.id}>
-                    <img src={product.image_url} alt={product.name} />
-                    <div>
-                      <h4>{product.name}</h4>
-                      <p>GH₵ {product.price}</p>
-                    </div>
+                <div className="line-chart-area">
+                  <svg viewBox="0 0 600 260" preserveAspectRatio="none" className="sales-line-chart">
+                    <defs>
+                      <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#d4af37" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#d4af37" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    <polyline
+                      points={monthlyRevenueChart
+                        .map((item, index) => {
+                          const x = (index / Math.max(monthlyRevenueChart.length - 1, 1)) * 600;
+                          const y = 230 - (item.revenue / maxMonthlyChartRevenue) * 185;
+                          return `${x},${Math.max(35, y)}`;
+                        })
+                        .join(" ")}
+                      fill="none"
+                      stroke="#d4af37"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <polygon
+                      points={`0,245 ${monthlyRevenueChart
+                        .map((item, index) => {
+                          const x = (index / Math.max(monthlyRevenueChart.length - 1, 1)) * 600;
+                          const y = 230 - (item.revenue / maxMonthlyChartRevenue) * 185;
+                          return `${x},${Math.max(35, y)}`;
+                        })
+                        .join(" ")} 600,245`}
+                      fill="url(#goldFill)"
+                    />
+                  </svg>
+
+                  <div className="chart-labels">
+                    {monthlyRevenueChart.map((item) => (
+                      <span key={item.label}>{item.label}</span>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
 
-              <div className="admin-card">
-                <h2>Low Stock Alerts</h2>
+              <div className="admin-card recent-orders-card">
+                <div className="premium-card-header">
+                  <h2>Recent Orders</h2>
+                  <button onClick={() => changeTab("orders")}>View all</button>
+                </div>
 
-                {products.filter((product) => product.stock <= 5).length ===
-                0 ? (
+                {recentOrders.length === 0 ? (
+                  <p>No orders yet.</p>
+                ) : (
+                  recentOrders.map((order) => (
+                    <div className="premium-order-row" key={order.id}>
+                      <div className="order-avatar">{(order.customer_name || "SB").slice(0, 2).toUpperCase()}</div>
+                      <div className="order-name">
+                        <h4>{order.customer_name}</h4>
+                        <p>#{String(order.id).slice(0, 6).toUpperCase()}</p>
+                      </div>
+                      <div className="order-total">
+                        <strong>GH₵ {Number(order.total || 0).toFixed(0)}</strong>
+                        <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="admin-card low-stock-showcase">
+              <div className="premium-card-header">
+                <h2>Low Stock Alerts</h2>
+                <button onClick={() => changeTab("manage")}>View all</button>
+              </div>
+
+              <div className="low-stock-cards">
+                {restockProducts.length === 0 ? (
                   <p>No low stock products.</p>
                 ) : (
-                  products
-                    .filter((product) => product.stock <= 5)
-                    .slice(0, 5)
-                    .map((product) => (
-                      <div className="dashboard-list-item" key={product.id}>
-                        <img src={product.image_url} alt={product.name} />
-                        <div>
-                          <h4>{product.name}</h4>
-                          <p>{product.stock} left</p>
-                        </div>
-                      </div>
-                    ))
+                  restockProducts.map((product) => (
+                    <div className="low-stock-product" key={product.id}>
+                      <img src={product.image_url} alt={product.name} />
+                      <h4>{product.name}</h4>
+                      <p>{Number(product.stock || 0)} left</p>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
