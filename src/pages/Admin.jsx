@@ -64,20 +64,30 @@ const [messageSearch, setMessageSearch] = useState("");
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [settings, setSettings] = useState(() => {
-    const savedSettings = localStorage.getItem("streetbois-admin-settings");
+  const defaultStoreSettings = {
+    store_name: "StreetBois Fashion",
+    phone: "0202430406",
+    whatsapp: "233202430406",
+    email: "apodeijoshuaagudey1@gmail.com",
+    address: "Tudu, Accra - Ghana",
+    business_hours: "Monday - Saturday, 8:30am - 6:00pm",
+    about:
+      "StreetBois Fashion is Ghana's premium wholesale destination for fashion, footwear and accessories.",
+    facebook: "",
+    instagram: "",
+    tiktok: "",
+    twitter: "",
+    google_map: "",
+    delivery_note: "Delivery available within Ghana.",
+    currency: "GH₵",
+    delivery_fee: "",
+    free_shipping_threshold: "",
+    tax_percentage: "",
+  };
 
-    return savedSettings
-      ? JSON.parse(savedSettings)
-      : {
-          businessName: "StreetBois Fashion",
-          phone: "0202430406",
-          whatsapp: "233202430406",
-          email: "apodeijoshuaagudey1@gmail.com",
-          address: "Accra (TUDU), Ghana",
-          deliveryNote: "Delivery available within Ghana.",
-        };
-  });
+  const [settings, setSettings] = useState(defaultStoreSettings);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
 
   const categories = [
@@ -112,9 +122,69 @@ const [messageSearch, setMessageSearch] = useState("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const saveSettings = () => {
-    localStorage.setItem("streetbois-admin-settings", JSON.stringify(settings));
-    setMessage("Settings saved successfully.");
+  const updateSettingsField = (field, value) => {
+    setSettings((current) => ({ ...current, [field]: value }));
+  };
+
+  const fetchStoreSettings = async () => {
+    setSettingsLoading(true);
+
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (!error && data) {
+      setSettings({ ...defaultStoreSettings, ...data });
+    }
+
+    setSettingsLoading(false);
+  };
+
+  const saveSettings = async () => {
+    setSettingsSaving(true);
+    setMessage("");
+
+    const payload = {
+      store_name: settings.store_name,
+      phone: settings.phone,
+      whatsapp: settings.whatsapp,
+      email: settings.email,
+      address: settings.address,
+      business_hours: settings.business_hours,
+      about: settings.about,
+      facebook: settings.facebook,
+      instagram: settings.instagram,
+      tiktok: settings.tiktok,
+      twitter: settings.twitter,
+      google_map: settings.google_map,
+      delivery_note: settings.delivery_note,
+      currency: settings.currency,
+      delivery_fee: settings.delivery_fee === "" ? null : Number(settings.delivery_fee),
+      free_shipping_threshold:
+        settings.free_shipping_threshold === ""
+          ? null
+          : Number(settings.free_shipping_threshold),
+      tax_percentage:
+        settings.tax_percentage === "" ? null : Number(settings.tax_percentage),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from("store_settings")
+      .update(payload)
+      .eq("id", 1);
+
+    if (error) {
+      setMessage(error.message);
+      setSettingsSaving(false);
+      return;
+    }
+
+    setMessage("Store settings saved successfully.");
+    fetchStoreSettings();
+    setSettingsSaving(false);
   };
 
   useEffect(() => {
@@ -123,6 +193,7 @@ const [messageSearch, setMessageSearch] = useState("");
     fetchProfiles();
     fetchOrders();
     fetchContactMessages();
+    fetchStoreSettings();
   }, []);
 
   useEffect(() => {
@@ -2222,80 +2293,294 @@ const handleMultipleImages = (files) => {
         )}
 
         {activeTab === "settings" && (
-          <div className="settings-page">
-            <div className="admin-card settings-card">
-              <h2>Business Settings</h2>
-              <p className="admin-muted-text">
-                Manage the business details used across your admin workflow.
-              </p>
-
-              <div className="settings-grid">
-                <label>
-                  Business Name
-                  <input
-                    value={settings.businessName}
-                    onChange={(e) =>
-                      setSettings({ ...settings, businessName: e.target.value })
-                    }
-                  />
-                </label>
-
-                <label>
-                  Phone Number
-                  <input
-                    value={settings.phone}
-                    onChange={(e) =>
-                      setSettings({ ...settings, phone: e.target.value })
-                    }
-                  />
-                </label>
-
-                <label>
-                  WhatsApp Number
-                  <input
-                    value={settings.whatsapp}
-                    onChange={(e) =>
-                      setSettings({ ...settings, whatsapp: e.target.value })
-                    }
-                  />
-                </label>
-
-                <label>
-                  Email Address
-                  <input
-                    type="email"
-                    value={settings.email}
-                    onChange={(e) =>
-                      setSettings({ ...settings, email: e.target.value })
-                    }
-                  />
-                </label>
+          <div className="settings-page advanced-settings-page">
+            <div className="admin-card settings-hero-card">
+              <div>
+                <span>Store Management Center</span>
+                <h2>{settings.store_name || "StreetBois Fashion"}</h2>
+                <p className="admin-muted-text">
+                  Update your store identity, contact details, delivery rules,
+                  business hours and social media links from one place.
+                </p>
               </div>
 
-              <label className="settings-full-label">
-                Store Address
-                <textarea
-                  value={settings.address}
-                  onChange={(e) =>
-                    setSettings({ ...settings, address: e.target.value })
-                  }
-                ></textarea>
-              </label>
-
-              <label className="settings-full-label">
-                Delivery Note
-                <textarea
-                  value={settings.deliveryNote}
-                  onChange={(e) =>
-                    setSettings({ ...settings, deliveryNote: e.target.value })
-                  }
-                ></textarea>
-              </label>
-
-              <button className="save-settings-btn" onClick={saveSettings}>
-                Save Settings
-              </button>
+              <div className="settings-status-card">
+                <small>Last Updated</small>
+                <strong>
+                  {settings.updated_at
+                    ? new Date(settings.updated_at).toLocaleString()
+                    : "Not saved yet"}
+                </strong>
+              </div>
             </div>
+
+            {settingsLoading ? (
+              <div className="admin-card">Loading store settings...</div>
+            ) : (
+              <>
+                <div className="settings-section-grid">
+                  <div className="admin-card settings-card">
+                    <div className="settings-section-title">
+                      <span>🏪</span>
+                      <div>
+                        <h2>Store Information</h2>
+                        <p>Basic public information about your business.</p>
+                      </div>
+                    </div>
+
+                    <div className="settings-grid">
+                      <label>
+                        Store Name
+                        <input
+                          value={settings.store_name || ""}
+                          onChange={(e) =>
+                            updateSettingsField("store_name", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        Business Hours
+                        <input
+                          value={settings.business_hours || ""}
+                          onChange={(e) =>
+                            updateSettingsField("business_hours", e.target.value)
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <label className="settings-full-label">
+                      Store Address
+                      <textarea
+                        value={settings.address || ""}
+                        onChange={(e) =>
+                          updateSettingsField("address", e.target.value)
+                        }
+                      ></textarea>
+                    </label>
+
+                    <label className="settings-full-label">
+                      About Store
+                      <textarea
+                        value={settings.about || ""}
+                        onChange={(e) =>
+                          updateSettingsField("about", e.target.value)
+                        }
+                      ></textarea>
+                    </label>
+                  </div>
+
+                  <div className="admin-card settings-card">
+                    <div className="settings-section-title">
+                      <span>📞</span>
+                      <div>
+                        <h2>Contact Details</h2>
+                        <p>Used on Contact page, customer support and checkout.</p>
+                      </div>
+                    </div>
+
+                    <div className="settings-grid">
+                      <label>
+                        Phone Number
+                        <input
+                          value={settings.phone || ""}
+                          onChange={(e) =>
+                            updateSettingsField("phone", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        WhatsApp Number
+                        <input
+                          value={settings.whatsapp || ""}
+                          onChange={(e) =>
+                            updateSettingsField("whatsapp", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        Email Address
+                        <input
+                          type="email"
+                          value={settings.email || ""}
+                          onChange={(e) =>
+                            updateSettingsField("email", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        Currency
+                        <input
+                          value={settings.currency || ""}
+                          onChange={(e) =>
+                            updateSettingsField("currency", e.target.value)
+                          }
+                          placeholder="GH₵"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="settings-section-grid">
+                  <div className="admin-card settings-card">
+                    <div className="settings-section-title">
+                      <span>🚚</span>
+                      <div>
+                        <h2>Delivery & Payments</h2>
+                        <p>Configure delivery fee, free delivery and VAT.</p>
+                      </div>
+                    </div>
+
+                    <div className="settings-grid">
+                      <label>
+                        Delivery Fee
+                        <input
+                          type="number"
+                          value={settings.delivery_fee ?? ""}
+                          onChange={(e) =>
+                            updateSettingsField("delivery_fee", e.target.value)
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+
+                      <label>
+                        Free Shipping Threshold
+                        <input
+                          type="number"
+                          value={settings.free_shipping_threshold ?? ""}
+                          onChange={(e) =>
+                            updateSettingsField(
+                              "free_shipping_threshold",
+                              e.target.value
+                            )
+                          }
+                          placeholder="e.g. 500"
+                        />
+                      </label>
+
+                      <label>
+                        Tax / VAT Percentage
+                        <input
+                          type="number"
+                          value={settings.tax_percentage ?? ""}
+                          onChange={(e) =>
+                            updateSettingsField("tax_percentage", e.target.value)
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+                    </div>
+
+                    <label className="settings-full-label">
+                      Delivery Note
+                      <textarea
+                        value={settings.delivery_note || ""}
+                        onChange={(e) =>
+                          updateSettingsField("delivery_note", e.target.value)
+                        }
+                      ></textarea>
+                    </label>
+                  </div>
+
+                  <div className="admin-card settings-card">
+                    <div className="settings-section-title">
+                      <span>🌐</span>
+                      <div>
+                        <h2>Social Media & Map</h2>
+                        <p>Add your official social pages and Google Map link.</p>
+                      </div>
+                    </div>
+
+                    <div className="settings-grid">
+                      <label>
+                        Facebook URL
+                        <input
+                          value={settings.facebook || ""}
+                          onChange={(e) =>
+                            updateSettingsField("facebook", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        Instagram URL
+                        <input
+                          value={settings.instagram || ""}
+                          onChange={(e) =>
+                            updateSettingsField("instagram", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        TikTok URL
+                        <input
+                          value={settings.tiktok || ""}
+                          onChange={(e) =>
+                            updateSettingsField("tiktok", e.target.value)
+                          }
+                        />
+                      </label>
+
+                      <label>
+                        X / Twitter URL
+                        <input
+                          value={settings.twitter || ""}
+                          onChange={(e) =>
+                            updateSettingsField("twitter", e.target.value)
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <label className="settings-full-label">
+                      Google Maps Link or Embed URL
+                      <textarea
+                        value={settings.google_map || ""}
+                        onChange={(e) =>
+                          updateSettingsField("google_map", e.target.value)
+                        }
+                        placeholder="Paste Google Maps link here"
+                      ></textarea>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="admin-card settings-save-panel">
+                  <div>
+                    <h2>Save Store Settings</h2>
+                    <p>
+                      Changes are saved to Supabase and can be used across your
+                      website pages.
+                    </p>
+                  </div>
+
+                  <div className="settings-save-actions">
+                    <button
+                      className="settings-secondary-btn"
+                      onClick={fetchStoreSettings}
+                      disabled={settingsSaving}
+                    >
+                      Reset
+                    </button>
+
+                    <button
+                      className="save-settings-btn"
+                      onClick={saveSettings}
+                      disabled={settingsSaving}
+                    >
+                      {settingsSaving ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 

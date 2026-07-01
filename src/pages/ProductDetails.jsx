@@ -76,39 +76,50 @@ useEffect(() => {
   };
 
   const submitReview = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!reviewName.trim() || !reviewText.trim()) {
-  alert("Please enter your name and review.");
-  return;
-}
+  if (!reviewName.trim() || !reviewText.trim()) {
+    alert("Please enter your name and review.");
+    return;
+  }
 
-if (reviewText.trim().length < 10) {
-  alert("Review must be at least 10 characters.");
-  return;
-}
+  if (reviewText.trim().length < 10) {
+    alert("Review must be at least 10 characters.");
+    return;
+  }
 
   const alreadyReviewed = reviews.find(
-  (review) =>
-    review.customer_name.toLowerCase() === reviewName.trim().toLowerCase()
-);
+    (review) =>
+      review.customer_name.toLowerCase() === reviewName.trim().toLowerCase()
+  );
 
-if (alreadyReviewed) {
-  alert("You have already reviewed this product.");
-  return;
-}
+  if (alreadyReviewed) {
+    alert("You have already reviewed this product.");
+    return;
+  }
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+  const { error } = await supabase
+    .from("reviews")
+    .insert({
+      product_id: id,
+      customer_name: reviewName.trim(),
+      rating: reviewRating,
+      review: reviewText.trim(),
+    });
 
-    setReviewName("");
-    setReviewRating(5);
-    setReviewText("");
-    fetchReviews();
-    alert("Review submitted successfully.");
-  };
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  setReviewName("");
+  setReviewRating(5);
+  setReviewText("");
+
+  await fetchReviews();
+
+  alert("Review submitted successfully.");
+};
 
   const averageRating =
     reviews.length > 0

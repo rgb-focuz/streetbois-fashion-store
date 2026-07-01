@@ -8,10 +8,30 @@ function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
+    loadWishlist();
+
+    window.addEventListener("wishlistUpdated", loadWishlist);
+    window.addEventListener("storage", loadWishlist);
+
+    return () => {
+      window.removeEventListener("wishlistUpdated", loadWishlist);
+      window.removeEventListener("storage", loadWishlist);
+    };
+  }, []);
+
+  const loadWishlist = () => {
     const savedWishlist =
       JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
     setWishlist(savedWishlist);
-  }, []);
+  };
+
+  const clearWishlist = () => {
+    if (!window.confirm("Clear all wishlist items?")) return;
+
+    localStorage.removeItem("streetbois-wishlist");
+    setWishlist([]);
+    window.dispatchEvent(new Event("wishlistUpdated"));
+  };
 
   if (wishlist.length === 0) {
     return (
@@ -42,12 +62,21 @@ function Wishlist() {
       <section className="wishlist-page">
         <div className="wishlist-header">
           <h1>My Wishlist</h1>
-          <p>Your saved StreetBois Fashion favourites.</p>
+          <p>{wishlist.length} saved product{wishlist.length > 1 ? "s" : ""}.</p>
+
+          <button className="clear-wishlist-btn" onClick={clearWishlist}>
+            Clear Wishlist
+          </button>
         </div>
 
         <div className="product-grid-universal">
           {wishlist.map((product) => (
-            <ProductCard key={product.id} product={product} showWishlist={false} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              showWishlist={true}
+              showWhatsApp={true}
+            />
           ))}
         </div>
       </section>

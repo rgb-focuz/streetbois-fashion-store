@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { supabase } from "../supabaseClient";
 import "../styles/contact.css";
 
 function Contact() {
+  const defaultSettings = {
+    store_name: "StreetBois Fashion",
+    phone: "0202430406",
+    whatsapp: "233202430406",
+    email: "apodeijoshuaagudey1@gmail.com",
+    address: "Tudu, Accra - Ghana",
+    business_hours: "Monday - Saturday, 8:30am - 6:00pm",
+    about:
+      "StreetBois Fashion is Ghana's premium wholesale destination for fashion, footwear and accessories.",
+    google_map: "",
+  };
+
+  const [storeSettings, setStoreSettings] = useState(defaultSettings);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,8 +31,32 @@ function Contact() {
   const [formMessage, setFormMessage] = useState("");
   const [formStatus, setFormStatus] = useState("");
 
+  useEffect(() => {
+    fetchStoreSettings();
+  }, []);
+
+  const fetchStoreSettings = async () => {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (!error && data) {
+      setStoreSettings({ ...defaultSettings, ...data });
+    }
+  };
+
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const formatWhatsAppLink = (number) => {
+    const cleaned = String(number || "")
+      .replace(/\D/g, "")
+      .replace(/^0/, "233");
+
+    return `https://wa.me/${cleaned || "233202430406"}`;
   };
 
   const handleSubmit = async (e) => {
@@ -51,7 +89,9 @@ function Contact() {
     }
 
     setFormStatus("success");
-    setFormMessage("Message sent successfully. StreetBois Fashion will get back to you soon.");
+    setFormMessage(
+      `Message sent successfully. ${storeSettings.store_name} will get back to you soon.`
+    );
     setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     setLoading(false);
   };
@@ -62,20 +102,28 @@ function Contact() {
 
       <section className="contact-page">
         <div className="contact-header">
-          <h1>Contact StreetBois Fashion</h1>
-          <p>Reach us for orders, wholesale enquiries, delivery support and product availability.</p>
+          <h1>Contact {storeSettings.store_name}</h1>
+          <p>{storeSettings.about}</p>
         </div>
 
         <div className="contact-grid">
           <div className="contact-info">
             <h2>Get In Touch</h2>
-            <p><strong>Phone / WhatsApp:</strong> 0202430406</p>
-            <p><strong>Email:</strong> apodeijoshuaagudey1@gmail.com</p>
-            <p><strong>Location:</strong> Tudu, Accra - Ghana</p>
-            <p><strong>Working Hours:</strong> Monday - Saturday, 8:30am - 6:00pm</p>
+            <p>
+              <strong>Phone / WhatsApp:</strong> {storeSettings.phone}
+            </p>
+            <p>
+              <strong>Email:</strong> {storeSettings.email}
+            </p>
+            <p>
+              <strong>Location:</strong> {storeSettings.address}
+            </p>
+            <p>
+              <strong>Working Hours:</strong> {storeSettings.business_hours}
+            </p>
 
             <a
-              href="https://wa.me/233202430406"
+              href={formatWhatsAppLink(storeSettings.whatsapp)}
               target="_blank"
               rel="noreferrer"
               className="contact-whatsapp"
@@ -120,9 +168,7 @@ function Contact() {
             ></textarea>
 
             {formMessage && (
-              <div className={`contact-alert ${formStatus}`}>
-                {formMessage}
-              </div>
+              <div className={`contact-alert ${formStatus}`}>{formMessage}</div>
             )}
 
             <button type="submit" disabled={loading}>
@@ -132,7 +178,13 @@ function Contact() {
         </div>
 
         <div className="map-box">
-          Google Map Location Coming Soon
+          {storeSettings.google_map ? (
+            <a href={storeSettings.google_map} target="_blank" rel="noreferrer">
+              Open Google Map Location
+            </a>
+          ) : (
+            "Google Map Location Coming Soon"
+          )}
         </div>
       </section>
 

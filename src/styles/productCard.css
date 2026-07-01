@@ -108,3 +108,49 @@
     gap: 18px;
   }
 }
+
+.product-image-wrap {
+  position: relative;
+}
+
+.wishlist-heart {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d4af37;
+  background: #111;
+  color: #d4af37;
+  font-size: 24px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.3s;
+}
+
+.wishlist-heart:hover,
+.wishlist-heart.active {
+  background: #d4af37;
+  color: #000;
+}
+
+.universal-wishlist-btn {
+  transition: 0.3s;
+}
+
+.universal-wishlist-btn:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .wishlist-heart {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    top: 8px;
+    right: 8px;
+  }
+}

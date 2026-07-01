@@ -6,31 +6,43 @@ import logo from "../assets/logo.png";
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const [mobileSearch, setMobileSearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     updateCartCount();
+    updateWishlistCount();
 
     window.addEventListener("storage", updateCartCount);
+    window.addEventListener("storage", updateWishlistCount);
     window.addEventListener("cartUpdated", updateCartCount);
+    window.addEventListener("wishlistUpdated", updateWishlistCount);
 
     return () => {
       window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("storage", updateWishlistCount);
       window.removeEventListener("cartUpdated", updateCartCount);
+      window.removeEventListener("wishlistUpdated", updateWishlistCount);
     };
   }, []);
 
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
-    const count = cart.reduce((total, item) => total + item.quantity, 0);
-    setCartCount(count);
+    setCartCount(cart.reduce((total, item) => total + item.quantity, 0));
+  };
+
+  const updateWishlistCount = () => {
+    const wishlist =
+      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    setWishlistCount(wishlist.length);
   };
 
   const handleMobileSearch = () => {
     const value = mobileSearch.trim();
     if (!value) return;
     navigate(`/shop?search=${encodeURIComponent(value)}`);
+    setMenuOpen(false);
   };
 
   return (
@@ -45,28 +57,41 @@ function Navbar() {
           <h2>STREETBOIS FASHION</h2>
         </Link>
 
-        <Link to="/cart" className="mobile-cart">
-          🛒
-          {cartCount > 0 && <span>{cartCount}</span>}
-        </Link>
+        <div className="mobile-icons">
+          <Link to="/wishlist" className="mobile-icon-link">
+            ❤️
+            {wishlistCount > 0 && <span>{wishlistCount}</span>}
+          </Link>
+
+          <Link to="/cart" className="mobile-icon-link">
+            🛒
+            {cartCount > 0 && <span>{cartCount}</span>}
+          </Link>
+        </div>
 
         <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/shop">Shop</Link></li>
-          <li><Link to="/about">About</Link></li>
-          <li><Link to="/contact">Contact</Link></li>
-          <li><Link to="/faq">FAQ</Link></li>
-          <li><Link to="/wishlist">Wishlist</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/">Home</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/shop">Shop</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/about">About</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/contact">Contact</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/faq">FAQ</Link></li>
 
           <li>
-            <Link to="/cart" className="cart-link">
+            <Link onClick={() => setMenuOpen(false)} to="/wishlist" className="cart-link">
+              Wishlist
+              {wishlistCount > 0 && <span className="cart-count">{wishlistCount}</span>}
+            </Link>
+          </li>
+
+          <li>
+            <Link onClick={() => setMenuOpen(false)} to="/cart" className="cart-link">
               Cart
               {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
             </Link>
           </li>
 
-          <li><Link to="/recently-viewed">Recently Viewed</Link></li>
-          <li><Link to="/account">Account</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/recently-viewed">Recently Viewed</Link></li>
+          <li><Link onClick={() => setMenuOpen(false)} to="/account">Account</Link></li>
         </ul>
 
         <Link to="/shop" className="desktop-shop-btn">
@@ -82,7 +107,6 @@ function Navbar() {
           onChange={(e) => setMobileSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
         />
-
         <button onClick={handleMobileSearch}>🔍</button>
       </div>
     </header>
