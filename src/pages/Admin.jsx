@@ -898,6 +898,10 @@ const handleMultipleImages = (files) => {
       </aside>
 
       <main className="admin-main">
+      
+      <div className="admin-mobile-header">
+  <h2>STREETBOIS ADMIN</h2>
+</div>
         <div className="admin-topbar">
           <div>
             <h1>Admin Dashboard</h1>
