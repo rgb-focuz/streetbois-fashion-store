@@ -1187,9 +1187,14 @@ const handleMultipleImages = (files) => {
                 ) : (
                   restockProducts.map((product) => (
                     <div className="low-stock-product" key={product.id}>
-                      <img src={product.image_url} alt={product.name} />
-                      <h4>{product.name}</h4>
-                      <p>{Number(product.stock || 0)} left</p>
+                      <div className="low-stock-image-frame">
+                        <img src={product.image_url} alt={product.name} />
+                      </div>
+
+                      <div className="low-stock-info">
+                        <h4>{product.name}</h4>
+                        <p>{Number(product.stock || 0)} left</p>
+                      </div>
                     </div>
                   ))
                 )}

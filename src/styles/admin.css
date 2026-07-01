@@ -2331,75 +2331,128 @@
   }
 }
 
-/* ================= Low Stock Premium Cards Fix ================= */
+/* ================= Low Stock Cards - Final Premium Responsive Layout ================= */
+/* This section intentionally overrides the earlier low-stock rules so the
+   dashboard cards use the same balanced square image style as collection/product cards. */
 
-.low-stock-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 22px;
-}
-
-.low-stock-card {
-  background: #0b0b0b;
-  border: 1px solid #252525;
-  border-radius: 14px;
-  padding: 14px;
+.low-stock-showcase {
   overflow: hidden;
 }
 
-.low-stock-card img {
+.low-stock-cards {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(150px, 1fr)) !important;
+  gap: 22px !important;
+  align-items: stretch;
+}
+
+.low-stock-product {
+  background: #101112 !important;
+  border: 1px solid var(--sb-border) !important;
+  border-radius: 16px !important;
+  padding: 14px !important;
+  min-height: auto !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.low-stock-product:hover {
+  border-color: var(--sb-gold) !important;
+  transform: translateY(-3px);
+}
+
+.low-stock-image-frame {
   width: 100%;
-  height: 150px;
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
   background: #fff;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.low-stock-product .low-stock-image-frame img,
+.low-stock-product img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
   display: block;
 }
 
-.low-stock-card h4 {
-  color: #fff;
-  font-size: 15px;
-  margin: 14px 0 6px;
+.low-stock-info {
+  min-height: 54px;
 }
 
-.low-stock-card p {
-  color: #ff5b5b;
+.low-stock-product h4 {
+  color: #fff !important;
+  font-size: 15px !important;
+  line-height: 1.25;
+  margin: 0 0 6px !important;
   font-weight: 900;
-  margin: 0;
+  text-transform: none;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-@media (max-width: 1100px) {
-  .low-stock-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.low-stock-product p {
+  color: var(--sb-danger) !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  margin: 0 !important;
+}
 
-  .low-stock-card img {
-    height: 140px;
+@media (max-width: 1200px) {
+  .low-stock-cards {
+    grid-template-columns: repeat(4, minmax(145px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .low-stock-cards {
+    grid-template-columns: repeat(3, minmax(140px, 1fr)) !important;
+    gap: 18px !important;
   }
 }
 
 @media (max-width: 768px) {
-  .low-stock-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+  .low-stock-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
   }
 
-  .low-stock-card {
+  .low-stock-product {
+    border-radius: 14px !important;
+    padding: 12px !important;
+  }
+
+  .low-stock-image-frame {
+    border-radius: 12px;
     padding: 12px;
-  }
-
-  .low-stock-card img {
-    height: 120px;
   }
 }
 
-@media (max-width: 480px) {
-  .low-stock-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 420px) {
+  .low-stock-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
   }
 
-  .low-stock-card img {
-    height: 170px;
+  .low-stock-product h4 {
+    font-size: 13px !important;
+  }
+
+  .low-stock-product p {
+    font-size: 12px !important;
   }
 }
