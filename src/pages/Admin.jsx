@@ -717,6 +717,10 @@ const handleMultipleImages = (files) => {
     .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0))
     .slice(0, 5);
 
+  const pendingOrdersCount = orders.filter((order) => order.status === "Pending").length;
+  const unreadMessagesCount = 0;
+  const notificationCount = pendingOrdersCount + restockProducts.length + unreadMessagesCount;
+
   const productCategoryMap = {};
   products.forEach((product) => {
     productCategoryMap[product.name] = product.category || "Uncategorized";
@@ -885,6 +889,15 @@ const handleMultipleImages = (files) => {
           <h2>STREETBOIS ADMIN</h2>
           <p>{formattedDate}</p>
         </div>
+
+        <button
+          className="admin-notification-btn mobile"
+          onClick={() => changeTab("orders")}
+          aria-label="Open notifications"
+        >
+          🔔
+          {notificationCount > 0 && <span>{notificationCount}</span>}
+        </button>
       </div>
 
       {isMobileMenuOpen && (
@@ -904,6 +917,14 @@ const handleMultipleImages = (files) => {
           >
             ×
           </button>
+        </div>
+
+        <div className="admin-profile-card">
+          <div className="admin-profile-avatar">JA</div>
+          <div>
+            <h3>Joshua Apodei</h3>
+            <p>Administrator</p>
+          </div>
         </div>
 
         <button
@@ -990,10 +1011,21 @@ const handleMultipleImages = (files) => {
             <p>Manage products, collections, users and inventory.</p>
           </div>
 
-          <div className="admin-date-card">
-            <span>Today</span>
-            <strong>{formattedDate}</strong>
-            <small>{formattedTime}</small>
+          <div className="admin-topbar-actions">
+            <div className="admin-date-card">
+              <span>Today</span>
+              <strong>{formattedDate}</strong>
+              <small>{formattedTime}</small>
+            </div>
+
+            <button
+              className="admin-notification-btn"
+              onClick={() => changeTab("orders")}
+              aria-label="Open notifications"
+            >
+              🔔
+              {notificationCount > 0 && <span>{notificationCount}</span>}
+            </button>
           </div>
         </div>
 
@@ -1890,6 +1922,21 @@ const handleMultipleImages = (files) => {
             <p className="admin-muted-text">
               Customer contact messages will appear here once the contact form is connected to Supabase.
             </p>
+
+            <div className="notification-summary-grid">
+              <div>
+                <span>Pending Orders</span>
+                <strong>{pendingOrdersCount}</strong>
+              </div>
+              <div>
+                <span>Low Stock Alerts</span>
+                <strong>{restockProducts.length}</strong>
+              </div>
+              <div>
+                <span>Unread Messages</span>
+                <strong>{unreadMessagesCount}</strong>
+              </div>
+            </div>
 
             <div className="empty-state-card">
               <h3>💬 No messages yet</h3>
