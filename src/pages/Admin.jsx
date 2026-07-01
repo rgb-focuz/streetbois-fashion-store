@@ -47,6 +47,13 @@ const [contactMessages, setContactMessages] = useState([]);
 const [selectedMessage, setSelectedMessage] = useState(null);
 const [messageFilter, setMessageFilter] = useState("All");
 const [messageSearch, setMessageSearch] = useState("");
+const [inventoryHistory, setInventoryHistory] = useState([]);
+const [historySearch, setHistorySearch] = useState("");
+const [historyFilter, setHistoryFilter] = useState("All");
+const [reviews, setReviews] = useState([]);
+const [analyticsStartDate, setAnalyticsStartDate] = useState("");
+const [analyticsEndDate, setAnalyticsEndDate] = useState("");
+const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -194,6 +201,8 @@ const [messageSearch, setMessageSearch] = useState("");
     fetchOrders();
     fetchContactMessages();
     fetchStoreSettings();
+    fetchInventoryHistory();
+    fetchReviews();
   }, []);
 
   useEffect(() => {
@@ -262,6 +271,50 @@ const [messageSearch, setMessageSearch] = useState("");
     if (!error) {
       setContactMessages(data || []);
     }
+  };
+
+  const fetchInventoryHistory = async () => {
+    const { data, error } = await supabase
+      .from("inventory_history")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setInventoryHistory(data || []);
+    }
+  };
+
+  const fetchReviews = async () => {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setReviews(data || []);
+    }
+  };
+
+  const recordInventoryHistory = async ({
+    productId,
+    productName,
+    oldStock,
+    newStock,
+    actionType = "Stock Update",
+    reason = "Manual admin update",
+  }) => {
+    if (Number(oldStock) === Number(newStock)) return;
+
+    await supabase.from("inventory_history").insert({
+      product_id: productId,
+      product_name: productName,
+      old_stock: Number(oldStock || 0),
+      new_stock: Number(newStock || 0),
+      quantity_changed: Number(newStock || 0) - Number(oldStock || 0),
+      action_type: actionType,
+      reason: reason || "Manual admin update",
+      changed_by: "Administrator",
+    });
   };
 
   const markMessageAsRead = async (id, isRead = true) => {
@@ -474,6 +527,8 @@ const handleMultipleImages = (files) => {
       category: product.category,
       description: product.description || "",
       stock: product.stock || 0,
+      original_stock: product.stock || 0,
+      stock_reason: "Manual admin update",
       featured: product.featured || false,
       status: product.status || "Active",
       image_url: product.image_url,
@@ -494,6 +549,9 @@ const handleMultipleImages = (files) => {
         );
       }
 
+      const oldStock = Number(editingProduct.original_stock || 0);
+      const newStock = Number(editingProduct.stock || 0);
+
       const { error } = await supabase
         .from("products")
         .update({
@@ -510,9 +568,19 @@ const handleMultipleImages = (files) => {
 
       if (error) throw error;
 
+      await recordInventoryHistory({
+        productId: editingProduct.id,
+        productName: editingProduct.name,
+        oldStock,
+        newStock,
+        actionType: "Stock Update",
+        reason: editingProduct.stock_reason || "Manual admin update",
+      });
+
       setMessage("Product updated successfully.");
       setEditingProduct(null);
       fetchProducts();
+      fetchInventoryHistory();
     } catch (error) {
       setMessage(error.message);
     }
@@ -663,7 +731,61 @@ const handleMultipleImages = (files) => {
     }
   };
 
-  const activeOrders = orders.filter((order) => order.status !== "Cancelled");
+  const baseActiveOrders = orders.filter((order) => order.status !== "Cancelled");
+
+  const activeOrders = baseActiveOrders.filter((order) => {
+    const orderDate = new Date(order.created_at);
+
+    if (analyticsStartDate) {
+      const start = new Date(`${analyticsStartDate}T00:00:00`);
+      if (orderDate < start) return false;
+    }
+
+    if (analyticsEndDate) {
+      const end = new Date(`${analyticsEndDate}T23:59:59`);
+      if (orderDate > end) return false;
+    }
+
+    return true;
+  });
+
+  const applyAnalyticsRange = (range) => {
+    const todayValue = new Date();
+    const formatInputDate = (date) => date.toISOString().split("T")[0];
+
+    if (range === "Today") {
+      const value = formatInputDate(todayValue);
+      setAnalyticsStartDate(value);
+      setAnalyticsEndDate(value);
+    }
+
+    if (range === "7 Days") {
+      const start = new Date(todayValue);
+      start.setDate(start.getDate() - 6);
+      setAnalyticsStartDate(formatInputDate(start));
+      setAnalyticsEndDate(formatInputDate(todayValue));
+    }
+
+    if (range === "30 Days") {
+      const start = new Date(todayValue);
+      start.setDate(start.getDate() - 29);
+      setAnalyticsStartDate(formatInputDate(start));
+      setAnalyticsEndDate(formatInputDate(todayValue));
+    }
+
+    if (range === "This Month") {
+      const start = new Date(todayValue.getFullYear(), todayValue.getMonth(), 1);
+      setAnalyticsStartDate(formatInputDate(start));
+      setAnalyticsEndDate(formatInputDate(todayValue));
+    }
+
+    if (range === "All Time") {
+      setAnalyticsStartDate("");
+      setAnalyticsEndDate("");
+    }
+
+    setAnalyticsQuickRange(range);
+  };
 
   const totalRevenue = activeOrders.reduce(
     (sum, order) => sum + Number(order.total || 0),
@@ -860,6 +982,25 @@ const handleMultipleImages = (files) => {
     return matchesFilter && matchesSearch;
   });
 
+  const filteredInventoryHistory = inventoryHistory.filter((item) => {
+    const matchesFilter =
+      historyFilter === "All" || item.action_type === historyFilter;
+
+    const searchValue = `${item.product_name || ""} ${item.reason || ""} ${
+      item.changed_by || ""
+    }`.toLowerCase();
+
+    return matchesFilter && searchValue.includes(historySearch.toLowerCase());
+  });
+
+  const totalStockIncreases = inventoryHistory.filter(
+    (item) => Number(item.quantity_changed || 0) > 0
+  ).length;
+
+  const totalStockReductions = inventoryHistory.filter(
+    (item) => Number(item.quantity_changed || 0) < 0
+  ).length;
+
   const productCategoryMap = {};
   products.forEach((product) => {
     productCategoryMap[product.name] = product.category || "Uncategorized";
@@ -896,6 +1037,199 @@ const handleMultipleImages = (files) => {
     }))
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 5);
+
+
+  const completedOrders = orders.filter((order) => order.status === "Delivered").length;
+  const cancelledOrders = orders.filter((order) => order.status === "Cancelled").length;
+  const conversionStatusRate =
+    orders.length > 0 ? ((completedOrders / orders.length) * 100).toFixed(1) : "0.0";
+
+  const weekSales = activeOrders.filter((order) => {
+    const orderDate = new Date(order.created_at);
+    return orderDate >= weekStart && orderDate <= now;
+  });
+
+  const weeklyOrdersCount = weekSales.length;
+
+  const dailySalesTrend = Array.from({ length: 7 }).map((_, index) => {
+    const date = new Date(todayStart);
+    date.setDate(date.getDate() - (6 - index));
+
+    const dayRevenue = activeOrders
+      .filter((order) => {
+        const orderDate = new Date(order.created_at);
+        return orderDate.toDateString() === date.toDateString();
+      })
+      .reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+    return {
+      label: date.toLocaleDateString("en-GB", { weekday: "short" }),
+      revenue: dayRevenue,
+    };
+  });
+
+  const maxDailyRevenue = Math.max(...dailySalesTrend.map((item) => item.revenue), 1);
+
+  const hourlySalesTrend = Array.from({ length: 12 }).map((_, index) => {
+    const hour = index * 2;
+    const revenue = todaySales
+      .filter((order) => new Date(order.created_at).getHours() >= hour && new Date(order.created_at).getHours() < hour + 2)
+      .reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+    return {
+      label: `${String(hour).padStart(2, "0")}:00`,
+      revenue,
+    };
+  });
+
+  const maxHourlyRevenue = Math.max(...hourlySalesTrend.map((item) => item.revenue), 1);
+
+  const productReviewMap = {};
+  reviews.forEach((review) => {
+    if (!review.product_id) return;
+    if (!productReviewMap[review.product_id]) {
+      productReviewMap[review.product_id] = { total: 0, count: 0 };
+    }
+    productReviewMap[review.product_id].total += Number(review.rating || 0);
+    productReviewMap[review.product_id].count += 1;
+  });
+
+  const topRatedProducts = products
+    .map((product) => {
+      const reviewData = productReviewMap[product.id];
+      const count = reviewData ? reviewData.count : 0;
+      const average = count > 0 ? reviewData.total / count : 0;
+      return { ...product, review_count: count, average_rating: average };
+    })
+    .filter((product) => product.review_count > 0)
+    .sort((a, b) => b.average_rating - a.average_rating || b.review_count - a.review_count)
+    .slice(0, 5);
+
+  const fastestSellingProducts = [...salesProducts]
+    .map((item) => {
+      const product = products.find((prod) => prod.name === item.name);
+      const daysLive = product?.created_at
+        ? Math.max(1, Math.ceil((now - new Date(product.created_at)) / (1000 * 60 * 60 * 24)))
+        : 1;
+      return {
+        ...item,
+        sales_velocity: item.quantity / daysLive,
+      };
+    })
+    .sort((a, b) => b.sales_velocity - a.sales_velocity)
+    .slice(0, 5);
+
+  const slowMovingInventory = products
+    .map((product) => {
+      const soldData = productSalesMap[product.name];
+      const sold = soldData ? soldData.quantity : 0;
+      const stock = Number(product.stock || 0);
+      return {
+        ...product,
+        sold,
+        stock_value: stock * Number(product.price || 0),
+      };
+    })
+    .filter((product) => Number(product.stock || 0) > 0)
+    .sort((a, b) => a.sold - b.sold || b.stock_value - a.stock_value)
+    .slice(0, 5);
+
+  const mostViewedProducts = [...products]
+    .map((product) => ({
+      ...product,
+      views: Number(product.views || product.view_count || product.analytics_views || 0),
+    }))
+    .filter((product) => product.views > 0)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 5);
+
+  const mostWishlistedProducts = [...products]
+    .map((product) => ({
+      ...product,
+      wishlist_count: Number(product.wishlist_count || product.wishlist_total || 0),
+    }))
+    .filter((product) => product.wishlist_count > 0)
+    .sort((a, b) => b.wishlist_count - a.wishlist_count)
+    .slice(0, 5);
+
+  const inventoryValue = products.reduce(
+    (sum, product) => sum + Number(product.stock || 0) * Number(product.price || 0),
+    0
+  );
+
+  const estimatedProfit = totalRevenue * 0.3;
+
+  const analyticsKpis = [
+    {
+      title: "Today Revenue",
+      value: `GH₵ ${todayRevenue.toFixed(2)}`,
+      note: `${todaySales.length} orders today`,
+      trend: growthCards[0].value,
+    },
+    {
+      title: "Weekly Revenue",
+      value: `GH₵ ${weeklyRevenue.toFixed(2)}`,
+      note: `${weeklyOrdersCount} orders this week`,
+      trend: growthCards[1].value,
+    },
+    {
+      title: "Average Order Value",
+      value: `GH₵ ${averageOrderValue.toFixed(2)}`,
+      note: "Average customer basket",
+      trend: 0,
+    },
+    {
+      title: "Completion Rate",
+      value: `${conversionStatusRate}%`,
+      note: `${completedOrders} delivered · ${cancelledOrders} cancelled`,
+      trend: Number(conversionStatusRate),
+    },
+    {
+      title: "Inventory Value",
+      value: `GH₵ ${inventoryValue.toFixed(2)}`,
+      note: `${products.length} products tracked`,
+      trend: 0,
+    },
+    {
+      title: "Estimated Profit",
+      value: `GH₵ ${estimatedProfit.toFixed(2)}`,
+      note: "Estimated at 30% margin",
+      trend: growthCards[2].value,
+    },
+  ];
+
+  const exportAnalyticsCSV = () => {
+    const rows = [
+      ["Metric", "Value", "Note"],
+      ...analyticsKpis.map((item) => [item.title, item.value, item.note]),
+      ["Date Range", analyticsQuickRange, `${analyticsStartDate || "Beginning"} to ${analyticsEndDate || "Today"}`],
+      ["Total Revenue", `GH₵ ${totalRevenue.toFixed(2)}`, `${activeOrders.length} active orders`],
+      ["Average Order Value", `GH₵ ${averageOrderValue.toFixed(2)}`, "Filtered range"],
+      ["Returning Customers", returningCustomers, "Filtered range"],
+    ];
+
+    downloadCSV("streetbois-analytics-report.csv", rows[0], rows.slice(1));
+  };
+
+  const exportAnalyticsPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("STREETBOIS FASHION", 14, 18);
+    doc.setFontSize(12);
+    doc.text("Executive Analytics Report", 14, 28);
+    doc.text(`Range: ${analyticsQuickRange}`, 14, 36);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 44);
+
+    autoTable(doc, {
+      startY: 54,
+      head: [["Metric", "Value", "Note"]],
+      body: analyticsKpis.map((item) => [item.title, item.value, item.note]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0] },
+    });
+
+    doc.save("streetbois-analytics-report.pdf");
+  };
 
   const formatReportDate = (date) => {
     if (!date) return "N/A";
@@ -1023,6 +1357,7 @@ const handleMultipleImages = (files) => {
     orders: "Orders",
     reports: "Reports",
     messages: "Messages",
+    history: "Inventory History",
     settings: "Settings",
     users: "Users",
   };
@@ -1036,6 +1371,7 @@ const handleMultipleImages = (files) => {
     orders: "Review customer orders and update status.",
     reports: "Export product and order reports.",
     messages: "Read customer contact messages.",
+    history: "Track every stock movement and inventory update.",
     settings: "Manage store business details.",
     users: "View registered customer accounts.",
   };
@@ -1147,6 +1483,13 @@ const handleMultipleImages = (files) => {
           onClick={() => changeTab("messages")}
         >
           💬 Messages
+        </button>
+
+        <button
+          className={activeTab === "history" ? "active" : ""}
+          onClick={() => changeTab("history")}
+        >
+          📦 Inventory History
         </button>
 
         <button
@@ -1844,51 +2187,107 @@ const handleMultipleImages = (files) => {
         )}
 
         {activeTab === "analytics" && (
-          <div className="admin-dashboard analytics-page">
-            <div className="dashboard-cards">
-              <div className="dashboard-card">
-                <h3>Total Revenue</h3>
-                <h1>GH₵ {totalRevenue.toFixed(2)}</h1>
+          <div className="advanced-analytics-page">
+            <div className="admin-card analytics-hero-card">
+              <div>
+                <span>Roadmap 6</span>
+                <h2>Advanced Sales Analytics</h2>
+                <p className="admin-muted-text">
+                  Live executive insights for revenue, orders, customers, products and inventory.
+                </p>
               </div>
 
-              <div className="dashboard-card">
-                <h3>Today's Sales</h3>
-                <h1>GH₵ {todayRevenue.toFixed(2)}</h1>
-              </div>
-
-              <div className="dashboard-card">
-                <h3>Monthly Sales</h3>
-                <h1>GH₵ {monthlyRevenue.toFixed(2)}</h1>
-              </div>
-
-              <div className="dashboard-card">
-                <h3>Returning Customers</h3>
-                <h1>{returningCustomers}</h1>
+              <div className="analytics-hero-mini">
+                <div>
+                  <small>Total Revenue</small>
+                  <strong>GH₵ {totalRevenue.toFixed(2)}</strong>
+                </div>
+                <div>
+                  <small>Total Orders</small>
+                  <strong>{activeOrders.length}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="analytics-grid">
-              <div className="admin-card revenue-chart-card">
+            <div className="admin-card analytics-control-panel">
+              <div className="analytics-date-fields">
+                <label>
+                  Start Date
+                  <input
+                    type="date"
+                    value={analyticsStartDate}
+                    onChange={(e) => {
+                      setAnalyticsStartDate(e.target.value);
+                      setAnalyticsQuickRange("Custom");
+                    }}
+                  />
+                </label>
+
+                <label>
+                  End Date
+                  <input
+                    type="date"
+                    value={analyticsEndDate}
+                    onChange={(e) => {
+                      setAnalyticsEndDate(e.target.value);
+                      setAnalyticsQuickRange("Custom");
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div className="analytics-range-buttons">
+                {["Today", "7 Days", "30 Days", "This Month", "All Time"].map((range) => (
+                  <button
+                    key={range}
+                    className={analyticsQuickRange === range ? "active" : ""}
+                    onClick={() => applyAnalyticsRange(range)}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+
+              <div className="analytics-export-buttons">
+                <button onClick={exportAnalyticsCSV}>Export Analytics CSV</button>
+                <button onClick={exportAnalyticsPDF}>Export Analytics PDF</button>
+              </div>
+            </div>
+
+            <div className="analytics-kpi-grid">
+              {analyticsKpis.map((card) => (
+                <div className="analytics-kpi-card" key={card.title}>
+                  <div className="analytics-kpi-top">
+                    <h3>{card.title}</h3>
+                    <span className={Number(card.trend) >= 0 ? "kpi-trend up" : "kpi-trend down"}>
+                      {Number(card.trend) >= 0 ? "↑" : "↓"} {Math.abs(Number(card.trend || 0)).toFixed(1)}%
+                    </span>
+                  </div>
+                  <h1>{card.value}</h1>
+                  <p>{card.note}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="analytics-pro-grid">
+              <div className="admin-card analytics-pro-card wide">
                 <div className="analytics-card-header">
                   <div>
-                    <span>Monthly Performance</span>
-                    <h2>Revenue Chart</h2>
+                    <span>7-Day Performance</span>
+                    <h2>Daily Revenue Trend</h2>
                   </div>
-                  <strong>GH₵ {monthlyRevenue.toFixed(2)}</strong>
+                  <strong>GH₵ {weeklyRevenue.toFixed(2)}</strong>
                 </div>
 
-                <div className="revenue-chart">
-                  {monthlyRevenueChart.map((item) => (
-                    <div className="revenue-bar-wrap" key={item.label}>
-                      <div
-                        className="revenue-bar"
-                        style={{
-                          height: `${Math.max(
-                            (item.revenue / maxMonthlyChartRevenue) * 100,
-                            item.revenue > 0 ? 8 : 2
-                          )}%`,
-                        }}
-                      ></div>
+                <div className="pro-bar-chart tall">
+                  {dailySalesTrend.map((item) => (
+                    <div className="pro-bar-item" key={item.label}>
+                      <div className="pro-bar-track">
+                        <div
+                          className="pro-bar-fill"
+                          style={{ height: `${Math.max((item.revenue / maxDailyRevenue) * 100, item.revenue > 0 ? 8 : 2)}%` }}
+                        ></div>
+                      </div>
                       <span>{item.label}</span>
                       <small>GH₵ {item.revenue.toFixed(0)}</small>
                     </div>
@@ -1896,145 +2295,217 @@ const handleMultipleImages = (files) => {
                 </div>
               </div>
 
-              <div className="admin-card revenue-growth-card">
+              <div className="admin-card analytics-pro-card">
                 <div className="analytics-card-header">
                   <div>
-                    <span>Growth</span>
-                    <h2>Revenue Growth</h2>
+                    <span>Today</span>
+                    <h2>Hourly Sales</h2>
                   </div>
                 </div>
 
-                <div className="growth-list">
-                  {growthCards.map((card) => (
-                    <div className="growth-item" key={card.label}>
+                <div className="mini-hourly-chart">
+                  {hourlySalesTrend.map((item) => (
+                    <div className="mini-hour-row" key={item.label}>
+                      <span>{item.label}</span>
                       <div>
-                        <h4>{card.label}</h4>
-                        <p>
-                          GH₵ {card.current.toFixed(2)} vs GH₵ {card.previous.toFixed(2)}
-                        </p>
+                        <b style={{ width: `${Math.max((item.revenue / maxHourlyRevenue) * 100, item.revenue > 0 ? 6 : 2)}%` }}></b>
                       </div>
-
-                      <strong
-                        className={
-                          card.value >= 0 ? "growth-positive" : "growth-negative"
-                        }
-                      >
-                        {card.value >= 0 ? "↑" : "↓"} {Math.abs(card.value).toFixed(0)}%
-                      </strong>
+                      <small>GH₵ {item.revenue.toFixed(0)}</small>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="analytics-grid three-column">
-              <div className="admin-card">
-                <h2>Recent Orders</h2>
+            <div className="analytics-pro-grid three">
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Products</span>
+                    <h2>Best Sellers</h2>
+                  </div>
+                </div>
 
-                {recentOrders.length === 0 ? (
-                  <p>No orders yet.</p>
+                {bestSellers.length === 0 ? (
+                  <p>No sales data yet.</p>
                 ) : (
-                  recentOrders.map((order) => (
-                    <div className="analytics-order-item" key={order.id}>
+                  bestSellers.map((item, index) => (
+                    <div className="analytics-rank-row" key={item.name}>
+                      <strong>#{index + 1}</strong>
+                      {item.image_url && <img src={item.image_url} alt={item.name} />}
                       <div>
-                        <h4>{order.customer_name}</h4>
-                        <p>GH₵ {Number(order.total || 0).toFixed(2)}</p>
+                        <h4>{item.name}</h4>
+                        <p>{item.quantity} sold · GH₵ {Number(item.revenue || 0).toFixed(2)}</p>
                       </div>
-
-                      <span className={`order-status ${order.status.toLowerCase()}`}>
-                        {order.status}
-                      </span>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="admin-card">
-                <h2>⚠ Products Needing Restock</h2>
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Reviews</span>
+                    <h2>Top Rated</h2>
+                  </div>
+                </div>
 
-                {restockProducts.length === 0 ? (
-                  <p>No low stock products.</p>
+                {topRatedProducts.length === 0 ? (
+                  <p>No product reviews yet.</p>
                 ) : (
-                  restockProducts.map((product) => (
-                    <div className="dashboard-list-item" key={product.id}>
+                  topRatedProducts.map((product, index) => (
+                    <div className="analytics-rank-row" key={product.id}>
+                      <strong>#{index + 1}</strong>
                       <img src={product.image_url} alt={product.name} />
                       <div>
                         <h4>{product.name}</h4>
-                        <p>{Number(product.stock || 0)} left</p>
+                        <p>⭐ {product.average_rating.toFixed(1)} · {product.review_count} reviews</p>
                       </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="admin-card">
-                <h2>Top Selling Categories</h2>
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Velocity</span>
+                    <h2>Fastest Selling</h2>
+                  </div>
+                </div>
 
-                {topSellingCategories.length === 0 ? (
-                  <p>No category sales yet.</p>
+                {fastestSellingProducts.length === 0 ? (
+                  <p>No product velocity yet.</p>
                 ) : (
-                  topSellingCategories.map((item) => (
-                    <div className="category-progress-item" key={item.category}>
-                      <div className="category-progress-top">
-                        <span>{item.category}</span>
-                        <strong>{item.percentage.toFixed(0)}%</strong>
+                  fastestSellingProducts.map((item, index) => (
+                    <div className="analytics-rank-row" key={item.name}>
+                      <strong>#{index + 1}</strong>
+                      {item.image_url && <img src={item.image_url} alt={item.name} />}
+                      <div>
+                        <h4>{item.name}</h4>
+                        <p>{item.sales_velocity.toFixed(2)} sales/day</p>
                       </div>
-
-                      <div className="category-progress-track">
-                        <div
-                          className="category-progress-fill"
-                          style={{ width: `${item.percentage}%` }}
-                        ></div>
-                      </div>
-
-                      <small>
-                        Sold {item.quantity} · GH₵ {item.revenue.toFixed(2)}
-                      </small>
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            <div className="dashboard-lists">
-              <div className="admin-card">
-                <h2>Best Sellers</h2>
+            <div className="analytics-pro-grid two">
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Engagement</span>
+                    <h2>Most Viewed Products</h2>
+                  </div>
+                </div>
 
-                {bestSellers.length === 0 ? (
-                  <p>No sales data yet.</p>
+                {mostViewedProducts.length === 0 ? (
+                  <p>No product view data yet. Run the SQL and connect storefront tracking.</p>
                 ) : (
-                  bestSellers.map((item) => (
-                    <div className="dashboard-list-item" key={item.name}>
-                      {item.image_url && <img src={item.image_url} alt={item.name} />}
+                  mostViewedProducts.map((product, index) => (
+                    <div className="analytics-rank-row" key={product.id}>
+                      <strong>#{index + 1}</strong>
+                      <img src={product.image_url} alt={product.name} />
                       <div>
-                        <h4>{item.name}</h4>
-                        <p>
-                          Sold: {item.quantity} · Revenue: GH₵ {item.revenue}
-                        </p>
+                        <h4>{product.name}</h4>
+                        <p>{product.views} views</p>
                       </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="admin-card">
-                <h2>Worst Sellers</h2>
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Wishlist</span>
+                    <h2>Most Wishlisted Products</h2>
+                  </div>
+                </div>
 
-                {worstSellers.length === 0 ? (
-                  <p>No product data yet.</p>
+                {mostWishlistedProducts.length === 0 ? (
+                  <p>No wishlist analytics yet. Run the SQL and connect wishlist tracking.</p>
                 ) : (
-                  worstSellers.map((item) => (
-                    <div className="dashboard-list-item" key={item.name}>
-                      {item.image_url && <img src={item.image_url} alt={item.name} />}
+                  mostWishlistedProducts.map((product, index) => (
+                    <div className="analytics-rank-row" key={product.id}>
+                      <strong>#{index + 1}</strong>
+                      <img src={product.image_url} alt={product.name} />
                       <div>
-                        <h4>{item.name}</h4>
-                        <p>
-                          Sold: {item.quantity} · Revenue: GH₵ {item.revenue}
-                        </p>
+                        <h4>{product.name}</h4>
+                        <p>{product.wishlist_count} wishlist saves</p>
                       </div>
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+
+            <div className="analytics-pro-grid three">
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Category</span>
+                    <h2>Category Performance</h2>
+                  </div>
+                </div>
+
+                {topSellingCategories.length === 0 ? (
+                  <p>No category sales yet.</p>
+                ) : (
+                  topSellingCategories.map((item) => (
+                    <div className="category-progress-item premium-category" key={item.category}>
+                      <div className="category-progress-top">
+                        <span>{item.category}</span>
+                        <strong>{item.percentage.toFixed(0)}%</strong>
+                      </div>
+                      <div className="category-progress-track">
+                        <div className="category-progress-fill" style={{ width: `${item.percentage}%` }}></div>
+                      </div>
+                      <small>{item.quantity} sold · GH₵ {item.revenue.toFixed(2)}</small>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Inventory</span>
+                    <h2>Slow Moving Stock</h2>
+                  </div>
+                </div>
+
+                {slowMovingInventory.length === 0 ? (
+                  <p>No slow stock data yet.</p>
+                ) : (
+                  slowMovingInventory.map((product) => (
+                    <div className="analytics-rank-row" key={product.id}>
+                      <strong>{product.sold}</strong>
+                      <img src={product.image_url} alt={product.name} />
+                      <div>
+                        <h4>{product.name}</h4>
+                        <p>{product.stock} in stock · GH₵ {product.stock_value.toFixed(2)} value</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="admin-card analytics-pro-card">
+                <div className="analytics-card-header">
+                  <div>
+                    <span>Customers</span>
+                    <h2>Customer Insights</h2>
+                  </div>
+                </div>
+
+                <div className="customer-insight-list">
+                  <div><span>Total Customers</span><strong>{Object.keys(customerOrderCount).length}</strong></div>
+                  <div><span>Returning Customers</span><strong>{returningCustomers}</strong></div>
+                  <div><span>Average Order Value</span><strong>GH₵ {averageOrderValue.toFixed(2)}</strong></div>
+                  <div><span>Delivered Orders</span><strong>{completedOrders}</strong></div>
+                </div>
               </div>
             </div>
           </div>
@@ -2282,6 +2753,111 @@ const handleMultipleImages = (files) => {
                               Delete
                             </button>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="inventory-history-page">
+            <div className="admin-card inventory-history-header">
+              <div>
+                <h2>Inventory History</h2>
+                <p className="admin-muted-text">
+                  Track every product stock movement from the admin dashboard.
+                </p>
+              </div>
+
+              <div className="inventory-history-stats">
+                <div>
+                  <span>Total Records</span>
+                  <strong>{inventoryHistory.length}</strong>
+                </div>
+                <div>
+                  <span>Stock Increases</span>
+                  <strong>{totalStockIncreases}</strong>
+                </div>
+                <div>
+                  <span>Stock Reductions</span>
+                  <strong>{totalStockReductions}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-card inventory-history-tools">
+              <div className="admin-filter-row messages-filter-row">
+                <div className="admin-search-box">
+                  <input
+                    type="text"
+                    placeholder="Search product, reason or admin..."
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                  />
+                </div>
+
+                <select
+                  className="admin-category-filter"
+                  value={historyFilter}
+                  onChange={(e) => setHistoryFilter(e.target.value)}
+                >
+                  <option value="All">All Actions</option>
+                  <option value="Stock Update">Stock Update</option>
+                  <option value="New Product">New Product</option>
+                  <option value="Bulk Update">Bulk Update</option>
+                </select>
+
+                <button className="preview-row-btn" onClick={fetchInventoryHistory}>
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div className="admin-card inventory-history-list-card">
+              {filteredInventoryHistory.length === 0 ? (
+                <div className="empty-state-card">
+                  <h3>📦 No inventory history yet</h3>
+                  <p>Stock updates will appear here after you edit product stock.</p>
+                </div>
+              ) : (
+                <div className="inventory-history-list">
+                  {filteredInventoryHistory.map((item) => (
+                    <div className="inventory-history-item" key={item.id}>
+                      <div className="history-icon">📦</div>
+
+                      <div className="history-main">
+                        <div className="history-top-row">
+                          <div>
+                            <h3>{item.product_name}</h3>
+                            <p>{item.reason || "Manual admin update"}</p>
+                          </div>
+
+                          <span
+                            className={
+                              Number(item.quantity_changed || 0) >= 0
+                                ? "history-change increase"
+                                : "history-change decrease"
+                            }
+                          >
+                            {Number(item.quantity_changed || 0) >= 0 ? "+" : ""}
+                            {item.quantity_changed}
+                          </span>
+                        </div>
+
+                        <div className="history-stock-row">
+                          <span>Old Stock: <strong>{item.old_stock}</strong></span>
+                          <span>→</span>
+                          <span>New Stock: <strong>{item.new_stock}</strong></span>
+                        </div>
+
+                        <div className="history-meta-row">
+                          <small>{item.action_type || "Stock Update"}</small>
+                          <small>Changed by {item.changed_by || "Administrator"}</small>
+                          <small>{new Date(item.created_at).toLocaleString()}</small>
                         </div>
                       </div>
                     </div>
@@ -2704,6 +3280,18 @@ const handleMultipleImages = (files) => {
                     setEditingProduct({
                       ...editingProduct,
                       stock: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  type="text"
+                  placeholder="Stock update reason"
+                  value={editingProduct.stock_reason || ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      stock_reason: e.target.value,
                     })
                   }
                 />
