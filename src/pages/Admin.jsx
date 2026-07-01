@@ -43,6 +43,10 @@ function Admin() {
   const [orders, setOrders] = useState([]);
 const [selectedOrder, setSelectedOrder] = useState(null);
 const [orderFilter, setOrderFilter] = useState("All");
+const [contactMessages, setContactMessages] = useState([]);
+const [selectedMessage, setSelectedMessage] = useState(null);
+const [messageFilter, setMessageFilter] = useState("All");
+const [messageSearch, setMessageSearch] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -118,6 +122,7 @@ const [orderFilter, setOrderFilter] = useState("All");
     fetchCollections();
     fetchProfiles();
     fetchOrders();
+    fetchContactMessages();
   }, []);
 
   useEffect(() => {
@@ -175,6 +180,54 @@ const [orderFilter, setOrderFilter] = useState("All");
 
     setMessage("Order status updated.");
     fetchOrders();
+  };
+
+  const fetchContactMessages = async () => {
+    const { data, error } = await supabase
+      .from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setContactMessages(data || []);
+    }
+  };
+
+  const markMessageAsRead = async (id, isRead = true) => {
+    const { error } = await supabase
+      .from("contact_messages")
+      .update({ is_read: isRead })
+      .eq("id", id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage(isRead ? "Message marked as read." : "Message marked as unread.");
+    fetchContactMessages();
+
+    if (selectedMessage?.id === id) {
+      setSelectedMessage({ ...selectedMessage, is_read: isRead });
+    }
+  };
+
+  const deleteContactMessage = async (id) => {
+    if (!window.confirm("Delete this message?")) return;
+
+    const { error } = await supabase
+      .from("contact_messages")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage("Message deleted successfully.");
+    setSelectedMessage(null);
+    fetchContactMessages();
   };
 
   const handleLogout = async () => {
@@ -718,8 +771,23 @@ const handleMultipleImages = (files) => {
     .slice(0, 5);
 
   const pendingOrdersCount = orders.filter((order) => order.status === "Pending").length;
-  const unreadMessagesCount = 0;
+  const unreadMessagesCount = contactMessages.filter((item) => !item.is_read).length;
   const notificationCount = pendingOrdersCount + restockProducts.length + unreadMessagesCount;
+
+  const filteredContactMessages = contactMessages.filter((item) => {
+    const matchesFilter =
+      messageFilter === "All" ||
+      (messageFilter === "Unread" && !item.is_read) ||
+      (messageFilter === "Read" && item.is_read);
+
+    const searchValue = `${item.name || ""} ${item.email || ""} ${
+      item.phone || ""
+    } ${item.subject || ""} ${item.message || ""}`.toLowerCase();
+
+    const matchesSearch = searchValue.includes(messageSearch.toLowerCase());
+
+    return matchesFilter && matchesSearch;
+  });
 
   const productCategoryMap = {};
   products.forEach((product) => {
@@ -2025,32 +2093,130 @@ const handleMultipleImages = (files) => {
 )}
 
         {activeTab === "messages" && (
-          <div className="admin-card messages-page">
-            <h2>Messages</h2>
-            <p className="admin-muted-text">
-              Customer contact messages will appear here once the contact form is connected to Supabase.
-            </p>
+          <div className="messages-page">
+            <div className="admin-card messages-header-card">
+              <div>
+                <h2>Customer Messages</h2>
+                <p className="admin-muted-text">
+                  View, read and manage messages sent from the Contact page.
+                </p>
+              </div>
 
-            <div className="notification-summary-grid">
-              <div>
-                <span>Pending Orders</span>
-                <strong>{pendingOrdersCount}</strong>
-              </div>
-              <div>
-                <span>Low Stock Alerts</span>
-                <strong>{restockProducts.length}</strong>
-              </div>
-              <div>
-                <span>Unread Messages</span>
-                <strong>{unreadMessagesCount}</strong>
+              <div className="messages-header-stats">
+                <div>
+                  <span>Total</span>
+                  <strong>{contactMessages.length}</strong>
+                </div>
+                <div>
+                  <span>Unread</span>
+                  <strong>{unreadMessagesCount}</strong>
+                </div>
+                <div>
+                  <span>Read</span>
+                  <strong>{contactMessages.length - unreadMessagesCount}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="empty-state-card">
-              <h3>💬 No messages yet</h3>
-              <p>
-                After we connect your Contact page form to the database, every customer message will show here with name, email, phone and message.
-              </p>
+            <div className="admin-card messages-tools-card">
+              <div className="admin-filter-row messages-filter-row">
+                <div className="admin-search-box">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, phone, subject or message..."
+                    value={messageSearch}
+                    onChange={(e) => setMessageSearch(e.target.value)}
+                  />
+                </div>
+
+                <select
+                  className="admin-category-filter"
+                  value={messageFilter}
+                  onChange={(e) => setMessageFilter(e.target.value)}
+                >
+                  <option value="All">All Messages</option>
+                  <option value="Unread">Unread</option>
+                  <option value="Read">Read</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="admin-card messages-list-card">
+              {filteredContactMessages.length === 0 ? (
+                <div className="empty-state-card">
+                  <h3>💬 No messages found</h3>
+                  <p>
+                    Customer messages from the Contact page will appear here after submission.
+                  </p>
+                </div>
+              ) : (
+                <div className="messages-list">
+                  {filteredContactMessages.map((item) => (
+                    <div
+                      className={
+                        item.is_read
+                          ? "message-card"
+                          : "message-card unread"
+                      }
+                      key={item.id}
+                    >
+                      <div className="message-avatar">
+                        {(item.name || "SB").slice(0, 2).toUpperCase()}
+                      </div>
+
+                      <div className="message-main">
+                        <div className="message-card-top">
+                          <div>
+                            <h3>{item.name}</h3>
+                            <p>
+                              {item.email} {item.phone ? `• ${item.phone}` : ""}
+                            </p>
+                          </div>
+
+                          <span className={item.is_read ? "message-status read" : "message-status unread"}>
+                            {item.is_read ? "Read" : "Unread"}
+                          </span>
+                        </div>
+
+                        <h4>{item.subject}</h4>
+                        <p className="message-preview">{item.message}</p>
+
+                        <div className="message-meta-row">
+                          <small>{new Date(item.created_at).toLocaleString()}</small>
+
+                          <div className="message-actions">
+                            <button
+                              className="preview-row-btn"
+                              onClick={() => {
+                                setSelectedMessage(item);
+                                if (!item.is_read) {
+                                  markMessageAsRead(item.id, true);
+                                }
+                              }}
+                            >
+                              View
+                            </button>
+
+                            <button
+                              className="edit-row-btn"
+                              onClick={() => markMessageAsRead(item.id, !item.is_read)}
+                            >
+                              {item.is_read ? "Mark Unread" : "Mark Read"}
+                            </button>
+
+                            <button
+                              className="remove-row-btn"
+                              onClick={() => deleteContactMessage(item.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2311,6 +2477,64 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
+
+        {selectedMessage && (
+          <div className="modal-overlay">
+            <div className="message-modal">
+              <button
+                className="close-modal"
+                onClick={() => setSelectedMessage(null)}
+              >
+                ×
+              </button>
+
+              <div className="message-modal-body">
+                <span className={selectedMessage.is_read ? "message-status read" : "message-status unread"}>
+                  {selectedMessage.is_read ? "Read" : "Unread"}
+                </span>
+
+                <h2>{selectedMessage.subject}</h2>
+
+                <div className="message-modal-details">
+                  <p><strong>Name:</strong> {selectedMessage.name}</p>
+                  <p><strong>Email:</strong> {selectedMessage.email}</p>
+                  <p><strong>Phone:</strong> {selectedMessage.phone || "N/A"}</p>
+                  <p><strong>Date:</strong> {new Date(selectedMessage.created_at).toLocaleString()}</p>
+                </div>
+
+                <div className="message-modal-content">
+                  <h3>Message</h3>
+                  <p>{selectedMessage.message}</p>
+                </div>
+
+                <div className="message-modal-actions">
+                  <a
+                    href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(selectedMessage.subject || "StreetBois Fashion")}`}
+                  >
+                    Reply by Email
+                  </a>
+
+                  {selectedMessage.phone && (
+                    <a
+                      href={`https://wa.me/${selectedMessage.phone.replace(/\D/g, "").replace(/^0/, "233")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Reply on WhatsApp
+                    </a>
+                  )}
+
+                  <button
+                    className="remove-row-btn"
+                    onClick={() => deleteContactMessage(selectedMessage.id)}
+                  >
+                    Delete Message
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {selectedOrder && (
   <div className="modal-overlay">
     <div className="product-modal">

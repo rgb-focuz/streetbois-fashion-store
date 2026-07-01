@@ -1,8 +1,61 @@
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { supabase } from "../supabaseClient";
 import "../styles/contact.css";
 
 function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [formMessage, setFormMessage] = useState("");
+  const [formStatus, setFormStatus] = useState("");
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormMessage("");
+    setFormStatus("");
+
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setFormStatus("error");
+      setFormMessage("Please fill your name, email, subject and message.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.from("contact_messages").insert({
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      subject: formData.subject.trim(),
+      message: formData.message.trim(),
+      is_read: false,
+    });
+
+    if (error) {
+      setFormStatus("error");
+      setFormMessage(error.message || "Message could not be sent. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    setFormStatus("success");
+    setFormMessage("Message sent successfully. StreetBois Fashion will get back to you soon.");
+    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    setLoading(false);
+  };
+
   return (
     <>
       <Navbar />
@@ -24,18 +77,57 @@ function Contact() {
             <a
               href="https://wa.me/233202430406"
               target="_blank"
+              rel="noreferrer"
               className="contact-whatsapp"
             >
               Chat on WhatsApp
             </a>
           </div>
 
-          <form className="contact-form">
-            <input type="text" placeholder="Full Name" />
-            <input type="email" placeholder="Email Address" />
-            <input type="text" placeholder="Subject" />
-            <textarea placeholder="Your Message"></textarea>
-            <button type="submit">Send Message</button>
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+            />
+
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+            />
+
+            <input
+              type="tel"
+              placeholder="Phone Number / WhatsApp (optional)"
+              value={formData.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Subject"
+              value={formData.subject}
+              onChange={(e) => handleChange("subject", e.target.value)}
+            />
+
+            <textarea
+              placeholder="Your Message"
+              value={formData.message}
+              onChange={(e) => handleChange("message", e.target.value)}
+            ></textarea>
+
+            {formMessage && (
+              <div className={`contact-alert ${formStatus}`}>
+                {formMessage}
+              </div>
+            )}
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Sending..." : "Send Message"}
+            </button>
           </form>
         </div>
 
