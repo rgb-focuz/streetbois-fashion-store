@@ -9,6 +9,8 @@ function Admin() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
   const emptyRow = {
     name: "",
@@ -58,6 +60,21 @@ const [orderFilter, setOrderFilter] = useState("All");
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = localStorage.getItem("streetbois-admin-settings");
+
+    return savedSettings
+      ? JSON.parse(savedSettings)
+      : {
+          businessName: "StreetBois Fashion",
+          phone: "0202430406",
+          whatsapp: "233202430406",
+          email: "apodeijoshuaagudey1@gmail.com",
+          address: "Accra (TUDU), Ghana",
+          deliveryNote: "Delivery available within Ghana.",
+        };
+  });
+
 
   const categories = [
     "Men Clothing",
@@ -71,6 +88,30 @@ const [orderFilter, setOrderFilter] = useState("All");
     "Sneakers",
     "Slides",
   ];
+
+
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const formattedTime = currentDate.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem("streetbois-admin-settings", JSON.stringify(settings));
+    setMessage("Settings saved successfully.");
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -830,62 +871,107 @@ const handleMultipleImages = (files) => {
   };
 
   return (
-    <section className="admin-page">
-      <aside className="admin-sidebar">
-        <h2>STREETBOIS ADMIN</h2>
+    <section className={`admin-page ${isMobileMenuOpen ? "mobile-menu-open" : ""}`}>
+      <div className="admin-mobile-topbar">
+        <button
+          className="admin-menu-toggle"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open admin menu"
+        >
+          ☰
+        </button>
+
+        <div>
+          <h2>STREETBOIS ADMIN</h2>
+          <p>{formattedDate}</p>
+        </div>
+      </div>
+
+      {isMobileMenuOpen && (
+        <div
+          className="admin-mobile-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      <aside className={`admin-sidebar ${isMobileMenuOpen ? "open" : ""}`}>
+        <div className="admin-sidebar-head">
+          <h2>STREETBOIS ADMIN</h2>
+          <button
+            className="admin-close-menu"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close admin menu"
+          >
+            ×
+          </button>
+        </div>
 
         <button
           className={activeTab === "dashboard" ? "active" : ""}
-          onClick={() => setActiveTab("dashboard")}
+          onClick={() => changeTab("dashboard")}
         >
           📊 Dashboard
         </button>
 
         <button
           className={activeTab === "products" ? "active" : ""}
-          onClick={() => setActiveTab("products")}
+          onClick={() => changeTab("products")}
         >
           📦 Add Products
         </button>
 
         <button
           className={activeTab === "collections" ? "active" : ""}
-          onClick={() => setActiveTab("collections")}
+          onClick={() => changeTab("collections")}
         >
           🖼 Collections
         </button>
 
         <button
           className={activeTab === "manage" ? "active" : ""}
-          onClick={() => setActiveTab("manage")}
+          onClick={() => changeTab("manage")}
         >
           🛒 Manage Products
         </button>
 
         <button
           className={activeTab === "analytics" ? "active" : ""}
-          onClick={() => setActiveTab("analytics")}
+          onClick={() => changeTab("analytics")}
         >
           📈 Analytics
         </button>
 
        <button
   className={activeTab === "orders" ? "active" : ""}
-  onClick={() => setActiveTab("orders")}
+  onClick={() => changeTab("orders")}
 >
   📋 Orders
 </button>
 
         <button
           className={activeTab === "reports" ? "active" : ""}
-          onClick={() => setActiveTab("reports")}
+          onClick={() => changeTab("reports")}
         >
           📄 Reports
         </button>
 
         <button
+          className={activeTab === "messages" ? "active" : ""}
+          onClick={() => changeTab("messages")}
+        >
+          💬 Messages
+        </button>
+
+        <button
+          className={activeTab === "settings" ? "active" : ""}
+          onClick={() => changeTab("settings")}
+        >
+          ⚙️ Settings
+        </button>
+
+        <button
           className={activeTab === "users" ? "active" : ""}
-          onClick={() => setActiveTab("users")}
+          onClick={() => changeTab("users")}
         >
           👥 Users
         </button>
@@ -898,14 +984,16 @@ const handleMultipleImages = (files) => {
       </aside>
 
       <main className="admin-main">
-      
-      <div className="admin-mobile-header">
-  <h2>STREETBOIS ADMIN</h2>
-</div>
         <div className="admin-topbar">
           <div>
             <h1>Admin Dashboard</h1>
             <p>Manage products, collections, users and inventory.</p>
+          </div>
+
+          <div className="admin-date-card">
+            <span>Today</span>
+            <strong>{formattedDate}</strong>
+            <small>{formattedTime}</small>
           </div>
         </div>
 
@@ -1795,6 +1883,100 @@ const handleMultipleImages = (files) => {
     </div>
   </div>
 )}
+
+        {activeTab === "messages" && (
+          <div className="admin-card messages-page">
+            <h2>Messages</h2>
+            <p className="admin-muted-text">
+              Customer contact messages will appear here once the contact form is connected to Supabase.
+            </p>
+
+            <div className="empty-state-card">
+              <h3>💬 No messages yet</h3>
+              <p>
+                After we connect your Contact page form to the database, every customer message will show here with name, email, phone and message.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="settings-page">
+            <div className="admin-card settings-card">
+              <h2>Business Settings</h2>
+              <p className="admin-muted-text">
+                Manage the business details used across your admin workflow.
+              </p>
+
+              <div className="settings-grid">
+                <label>
+                  Business Name
+                  <input
+                    value={settings.businessName}
+                    onChange={(e) =>
+                      setSettings({ ...settings, businessName: e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Phone Number
+                  <input
+                    value={settings.phone}
+                    onChange={(e) =>
+                      setSettings({ ...settings, phone: e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  WhatsApp Number
+                  <input
+                    value={settings.whatsapp}
+                    onChange={(e) =>
+                      setSettings({ ...settings, whatsapp: e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Email Address
+                  <input
+                    type="email"
+                    value={settings.email}
+                    onChange={(e) =>
+                      setSettings({ ...settings, email: e.target.value })
+                    }
+                  />
+                </label>
+              </div>
+
+              <label className="settings-full-label">
+                Store Address
+                <textarea
+                  value={settings.address}
+                  onChange={(e) =>
+                    setSettings({ ...settings, address: e.target.value })
+                  }
+                ></textarea>
+              </label>
+
+              <label className="settings-full-label">
+                Delivery Note
+                <textarea
+                  value={settings.deliveryNote}
+                  onChange={(e) =>
+                    setSettings({ ...settings, deliveryNote: e.target.value })
+                  }
+                ></textarea>
+              </label>
+
+              <button className="save-settings-btn" onClick={saveSettings}>
+                Save Settings
+              </button>
+            </div>
+          </div>
+        )}
 
         {activeTab === "users" && (
           <div className="admin-card">
