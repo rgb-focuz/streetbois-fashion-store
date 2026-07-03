@@ -1,7 +1,7 @@
 .collections {
   background: #000;
-  padding: 70px 5%;
   color: #fff;
+  padding: 90px 5%;
 }
 
 .section-title {
@@ -11,102 +11,92 @@
 
 .section-title span {
   color: #d4af37;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .section-title h2 {
-  font-size: 46px;
-  margin-top: 10px;
-  font-weight: 800;
+  color: #fff;
+  font-size: 42px;
+  margin-top: 12px;
 }
 
 .collection-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 26px;
 }
 
 .collection-card {
-  background: #181818;
-  border: 1px solid rgba(212, 175, 55, 0.18);
-  border-radius: 16px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 18px;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  transition: 0.3s;
 }
 
 .collection-card:hover {
-  transform: translateY(-6px);
   border-color: #d4af37;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  transform: translateY(-5px);
 }
 
+.collection-image-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.collection-image-box img,
 .category-image {
   width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   display: block;
-  transition: transform 0.35s ease;
-}
-
-.collection-card:hover .category-image {
-  transform: scale(1.05);
 }
 
 .collection-info {
   padding: 18px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  text-align: center;
 }
 
 .collection-info h3 {
-  font-size: 18px;
-  margin-bottom: 15px;
   color: #fff;
-  font-weight: 700;
-  text-align: center;
+  font-size: 16px;
+  margin-bottom: 14px;
+  min-height: 38px;
 }
 
 .collection-info button {
   width: 100%;
-  padding: 13px;
-  border: none;
-  border-radius: 10px;
   background: #d4af37;
   color: #000;
-  font-weight: 700;
-  font-size: 15px;
+  border: none;
+  padding: 13px;
+  border-radius: 10px;
+  font-weight: 900;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: auto;
 }
 
 .collection-info button:hover {
   background: #f6b800;
 }
 
+@media (max-width: 1200px) {
+  .collection-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-
   .collections {
-    padding: 50px 4%;
-  }
-
-  .section-title {
-    margin-bottom: 30px;
-  }
-
-  .section-title span {
-    font-size: 12px;
+    padding: 60px 4%;
   }
 
   .section-title h2 {
-    font-size: 32px;
+    font-size: 30px;
   }
 
   .collection-grid {
@@ -118,24 +108,21 @@
     border-radius: 14px;
   }
 
-  .category-image {
-    aspect-ratio: 1;
-    object-fit: cover;
+  .collection-image-box {
+    padding: 10px;
   }
 
   .collection-info {
-    padding: 12px;
+    padding: 13px;
   }
 
   .collection-info h3 {
-    font-size: 14px;
-    margin-bottom: 10px;
-    line-height: 1.3;
+    font-size: 13px;
+    min-height: 34px;
   }
 
   .collection-info button {
-    padding: 10px;
-    font-size: 13px;
+    padding: 11px;
+    font-size: 12px;
   }
-
 }

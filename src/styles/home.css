@@ -201,18 +201,29 @@ body {
 
 /* Moving Stats Section */
 
+.stats {
+  display: none !important;
+}
+
 .stats-wrapper {
   background: #000;
   color: #fff;
   padding: 55px 0;
   overflow: hidden;
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #111;
 }
 
 .stats-slider {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-  padding: 0 6%;
+  display: flex;
+  width: max-content;
+  gap: 80px;
+  padding: 0;
+  animation: statsMove 22s linear infinite;
+}
+
+.stat-item {
+  min-width: 230px;
   text-align: center;
 }
 
@@ -226,22 +237,28 @@ body {
   font-size: 18px;
 }
 
+@keyframes statsMove {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (max-width: 768px) {
   .stats-wrapper {
-    padding: 25px 0;
+    padding: 28px 0;
   }
 
   .stats-slider {
-    display: flex;
-    width: max-content;
     gap: 45px;
-    padding: 0;
-    animation: statsMove 18s linear infinite;
+    animation-duration: 18s;
   }
 
   .stat-item {
     min-width: 180px;
-    text-align: center;
   }
 
   .stat-item h3 {
@@ -250,15 +267,5 @@ body {
 
   .stat-item p {
     font-size: 14px;
-  }
-
-  @keyframes statsMove {
-    from {
-      transform: translateX(0);
-    }
-
-    to {
-      transform: translateX(-50%);
-    }
   }
 }

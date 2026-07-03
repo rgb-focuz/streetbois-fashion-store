@@ -33,8 +33,7 @@ function Navbar() {
   };
 
   const updateWishlistCount = () => {
-    const wishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
     setWishlistCount(wishlist.length);
   };
 
@@ -48,26 +47,14 @@ function Navbar() {
   return (
     <header className="mobile-header-wrap">
       <nav className="navbar">
-        <div className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
-        </div>
+        </button>
 
         <Link to="/" className="logo">
           <img src={logo} alt="StreetBois Fashion Logo" />
           <h2>STREETBOIS FASHION</h2>
         </Link>
-
-        <div className="mobile-icons">
-          <Link to="/wishlist" className="mobile-icon-link">
-            ❤️
-            {wishlistCount > 0 && <span>{wishlistCount}</span>}
-          </Link>
-
-          <Link to="/cart" className="mobile-icon-link">
-            🛒
-            {cartCount > 0 && <span>{cartCount}</span>}
-          </Link>
-        </div>
 
         <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
           <li><Link onClick={() => setMenuOpen(false)} to="/">Home</Link></li>
@@ -90,13 +77,32 @@ function Navbar() {
             </Link>
           </li>
 
-          <li><Link onClick={() => setMenuOpen(false)} to="/recently-viewed">Recently Viewed</Link></li>
-          <li><Link onClick={() => setMenuOpen(false)} to="/account">Account</Link></li>
+          <li className="mobile-auth-link">
+            <Link onClick={() => setMenuOpen(false)} to="/account">
+              👤 Sign In / Up
+            </Link>
+          </li>
         </ul>
 
-        <Link to="/shop" className="desktop-shop-btn">
-          <button className="shop-btn">Shop Now</button>
-        </Link>
+        <div className="navbar-actions">
+          <Link to="/account" className="signin-btn">👤 Sign In / Up</Link>
+
+          <Link to="/shop" className="desktop-shop-btn">
+            <button className="shop-btn">Shop Now</button>
+          </Link>
+        </div>
+
+        <div className="mobile-icons">
+          <Link to="/wishlist" className="mobile-icon-link">
+            ❤️
+            {wishlistCount > 0 && <span>{wishlistCount}</span>}
+          </Link>
+
+          <Link to="/cart" className="mobile-icon-link">
+            🛒
+            {cartCount > 0 && <span>{cartCount}</span>}
+          </Link>
+        </div>
       </nav>
 
       <div className="mobile-search-bar">

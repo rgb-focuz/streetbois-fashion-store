@@ -24,8 +24,12 @@ function Collections() {
   };
 
   const openCategory = (categoryName) => {
-    navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
-  };
+  navigate("/shop", {
+    state: {
+      selectedCategory: categoryName,
+    },
+  });
+};
 
   return (
     <section className="collections">
@@ -37,16 +41,12 @@ function Collections() {
       <div className="collection-grid">
         {categories.map((category) => (
           <div className="collection-card" key={category.id}>
-            <img
-              src={category.image_url}
-              alt={category.name}
-              className="category-image"
-              onClick={() => openCategory(category.name)}
-            />
+            <div className="collection-image-box" onClick={() => openCategory(category.name)}>
+              <img src={category.image_url} alt={category.name} />
+            </div>
 
             <div className="collection-info">
               <h3>{category.name}</h3>
-
               <button onClick={() => openCategory(category.name)}>
                 Shop Now
               </button>

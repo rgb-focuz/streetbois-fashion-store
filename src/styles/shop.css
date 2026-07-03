@@ -224,3 +224,41 @@
     font-size: 11px;
   }
 }
+
+/* Fix product grid touching screen edges */
+.shop-page,
+.products-page,
+.shop-products-section {
+  padding-left: 5%;
+  padding-right: 5%;
+  box-sizing: border-box;
+}
+
+.product-grid-universal,
+.shop-product-grid,
+.products-grid {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .shop-page,
+  .products-page,
+  .shop-products-section {
+    padding-left: 4%;
+    padding-right: 4%;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-page,
+  .products-page,
+  .shop-products-section {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
