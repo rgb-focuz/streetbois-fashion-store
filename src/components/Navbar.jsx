@@ -93,10 +93,9 @@ function Navbar() {
         </div>
 
         <div className="mobile-icons">
-          <Link to="/wishlist" className="mobile-icon-link">
-            ❤️
-            {wishlistCount > 0 && <span>{wishlistCount}</span>}
-          </Link>
+          <Link to="/account" className="mobile-icon-link account-mobile-icon">
+  👤
+</Link>
 
           <Link to="/cart" className="mobile-icon-link">
             🛒

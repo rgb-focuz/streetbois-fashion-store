@@ -23,7 +23,7 @@ function Cart() {
   }, []);
 
   const total = cart.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
+    (sum, item) => sum + Number(item.price) * Number(item.quantity),
     0
   );
 
@@ -37,11 +37,20 @@ function Cart() {
   const updateQuantity = (id, change) => {
     const updatedCart = cart.map((item) => {
       if (item.id === id) {
+        const currentStock = Number(item.stock || 0);
+        const newQuantity = Math.max(1, Number(item.quantity) + change);
+
+        if (currentStock > 0 && newQuantity > currentStock) {
+          alert(`Only ${currentStock} item(s) available in stock.`);
+          return item;
+        }
+
         return {
           ...item,
-          quantity: Math.max(1, item.quantity + change),
+          quantity: newQuantity,
         };
       }
+
       return item;
     });
 
@@ -58,6 +67,77 @@ function Cart() {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
+  const checkStockAvailability = async () => {
+    const productIds = cart.map((item) => item.id);
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, stock")
+      .in("id", productIds);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    for (const cartItem of cart) {
+      const databaseProduct = data.find((product) => product.id === cartItem.id);
+
+      if (!databaseProduct) {
+        throw new Error(`${cartItem.name} is no longer available.`);
+      }
+
+      const availableStock = Number(databaseProduct.stock || 0);
+      const requestedQuantity = Number(cartItem.quantity || 0);
+
+      if (availableStock <= 0) {
+        throw new Error(`${databaseProduct.name} is out of stock.`);
+      }
+
+      if (requestedQuantity > availableStock) {
+        throw new Error(
+          `Only ${availableStock} item(s) of ${databaseProduct.name} are available.`
+        );
+      }
+    }
+
+    return data;
+  };
+
+  const reduceStockAfterOrder = async (currentProducts) => {
+    for (const item of cart) {
+      const product = currentProducts.find((product) => product.id === item.id);
+
+      if (!product) continue;
+
+      const oldStock = Number(product.stock || 0);
+      const newStock = Math.max(0, oldStock - Number(item.quantity || 0));
+
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          stock: newStock,
+          in_stock: newStock > 0,
+          status: newStock > 0 ? "Active" : "Out of Stock",
+        })
+        .eq("id", item.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      await supabase.from("inventory_history").insert({
+        product_id: item.id,
+        product_name: item.name,
+        old_stock: oldStock,
+        new_stock: newStock,
+        quantity_changed: -Number(item.quantity || 0),
+        action_type: "Online Order",
+        reason: "Stock reduced after customer order",
+        changed_by: customer.name || "Website Customer",
+      });
+    }
+  };
+
   const placeOrder = async (e) => {
     e.preventDefault();
 
@@ -66,41 +146,49 @@ function Cart() {
       return;
     }
 
-    setPlacingOrder(true);
-
-    const orderItems = cart.map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: Number(item.price),
-      quantity: item.quantity,
-      image_url: item.image_url,
-      subtotal: Number(item.price) * item.quantity,
-    }));
-
-    const { error } = await supabase.from("orders").insert({
-      customer_name: customer.name,
-      customer_phone: customer.phone,
-      customer_email: customer.email,
-      delivery_address: customer.address,
-      items: orderItems,
-      total,
-      status: "Pending",
-    });
-
-    if (error) {
-      alert(error.message);
-      setPlacingOrder(false);
+    if (cart.length === 0) {
+      alert("Your cart is empty.");
       return;
     }
 
-    const message = orderItems
-      .map(
-        (item) =>
-          `• ${item.name}\nQty: ${item.quantity}\nPrice: GH₵ ${item.price}\nSubtotal: GH₵ ${item.subtotal}`
-      )
-      .join("\n\n");
+    setPlacingOrder(true);
 
-    const whatsappMessage = `Hello StreetBois Fashion,
+    try {
+      const currentProducts = await checkStockAvailability();
+
+      const orderItems = cart.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+        image_url: item.image_url,
+        subtotal: Number(item.price) * Number(item.quantity),
+      }));
+
+      const { error: orderError } = await supabase.from("orders").insert({
+        customer_name: customer.name,
+        customer_phone: customer.phone,
+        customer_email: customer.email,
+        delivery_address: customer.address,
+        items: orderItems,
+        total,
+        status: "Pending",
+      });
+
+      if (orderError) {
+        throw new Error(orderError.message);
+      }
+
+      await reduceStockAfterOrder(currentProducts);
+
+      const message = orderItems
+        .map(
+          (item) =>
+            `• ${item.name}\nQty: ${item.quantity}\nPrice: GH₵ ${item.price}\nSubtotal: GH₵ ${item.subtotal}`
+        )
+        .join("\n\n");
+
+      const whatsappMessage = `Hello StreetBois Fashion,
 
 I have placed an order.
 
@@ -118,18 +206,22 @@ Total: GH₵ ${total}
 
 Please confirm my order.`;
 
-    localStorage.removeItem("streetbois-cart");
-    setCart([]);
-    window.dispatchEvent(new Event("cartUpdated"));
+      localStorage.removeItem("streetbois-cart");
+      setCart([]);
+      window.dispatchEvent(new Event("cartUpdated"));
 
-    window.open(
-      `https://wa.me/233202430406?text=${encodeURIComponent(
-        whatsappMessage
-      )}`,
-      "_blank"
-    );
+      window.open(
+        `https://wa.me/233202430406?text=${encodeURIComponent(
+          whatsappMessage
+        )}`,
+        "_blank"
+      );
 
-    alert("Order placed successfully.");
+      alert("Order placed successfully. Stock has been updated.");
+    } catch (error) {
+      alert(error.message);
+    }
+
     setPlacingOrder(false);
   };
 
@@ -192,7 +284,7 @@ Please confirm my order.`;
 
                   <div className="cart-subtotal">
                     <span>Subtotal</span>
-                    <h4>GH₵ {Number(item.price) * item.quantity}</h4>
+                    <h4>GH₵ {Number(item.price) * Number(item.quantity)}</h4>
 
                     <button
                       className="remove-cart-btn"

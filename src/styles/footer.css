@@ -66,37 +66,41 @@ footer a:hover {
 }
 
 @media (max-width: 768px) {
-
   footer {
-    padding: 50px 5% 25px;
+    padding: 45px 6% 25px;
+    text-align: left;
   }
 
   .footer-grid {
     grid-template-columns: 1fr;
-    gap: 35px;
-    text-align: center;
+    gap: 32px;
+    text-align: left;
   }
 
   footer h2 {
-    font-size: 26px;
+    font-size: 24px;
+    text-align: left;
   }
 
   footer h3 {
     font-size: 18px;
+    text-align: left;
+  }
+
+  footer p,
+  footer a {
+    text-align: left;
   }
 
   .footer-whatsapp {
-    width: 100%;
-    text-align: center;
-  }
-
-  footer a {
-    margin-bottom: 10px;
+    width: auto;
+    display: inline-block;
+    text-align: left;
   }
 
   .copyright {
     margin-top: 35px;
-    font-size: 14px;
+    font-size: 13px;
+    text-align: left;
   }
-
 }
