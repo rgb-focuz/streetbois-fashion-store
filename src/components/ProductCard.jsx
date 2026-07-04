@@ -1,43 +1,59 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SalesRepModal from "./SalesRepModal";
 import "../styles/productCard.css";
 
-function ProductCard({ product, showWishlist = true, showWhatsApp = true }) {
+function ProductCard({ product, showWhatsApp = true }) {
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [showSalesModal, setShowSalesModal] = useState(false);
 
-  useEffect(() => {
-    checkWishlist();
-    window.addEventListener("wishlistUpdated", checkWishlist);
+  const sizes =
+    Array.isArray(product.sizes) && product.sizes.length > 0
+      ? product.sizes
+      : ["S", "M", "L", "XL", "2XL"];
 
-    return () => {
-      window.removeEventListener("wishlistUpdated", checkWishlist);
-    };
-  }, [product.id]);
+  const whatsappMessage = `Hello StreetBois Fashion,
 
-  const checkWishlist = () => {
-    const wishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-    setIsWishlisted(wishlist.some((item) => item.id === product.id));
-  };
+🛍 New Customer Enquiry
+
+Product: ${product.name}
+Price: GH₵ ${product.price}
+Category: ${product.category || "Not provided"}
+Size: ${selectedSize || "Not selected"}
+Quantity: 1
+
+📷 Product Image:
+${product.image_url || "No image available"}
+
+Please assist me with this order.`;
 
   const addToCart = () => {
+    if (!selectedSize) {
+      alert("Please select a size.");
+      return;
+    }
+
     const cartItem = {
       id: product.id,
       name: product.name,
       price: product.price,
       image_url: product.image_url,
+      category: product.category,
+      size: selectedSize,
       quantity: 1,
     };
 
     const existingCart =
       JSON.parse(localStorage.getItem("streetbois-cart")) || [];
 
-    const existingItem = existingCart.find((item) => item.id === product.id);
+    const existingItem = existingCart.find(
+      (item) => item.id === product.id && item.size === selectedSize
+    );
 
     const updatedCart = existingItem
       ? existingCart.map((item) =>
-          item.id === product.id
+          item.id === product.id && item.size === selectedSize
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -48,30 +64,13 @@ function ProductCard({ product, showWishlist = true, showWhatsApp = true }) {
     alert("Product added to cart.");
   };
 
-  const toggleWishlist = () => {
-    const wishlistItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      category: product.category,
-    };
-
-    const existingWishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-
-    let updatedWishlist;
-
-    if (existingWishlist.some((item) => item.id === product.id)) {
-      updatedWishlist = existingWishlist.filter((item) => item.id !== product.id);
-      setIsWishlisted(false);
-    } else {
-      updatedWishlist = [...existingWishlist, wishlistItem];
-      setIsWishlisted(true);
+  const openSalesModal = () => {
+    if (!selectedSize) {
+      alert("Please select a size.");
+      return;
     }
 
-    localStorage.setItem("streetbois-wishlist", JSON.stringify(updatedWishlist));
-    window.dispatchEvent(new Event("wishlistUpdated"));
+    setShowSalesModal(true);
   };
 
   return (
@@ -82,49 +81,59 @@ function ProductCard({ product, showWishlist = true, showWhatsApp = true }) {
           alt={product.name}
           onClick={() => navigate(`/product/${product.id}`)}
         />
-
-        {showWishlist && (
-          <button
-            className={isWishlisted ? "wishlist-heart active" : "wishlist-heart"}
-            onClick={toggleWishlist}
-          >
-            {isWishlisted ? "♥" : "♡"}
-          </button>
-        )}
       </div>
 
       <div className="universal-product-info">
-        <h3 onClick={() => navigate(`/product/${product.id}`)}>
-          {product.name}
-        </h3>
-
         <p className="universal-price">GH₵ {product.price}</p>
 
         {product.category && (
           <p className="universal-category">{product.category}</p>
         )}
 
+        <div className="product-size-box">
+          <p>Size:</p>
+
+          <div className="product-size-options">
+            {sizes.map((size) => (
+              <button
+                key={size}
+                type="button"
+                className={selectedSize === size ? "size-active" : ""}
+                onClick={() => setSelectedSize(size)}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button className="universal-cart-btn" onClick={addToCart}>
-          Add to Cart
+          🛒 Add to Cart
         </button>
 
-        {showWishlist && (
-          <button className="universal-wishlist-btn" onClick={toggleWishlist}>
-            {isWishlisted ? "♥ Remove from Wishlist" : "♡ Add to Wishlist"}
-          </button>
-        )}
+        <button
+          className="universal-buy-btn"
+          onClick={() => navigate(`/product/${product.id}`)}
+        >
+          🛍 Buy Now
+        </button>
 
         {showWhatsApp && (
-          <a
-            href={`https://wa.me/233202430406?text=Hello%20StreetBois%20Fashion,%20I%20am%20interested%20in%20${encodeURIComponent(product.name)}`}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
             className="universal-whatsapp-btn"
+            onClick={openSalesModal}
           >
-            Order on WhatsApp
-          </a>
+            💬 Place Order
+          </button>
         )}
       </div>
+
+      <SalesRepModal
+        isOpen={showSalesModal}
+        onClose={() => setShowSalesModal(false)}
+        message={whatsappMessage}
+      />
     </div>
   );
 }

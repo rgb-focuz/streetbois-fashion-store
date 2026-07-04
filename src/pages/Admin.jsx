@@ -12,6 +12,12 @@ function Admin() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 
+  const createEmptySizeRow = () => ({
+    size_type: "",
+    size: "",
+    stock: "",
+  });
+
   const emptyRow = {
     name: "",
     price: "",
@@ -19,6 +25,7 @@ function Admin() {
     image_file: null,
     description: "",
     stock: "",
+    size_stock: [createEmptySizeRow()],
     featured: false,
   };
 
@@ -29,12 +36,13 @@ function Admin() {
 
   const [rows, setRows] = useState([{ ...emptyRow }]);
   const [bulkSettings, setBulkSettings] = useState({
-  price: "",
-  category: "",
-  stock: "",
-  featured: false,
-  description: "",
-});
+    price: "",
+    category: "",
+    stock: "",
+    size_stock: [createEmptySizeRow()],
+    featured: false,
+    description: "",
+  });
   const [collectionForm, setCollectionForm] = useState({ ...emptyCollection });
 
   const [products, setProducts] = useState([]);
@@ -109,6 +117,29 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
     "Sneakers",
     "Slides",
   ];
+
+  const sizePresetGroups = [
+    { label: "Clothing", sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL"] },
+    { label: "Shoes", sizes: ["38", "39", "40", "41", "42", "43", "44", "45", "46"] },
+    { label: "Belts", sizes: ["30", "32", "34", "36", "38", "40", "42"] },
+    { label: "Perfumes", sizes: ["30ml", "50ml", "100ml"] },
+    { label: "General", sizes: ["One Size"] },
+  ];
+
+  const getSizeOptionsByType = (sizeType) => {
+    const group = sizePresetGroups.find((item) => item.label === sizeType);
+    return group ? group.sizes : [];
+  };
+
+  const getSizeTypeFromSize = (size) => {
+    if (!size) return "";
+
+    const group = sizePresetGroups.find((item) =>
+      item.sizes.includes(String(size))
+    );
+
+    return group ? group.label : "";
+  };
 
 
   const currentDate = new Date();
@@ -365,6 +396,329 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
     setRows(updatedRows);
   };
 
+  const normalizeSizeStockForInput = (sizeStock, sizes = []) => {
+    if (
+      sizeStock &&
+      typeof sizeStock === "object" &&
+      !Array.isArray(sizeStock)
+    ) {
+      const rows = Object.entries(sizeStock).map(([size, stock]) => ({
+        size,
+        stock: String(stock ?? ""),
+      }));
+
+      return rows.length > 0 ? rows : [createEmptySizeRow()];
+    }
+
+    if (Array.isArray(sizes) && sizes.length > 0) {
+      return sizes.map((size) => ({
+        size,
+        stock: "",
+      }));
+    }
+
+    return [createEmptySizeRow()];
+  };
+
+  const sizeRowsToObject = (sizeRows) => {
+    if (!Array.isArray(sizeRows)) return null;
+
+    const sizeStock = {};
+
+    sizeRows.forEach((row) => {
+      const size = String(row.size || "").trim();
+      const stock = Number(row.stock || 0);
+
+      if (size) {
+        sizeStock[size] = stock < 0 ? 0 : stock;
+      }
+    });
+
+    return Object.keys(sizeStock).length > 0 ? sizeStock : null;
+  };
+
+  const getSizesFromSizeStock = (sizeStock) => {
+    if (!sizeStock) return null;
+    return Object.keys(sizeStock);
+  };
+
+  const getTotalStockFromSizeStock = (sizeStock, fallbackStock = 0) => {
+    if (!sizeStock) return Number(fallbackStock || 0);
+
+    return Object.values(sizeStock).reduce(
+      (total, value) => total + Number(value || 0),
+      0
+    );
+  };
+
+  const formatSizeStockForDisplay = (sizeStock, sizes = []) => {
+    if (
+      sizeStock &&
+      typeof sizeStock === "object" &&
+      !Array.isArray(sizeStock)
+    ) {
+      return Object.entries(sizeStock)
+        .map(([size, stock]) => `${size}: ${stock}`)
+        .join(", ");
+    }
+
+    if (Array.isArray(sizes) && sizes.length > 0) {
+      return sizes.join(", ");
+    }
+
+    return "Not set";
+  };
+
+  const handleSizeStockChange = (productIndex, sizeIndex, field, value) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) => {
+        if (rowIndex !== productIndex) return row;
+
+        const currentSizeStock =
+          Array.isArray(row.size_stock) && row.size_stock.length > 0
+            ? row.size_stock
+            : [createEmptySizeRow()];
+
+        return {
+          ...row,
+          size_stock: currentSizeStock.map((sizeRow, currentIndex) =>
+            currentIndex === sizeIndex
+              ? {
+                  ...sizeRow,
+                  [field]: value,
+                  ...(field === "size_type" ? { size: "" } : {}),
+                }
+              : sizeRow
+          ),
+        };
+      })
+    );
+  };
+
+  const addSizeStockRow = (productIndex) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) =>
+        rowIndex === productIndex
+          ? {
+              ...row,
+              size_stock: [
+                ...(Array.isArray(row.size_stock) ? row.size_stock : []),
+                createEmptySizeRow(),
+              ],
+            }
+          : row
+      )
+    );
+  };
+
+  const removeSizeStockRow = (productIndex, sizeIndex) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) => {
+        if (rowIndex !== productIndex) return row;
+
+        const nextRows = (row.size_stock || []).filter(
+          (_, currentIndex) => currentIndex !== sizeIndex
+        );
+
+        return {
+          ...row,
+          size_stock: nextRows.length > 0 ? nextRows : [createEmptySizeRow()],
+        };
+      })
+    );
+  };
+
+  const handleBulkSizeStockChange = (sizeIndex, field, value) => {
+    setBulkSettings((currentSettings) => {
+      const currentSizeStock =
+        Array.isArray(currentSettings.size_stock) &&
+        currentSettings.size_stock.length > 0
+          ? currentSettings.size_stock
+          : [createEmptySizeRow()];
+
+      return {
+        ...currentSettings,
+        size_stock: currentSizeStock.map((sizeRow, currentIndex) =>
+          currentIndex === sizeIndex
+            ? {
+                ...sizeRow,
+                [field]: value,
+                ...(field === "size_type" ? { size: "" } : {}),
+              }
+            : sizeRow
+        ),
+      };
+    });
+  };
+
+  const addBulkSizeStockRow = () => {
+    setBulkSettings((currentSettings) => ({
+      ...currentSettings,
+      size_stock: [
+        ...(Array.isArray(currentSettings.size_stock)
+          ? currentSettings.size_stock
+          : []),
+        createEmptySizeRow(),
+      ],
+    }));
+  };
+
+  const removeBulkSizeStockRow = (sizeIndex) => {
+    setBulkSettings((currentSettings) => {
+      const nextRows = (currentSettings.size_stock || []).filter(
+        (_, currentIndex) => currentIndex !== sizeIndex
+      );
+
+      return {
+        ...currentSettings,
+        size_stock: nextRows.length > 0 ? nextRows : [createEmptySizeRow()],
+      };
+    });
+  };
+
+  const handleEditingSizeStockChange = (sizeIndex, field, value) => {
+    setEditingProduct((currentProduct) => {
+      if (!currentProduct) return currentProduct;
+
+      const currentSizeStock =
+        Array.isArray(currentProduct.size_stock) &&
+        currentProduct.size_stock.length > 0
+          ? currentProduct.size_stock
+          : [createEmptySizeRow()];
+
+      return {
+        ...currentProduct,
+        size_stock: currentSizeStock.map((sizeRow, currentIndex) =>
+          currentIndex === sizeIndex
+            ? {
+                ...sizeRow,
+                [field]: value,
+                ...(field === "size_type" ? { size: "" } : {}),
+              }
+            : sizeRow
+        ),
+      };
+    });
+  };
+
+  const addEditingSizeStockRow = () => {
+    setEditingProduct((currentProduct) => {
+      if (!currentProduct) return currentProduct;
+
+      return {
+        ...currentProduct,
+        size_stock: [
+          ...(Array.isArray(currentProduct.size_stock)
+            ? currentProduct.size_stock
+            : []),
+          createEmptySizeRow(),
+        ],
+      };
+    });
+  };
+
+  const removeEditingSizeStockRow = (sizeIndex) => {
+    setEditingProduct((currentProduct) => {
+      if (!currentProduct) return currentProduct;
+
+      const nextRows = (currentProduct.size_stock || []).filter(
+        (_, currentIndex) => currentIndex !== sizeIndex
+      );
+
+      return {
+        ...currentProduct,
+        size_stock: nextRows.length > 0 ? nextRows : [createEmptySizeRow()],
+      };
+    });
+  };
+
+  const getSizeRowStockValue = (sizeRows, size) => {
+    const found = (Array.isArray(sizeRows) ? sizeRows : []).find(
+      (row) => String(row.size || "").trim() === size
+    );
+
+    return found ? found.stock : "";
+  };
+
+  const isSizeRowSelected = (sizeRows, size) =>
+    (Array.isArray(sizeRows) ? sizeRows : []).some(
+      (row) => String(row.size || "").trim() === size
+    );
+
+  const toggleSizeInRows = (sizeRows, size) => {
+    const cleanRows = (Array.isArray(sizeRows) ? sizeRows : [])
+      .filter((row) => String(row.size || "").trim())
+      .map((row) => ({ ...row, size: String(row.size || "").trim() }));
+
+    if (cleanRows.some((row) => row.size === size)) {
+      return cleanRows.filter((row) => row.size !== size);
+    }
+
+    return [...cleanRows, { size, stock: "" }];
+  };
+
+  const updateStockForSize = (sizeRows, size, stock) => {
+    const cleanRows = (Array.isArray(sizeRows) ? sizeRows : [])
+      .filter((row) => String(row.size || "").trim())
+      .map((row) => ({ ...row, size: String(row.size || "").trim() }));
+
+    if (cleanRows.some((row) => row.size === size)) {
+      return cleanRows.map((row) =>
+        row.size === size ? { ...row, stock } : row
+      );
+    }
+
+    return [...cleanRows, { size, stock }];
+  };
+
+  const toggleBulkPresetSize = (size) => {
+    setBulkSettings((currentSettings) => ({
+      ...currentSettings,
+      size_stock: toggleSizeInRows(currentSettings.size_stock, size),
+    }));
+  };
+
+  const updateBulkPresetSizeStock = (size, stock) => {
+    setBulkSettings((currentSettings) => ({
+      ...currentSettings,
+      size_stock: updateStockForSize(currentSettings.size_stock, size, stock),
+    }));
+  };
+
+  const toggleProductPresetSize = (productIndex, size) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) =>
+        rowIndex === productIndex
+          ? { ...row, size_stock: toggleSizeInRows(row.size_stock, size) }
+          : row
+      )
+    );
+  };
+
+  const updateProductPresetSizeStock = (productIndex, size, stock) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) =>
+        rowIndex === productIndex
+          ? { ...row, size_stock: updateStockForSize(row.size_stock, size, stock) }
+          : row
+      )
+    );
+  };
+
+  const toggleEditingPresetSize = (size) => {
+    setEditingProduct((currentProduct) => ({
+      ...currentProduct,
+      size_stock: toggleSizeInRows(currentProduct.size_stock, size),
+    }));
+  };
+
+  const updateEditingPresetSizeStock = (size, stock) => {
+    setEditingProduct((currentProduct) => ({
+      ...currentProduct,
+      size_stock: updateStockForSize(currentProduct.size_stock, size, stock),
+    }));
+  };
+
   const addRow = () => {
     setRows([...rows, { ...emptyRow }]);
   };
@@ -456,16 +810,21 @@ const handleMultipleImages = (files) => {
 
         const imageUrl = await uploadImage(item.image_file, item.category);
 
+        const sizeStock = sizeRowsToObject(item.size_stock);
+        const totalStock = getTotalStockFromSizeStock(sizeStock, item.stock);
+
         productsToUpload.push({
           name: item.name,
           price: Number(item.price),
           category: item.category,
           image_url: imageUrl,
           description: item.description,
-          stock: Number(item.stock || 0),
-          in_stock: true,
+          stock: totalStock,
+          sizes: getSizesFromSizeStock(sizeStock),
+          size_stock: sizeStock,
+          in_stock: totalStock > 0,
           featured: item.featured,
-          status: "Active",
+          status: totalStock > 0 ? "Active" : "Out of Stock",
         });
       }
 
@@ -527,6 +886,7 @@ const handleMultipleImages = (files) => {
       category: product.category,
       description: product.description || "",
       stock: product.stock || 0,
+      size_stock: normalizeSizeStockForInput(product.size_stock, product.sizes),
       original_stock: product.stock || 0,
       stock_reason: "Manual admin update",
       featured: product.featured || false,
@@ -549,8 +909,12 @@ const handleMultipleImages = (files) => {
         );
       }
 
+      const sizeStock = sizeRowsToObject(editingProduct.size_stock);
       const oldStock = Number(editingProduct.original_stock || 0);
-      const newStock = Number(editingProduct.stock || 0);
+      const newStock = getTotalStockFromSizeStock(
+        sizeStock,
+        editingProduct.stock
+      );
 
       const { error } = await supabase
         .from("products")
@@ -559,9 +923,12 @@ const handleMultipleImages = (files) => {
           price: Number(editingProduct.price),
           category: editingProduct.category,
           description: editingProduct.description,
-          stock: Number(editingProduct.stock),
+          stock: newStock,
+          sizes: getSizesFromSizeStock(sizeStock),
+          size_stock: sizeStock,
+          in_stock: newStock > 0,
           featured: editingProduct.featured,
-          status: editingProduct.status,
+          status: newStock > 0 ? editingProduct.status : "Out of Stock",
           image_url: imageUrl,
         })
         .eq("id", editingProduct.id);
@@ -1376,6 +1743,91 @@ const handleMultipleImages = (files) => {
     users: "View registered customer accounts.",
   };
 
+  const renderPresetSizeStockBox = ({
+    title = "Size Stock",
+    sizeRows = [],
+    onChangeRow,
+    onAddRow,
+    onRemoveRow,
+    compact = false,
+  }) => {
+    const currentSizeRows =
+      Array.isArray(sizeRows) && sizeRows.length > 0
+        ? sizeRows
+        : [createEmptySizeRow()];
+
+    return (
+      <div className={`admin-size-stock-box dropdown ${compact ? "compact" : ""}`}>
+        <p>{title}</p>
+
+        {currentSizeRows.map((sizeRow, sizeIndex) => {
+          const selectedType =
+            sizeRow.size_type || getSizeTypeFromSize(sizeRow.size);
+          const sizeOptions = getSizeOptionsByType(selectedType);
+
+          return (
+            <div className="admin-size-dropdown-row" key={sizeIndex}>
+              <select
+                value={selectedType}
+                onChange={(e) =>
+                  onChangeRow(sizeIndex, "size_type", e.target.value)
+                }
+              >
+                <option value="">Product Type</option>
+                {sizePresetGroups.map((group) => (
+                  <option key={group.label} value={group.label}>
+                    {group.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={sizeRow.size || ""}
+                disabled={!selectedType}
+                onChange={(e) =>
+                  onChangeRow(sizeIndex, "size", e.target.value)
+                }
+              >
+                <option value="">Size</option>
+                {sizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="number"
+                min="0"
+                placeholder="Stock"
+                value={sizeRow.stock || ""}
+                onChange={(e) =>
+                  onChangeRow(sizeIndex, "stock", e.target.value)
+                }
+              />
+
+              <button
+                type="button"
+                className="remove-size-row-btn"
+                onClick={() => onRemoveRow(sizeIndex)}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
+
+        <button
+          type="button"
+          className="add-size-row-btn"
+          onClick={onAddRow}
+        >
+          + Add Size
+        </button>
+      </div>
+    );
+  };
+
   return (
     <section className={`admin-page ${isMobileMenuOpen ? "mobile-menu-open" : ""}`}>
       <div className="admin-mobile-topbar">
@@ -1690,7 +2142,7 @@ const handleMultipleImages = (files) => {
 
 <div className="bulk-settings-box">
   <h3>Bulk Settings</h3>
-  <p>Apply the same price, category, stock and description to all upload rows.</p>
+  <p>Apply the same price, category, stock, sizes and description to all upload rows.</p>
 
   <div className="bulk-settings-grid">
     <input
@@ -1725,6 +2177,14 @@ const handleMultipleImages = (files) => {
       }
     />
 
+    {renderPresetSizeStockBox({
+      title: "Bulk Size Stock",
+      sizeRows: bulkSettings.size_stock,
+      onChangeRow: handleBulkSizeStockChange,
+      onAddRow: addBulkSizeStockRow,
+      onRemoveRow: removeBulkSizeStockRow,
+    })}
+
     <label className="bulk-checkbox">
       <input
         type="checkbox"
@@ -1754,6 +2214,10 @@ const handleMultipleImages = (files) => {
           price: bulkSettings.price || row.price,
           category: bulkSettings.category || row.category,
           stock: bulkSettings.stock || row.stock,
+          size_stock:
+            sizeRowsToObject(bulkSettings.size_stock)
+              ? bulkSettings.size_stock.map((sizeRow) => ({ ...sizeRow }))
+              : row.size_stock,
           featured: bulkSettings.featured,
           description: bulkSettings.description || row.description,
         }))
@@ -1793,6 +2257,7 @@ const handleMultipleImages = (files) => {
                     <th>Image</th>
                     <th>Description</th>
                     <th>Stock</th>
+                    <th>Sizes</th>
                     <th>Featured</th>
                     <th>Remove</th>
                   </tr>
@@ -1879,6 +2344,19 @@ const handleMultipleImages = (files) => {
                           }
                           placeholder="Stock"
                         />
+                      </td>
+
+                      <td>
+                        {renderPresetSizeStockBox({
+                          title: "Sizes",
+                          sizeRows: row.size_stock,
+                          onChangeRow: (sizeIndex, field, value) =>
+                            handleSizeStockChange(index, sizeIndex, field, value),
+                          onAddRow: () => addSizeStockRow(index),
+                          onRemoveRow: (sizeIndex) =>
+                            removeSizeStockRow(index, sizeIndex),
+                          compact: true,
+                        })}
                       </td>
 
                       <td>
@@ -2079,6 +2557,7 @@ const handleMultipleImages = (files) => {
                     <th>Name</th>
                     <th>Price</th>
                     <th>Category</th>
+                    <th>Sizes</th>
                     <th>Stock</th>
                     <th>Status</th>
                     <th>Featured</th>
@@ -2110,6 +2589,7 @@ const handleMultipleImages = (files) => {
                       <td>{product.name}</td>
                       <td>GH₵ {product.price}</td>
                       <td>{product.category}</td>
+                      <td>{formatSizeStockForDisplay(product.size_stock, product.sizes)}</td>
                       <td>{product.stock || 0}</td>
                       <td>{getStockBadge(product.stock)}</td>
 
@@ -2157,7 +2637,7 @@ const handleMultipleImages = (files) => {
 
                   {paginatedProducts.length === 0 && (
                     <tr>
-                      <td colSpan="11">No products found.</td>
+                      <td colSpan="12">No products found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -3274,7 +3754,7 @@ const handleMultipleImages = (files) => {
 
                 <input
                   type="number"
-                  placeholder="Stock"
+                  placeholder="Fallback stock for products without sizes"
                   value={editingProduct.stock}
                   onChange={(e) =>
                     setEditingProduct({
@@ -3283,6 +3763,14 @@ const handleMultipleImages = (files) => {
                     })
                   }
                 />
+
+                {renderPresetSizeStockBox({
+                  title: "Size Stock",
+                  sizeRows: editingProduct.size_stock,
+                  onChangeRow: handleEditingSizeStockChange,
+                  onAddRow: addEditingSizeStockRow,
+                  onRemoveRow: removeEditingSizeStockRow,
+                })}
 
                 <input
                   type="text"
@@ -3344,6 +3832,13 @@ const handleMultipleImages = (files) => {
                 <p>{previewProduct.category}</p>
                 <p>{previewProduct.description}</p>
                 <p>Stock: {previewProduct.stock || 0}</p>
+                <p>
+                  Sizes:{" "}
+                  {formatSizeStockForDisplay(
+                    previewProduct.size_stock,
+                    previewProduct.sizes
+                  )}
+                </p>
                 <p>{previewProduct.featured ? "Featured" : "Normal Product"}</p>
               </div>
             </div>

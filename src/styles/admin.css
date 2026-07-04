@@ -3604,3 +3604,57 @@
     width: 100%;
   }
 }
+
+.admin-size-stock-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-size-stock-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-size-row-btn,
+.remove-size-row-btn {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.admin-size-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-size-chip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.admin-size-chip button {
+  border: 1px solid #d4af37;
+  background: transparent;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.admin-size-chip.selected button {
+  background: #d4af37;
+  color: #000;
+}
+
+.admin-size-chip input {
+  width: 75px;
+}
+
+.admin-size-dropdown-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 90px 42px;
+  gap: 8px;
+  margin-bottom: 8px;
+}

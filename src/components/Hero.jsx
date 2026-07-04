@@ -21,13 +21,14 @@ function Hero() {
 
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
+
   useEffect(() => {
     const slider = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length);
     }, 4000);
 
     return () => clearInterval(slider);
-  }, [banners.length]);
+  }, []);
 
   const nextSlide = () => {
     setCurrent((prev) => (prev + 1) % banners.length);
@@ -43,7 +44,7 @@ function Hero() {
     <section
       className="hero"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${banners[current]})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,.58), rgba(0,0,0,.58)), url(${banners[current]})`,
       }}
     >
       <button className="arrow left" onClick={prevSlide}>
@@ -52,22 +53,42 @@ function Hero() {
 
       <div className="hero-content">
         <span>Premium Ghanaian Fashion Store</span>
+
         <h1>Style Beyond Trends.</h1>
+
         <p>
-          Quality clothing, shoes, bags, belts and accessories for modern
-          fashion lovers.
+          Quality clothing, shoes, bags, belts and accessories
+          for modern fashion lovers.
         </p>
 
-        <div className="hero-buttons">
-          <button onClick={() => navigate("/shop")}>
-  Shop Collection
-</button>
+        <div className="hero-quick-links">
           <button
-  className="outline"
-  onClick={() => navigate("/contact")}
->
-  Contact Us
-</button>
+            className="hero-quick-btn"
+            onClick={() => navigate("/shop")}
+          >
+            <span className="hero-icon">🛍️</span>
+
+            <span className="hero-text">
+              Shop Collection
+            </span>
+
+            <span className="hero-arrow">›</span>
+          </button>
+
+          <div className="hero-divider"></div>
+
+          <button
+            className="hero-quick-btn"
+            onClick={() => navigate("/contact")}
+          >
+            <span className="hero-icon">📞</span>
+
+            <span className="hero-text">
+              Contact Us
+            </span>
+
+            <span className="hero-arrow">›</span>
+          </button>
         </div>
       </div>
 
