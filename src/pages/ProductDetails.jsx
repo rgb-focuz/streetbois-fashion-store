@@ -243,24 +243,12 @@ Please assist me with this order.`
         </div>
 
         <div className="product-details-info">
-          <p className="breadcrumb">Home / Shop / {product.name}</p>
-
+        
           <h1>{product.name}</h1>
 
-          <div className="rating-summary">
-            <span>{"★".repeat(Math.round(Number(averageRating)))}</span>
-            <p>
-              {averageRating} ({reviews.length} reviews)
-            </p>
-          </div>
 
           <h2>GH₵ {product.price}</h2>
           <p className="product-category">{product.category}</p>
-
-          <p className="product-description">
-            {product.description ||
-              "Quality fashion product available at StreetBois Fashion."}
-          </p>
 
           {hasSizeStock && (
             <div className="details-size-box">
