@@ -89,103 +89,165 @@ function Contact() {
     }
 
     setFormStatus("success");
-    setFormMessage(
-      `Message sent successfully. ${storeSettings.store_name} will get back to you soon.`
-    );
+    setFormMessage(`Message sent successfully. ${storeSettings.store_name} will get back to you soon.`);
     setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     setLoading(false);
   };
+
+  const locations = [
+    {
+      title: "Our Main Location in Tudu, Accra",
+      text: "Orange Building, 3rd Floor & Top Floor, Tudu - Accra, Ghana",
+    },
+    {
+      title: "Street Electronics",
+      text: "Orange Building, 3rd Floor, Tudu - Accra, Ghana",
+    },
+    {
+      title: "STC Building Branch",
+      text: "STC Building, 2nd & 3rd Floor, Tudu - Accra, Ghana",
+    },
+    {
+      title: "Hisense Building Branch",
+      text: "Hisense Building, Tudu - Accra, Ghana",
+    },
+    {
+      title: "Wholesale Warehouse",
+      text: "Large warehouse serving all StreetBois Fashion branches in Accra.",
+    },
+    {
+      title: "More Branches Coming Soon",
+      text: "As StreetBois Fashion grows, more locations will be added.",
+    },
+  ];
 
   return (
     <>
       <Navbar />
 
-      <section className="contact-page">
-        <div className="contact-header">
-          <h1>Contact {storeSettings.store_name}</h1>
-          <p>{storeSettings.about}</p>
+      <section className="contact-hero">
+        <div className="contact-hero-overlay">
+          <span>Contact Us</span>
+          <h1>Explore Our Locations</h1>
+          <p>
+            Reach StreetBois Fashion for wholesale enquiries, orders,
+            delivery support and product availability.
+          </p>
         </div>
+      </section>
 
-        <div className="contact-grid">
-          <div className="contact-info">
-            <h2>Get In Touch</h2>
-            <p>
-              <strong>Phone / WhatsApp:</strong> {storeSettings.phone}
-            </p>
-            <p>
-              <strong>Email:</strong> {storeSettings.email}
-            </p>
-            <p>
-              <strong>Location:</strong> {storeSettings.address}
-            </p>
-            <p>
-              <strong>Working Hours:</strong> {storeSettings.business_hours}
-            </p>
+      <section className="contact-locations-section">
+        <span className="contact-small-title">How to Contact Us</span>
+        <h2>Rooted in Accra, serving everywhere</h2>
+        <p className="contact-intro">
+          Great fashion happens when quality products meet trusted service.
+          Here is where StreetBois Fashion connects with customers, retailers,
+          resellers and fashion lovers.
+        </p>
 
-            <a
-              href={formatWhatsAppLink(storeSettings.whatsapp)}
-              target="_blank"
-              rel="noreferrer"
-              className="contact-whatsapp"
-            >
-              Chat on WhatsApp
-            </a>
+        <div className="locations-grid">
+          {locations.map((item, index) => (
+            <div className="location-item" key={index}>
+              <h3>→ {item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="contact-main-section">
+        <div className="contact-info-panel">
+          <h2>Get In Touch</h2>
+
+          <div className="info-card">
+            <strong>Phone / WhatsApp</strong>
+            <p>{storeSettings.phone}</p>
           </div>
 
-          <form className="contact-form" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-            />
+          <div className="info-card">
+            <strong>Email Address</strong>
+            <p>{storeSettings.email}</p>
+          </div>
 
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-            />
+          <div className="info-card">
+            <strong>Main Location</strong>
+            <p>{storeSettings.address}</p>
+          </div>
 
-            <input
-              type="tel"
-              placeholder="Phone Number / WhatsApp (optional)"
-              value={formData.phone}
-              onChange={(e) => handleChange("phone", e.target.value)}
-            />
+          <div className="info-card">
+            <strong>Business Hours</strong>
+            <p>{storeSettings.business_hours}</p>
+          </div>
 
-            <input
-              type="text"
-              placeholder="Subject"
-              value={formData.subject}
-              onChange={(e) => handleChange("subject", e.target.value)}
-            />
-
-            <textarea
-              placeholder="Your Message"
-              value={formData.message}
-              onChange={(e) => handleChange("message", e.target.value)}
-            ></textarea>
-
-            {formMessage && (
-              <div className={`contact-alert ${formStatus}`}>{formMessage}</div>
-            )}
-
-            <button type="submit" disabled={loading}>
-              {loading ? "Sending..." : "Send Message"}
-            </button>
-          </form>
+          <a
+            href={formatWhatsAppLink(storeSettings.whatsapp)}
+            target="_blank"
+            rel="noreferrer"
+            className="contact-whatsapp"
+          >
+            Chat on WhatsApp
+          </a>
         </div>
 
-        <div className="map-box">
-          {storeSettings.google_map ? (
-            <a href={storeSettings.google_map} target="_blank" rel="noreferrer">
-              Open Google Map Location
-            </a>
-          ) : (
-            "Google Map Location Coming Soon"
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <h2>Send Us a Message</h2>
+
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+          />
+
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+          />
+
+          <input
+            type="tel"
+            placeholder="Phone Number / WhatsApp (optional)"
+            value={formData.phone}
+            onChange={(e) => handleChange("phone", e.target.value)}
+          />
+
+          <input
+            type="text"
+            placeholder="Subject"
+            value={formData.subject}
+            onChange={(e) => handleChange("subject", e.target.value)}
+          />
+
+          <textarea
+            placeholder="Your Message"
+            value={formData.message}
+            onChange={(e) => handleChange("message", e.target.value)}
+          ></textarea>
+
+          {formMessage && (
+            <div className={`contact-alert ${formStatus}`}>{formMessage}</div>
           )}
-        </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Sending..." : "Send Message"}
+          </button>
+        </form>
+      </section>
+
+      <section className="contact-map-section">
+        {storeSettings.google_map ? (
+          <a href={storeSettings.google_map} target="_blank" rel="noreferrer">
+            Open Google Map Location
+          </a>
+        ) : (
+          <div>
+            <h2>StreetBois Fashion</h2>
+            <p>Tudu, Accra - Ghana</p>
+            <span>Google Map Location Coming Soon</span>
+          </div>
+        )}
       </section>
 
       <Footer />
