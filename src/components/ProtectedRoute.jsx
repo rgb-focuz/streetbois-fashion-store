@@ -4,24 +4,48 @@ import { supabase } from "../supabaseClient";
 
 function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const checkAccess = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      setAuthenticated(!!session);
+      if (!session) {
+        setAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select("role,is_active")
+        .eq("email", session.user.email)
+        .single();
+
+      if (
+        error ||
+        !data ||
+        data.is_active === false
+      ) {
+        await supabase.auth.signOut();
+        setAuthorized(false);
+      } else {
+        setAuthorized(true);
+      }
+
       setLoading(false);
     };
 
-    checkUser();
+    checkAccess();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-  return authenticated ? children : <Navigate to="/admin-login" />;
+  return authorized ? children : <Navigate to="/admin-login" replace />;
 }
 
 export default ProtectedRoute;

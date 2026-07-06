@@ -9,8 +9,6 @@ function AdminLogin() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const adminEmail = "apodeijoshuaagudey1@gmail.com";
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -25,11 +23,19 @@ function AdminLogin() {
       return;
     }
 
-    if (data.user.email === adminEmail) {
-      navigate("/admin");
-    } else {
-      setError("Access denied. This account is not an admin.");
+    const { data: adminData, error: adminError } = await supabase
+      .from("admin_users")
+      .select("role,is_active")
+      .eq("email", data.user.email)
+      .single();
+
+    if (adminError || !adminData || adminData.is_active === false) {
+      await supabase.auth.signOut();
+      setError("Access denied. This account is not an active admin.");
+      return;
     }
+
+    navigate("/admin");
   };
 
   return (

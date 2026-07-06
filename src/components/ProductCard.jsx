@@ -5,13 +5,7 @@ import "../styles/productCard.css";
 
 function ProductCard({ product, showWhatsApp = true }) {
   const navigate = useNavigate();
-  const [selectedSize, setSelectedSize] = useState("");
   const [showSalesModal, setShowSalesModal] = useState(false);
-
-  const sizes =
-    Array.isArray(product.sizes) && product.sizes.length > 0
-      ? product.sizes
-      : ["S", "M", "L", "XL", "2XL"];
 
   const whatsappMessage = `Hello StreetBois Fashion,
 
@@ -19,59 +13,11 @@ function ProductCard({ product, showWhatsApp = true }) {
 
 Product: ${product.name}
 Price: GH₵ ${product.price}
-Category: ${product.category || "Not provided"}
-Size: ${selectedSize || "Not selected"}
-Quantity: 1
 
 📷 Product Image:
 ${product.image_url || "No image available"}
 
 Please assist me with this order.`;
-
-  const addToCart = () => {
-    if (!selectedSize) {
-      alert("Please select a size.");
-      return;
-    }
-
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      category: product.category,
-      size: selectedSize,
-      quantity: 1,
-    };
-
-    const existingCart =
-      JSON.parse(localStorage.getItem("streetbois-cart")) || [];
-
-    const existingItem = existingCart.find(
-      (item) => item.id === product.id && item.size === selectedSize
-    );
-
-    const updatedCart = existingItem
-      ? existingCart.map((item) =>
-          item.id === product.id && item.size === selectedSize
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      : [...existingCart, cartItem];
-
-    localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-    alert("Product added to cart.");
-  };
-
-  const openSalesModal = () => {
-    if (!selectedSize) {
-      alert("Please select a size.");
-      return;
-    }
-
-    setShowSalesModal(true);
-  };
 
   return (
     <div className="universal-product-card">
@@ -81,48 +27,33 @@ Please assist me with this order.`;
           alt={product.name}
           onClick={() => navigate(`/product/${product.id}`)}
         />
+
+        <div className="quick-view-overlay">
+          <button onClick={() => navigate(`/product/${product.id}`)}>
+            Quick View
+          </button>
+        </div>
       </div>
 
       <div className="universal-product-info">
+        <h3 onClick={() => navigate(`/product/${product.id}`)}>
+          {product.name}
+        </h3>
+
         <p className="universal-price">GH₵ {product.price}</p>
 
-        {product.category && (
-          <p className="universal-category">{product.category}</p>
-        )}
-
-        <div className="product-size-box">
-          <p>Size:</p>
-
-          <div className="product-size-options">
-            {sizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                className={selectedSize === size ? "size-active" : ""}
-                onClick={() => setSelectedSize(size)}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button className="universal-cart-btn" onClick={addToCart}>
-          🛒 Add to Cart
-        </button>
-
         <button
-          className="universal-buy-btn"
+          className="universal-cart-btn"
           onClick={() => navigate(`/product/${product.id}`)}
         >
-          🛍 Buy Now
+          🛒 Add to Cart
         </button>
 
         {showWhatsApp && (
           <button
             type="button"
             className="universal-whatsapp-btn"
-            onClick={openSalesModal}
+            onClick={() => setShowSalesModal(true)}
           >
             💬 Place Order
           </button>
