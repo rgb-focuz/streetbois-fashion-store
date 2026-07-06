@@ -8,8 +8,11 @@ import "../styles/admin.css";
 function Admin() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("orders");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [adminRole, setAdminRole] = useState("");
+  const [adminName, setAdminName] = useState("Administrator");
+  const [roleLoading, setRoleLoading] = useState(true);
 
 
   const createEmptySizeRow = () => ({
@@ -154,10 +157,74 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
     minute: "2-digit",
   });
 
+  const rolePermissions = {
+    super_admin: [
+      "dashboard",
+      "products",
+      "collections",
+      "manage",
+      "analytics",
+      "orders",
+      "reports",
+      "messages",
+      "history",
+      "settings",
+      "users",
+    ],
+    sales_admin: ["products", "manage", "orders"],
+  };
+
+  const hasPermission = (tab) => {
+    if (!adminRole) return false;
+    return rolePermissions[adminRole]?.includes(tab) || false;
+  };
+
+  const getFirstAllowedTab = (role) => {
+    return rolePermissions[role]?.[0] || "orders";
+  };
+
   const changeTab = (tab) => {
+    if (!hasPermission(tab)) {
+      setMessage("Access denied for this section.");
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const loadAdminRole = async () => {
+    setRoleLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setRoleLoading(false);
+      navigate("/admin-login");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("name, role, is_active")
+      .eq("email", user.email)
+      .single();
+
+    if (error || !data || data.is_active === false) {
+      await supabase.auth.signOut();
+      setRoleLoading(false);
+      navigate("/admin-login");
+      return;
+    }
+
+    setAdminRole(data.role);
+    setAdminName(data.name || user.email);
+    setActiveTab(getFirstAllowedTab(data.role));
+    setRoleLoading(false);
   };
 
   const updateSettingsField = (field, value) => {
@@ -226,6 +293,7 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
   };
 
   useEffect(() => {
+    loadAdminRole();
     fetchProducts();
     fetchCollections();
     fetchProfiles();
@@ -235,6 +303,12 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
     fetchInventoryHistory();
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    if (!roleLoading && adminRole && !hasPermission(activeTab)) {
+      setActiveTab(getFirstAllowedTab(adminRole));
+    }
+  }, [adminRole, activeTab, roleLoading]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -1828,6 +1902,10 @@ const handleMultipleImages = (files) => {
     );
   };
 
+  if (roleLoading) {
+    return <div className="admin-loading">Loading admin access...</div>;
+  }
+
   return (
     <section className={`admin-page ${isMobileMenuOpen ? "mobile-menu-open" : ""}`}>
       <div className="admin-mobile-topbar">
@@ -1876,87 +1954,109 @@ const handleMultipleImages = (files) => {
         <div className="admin-profile-card">
           <div className="admin-profile-avatar">JA</div>
           <div>
-            <h3>Joshua Apodei</h3>
-            <p>Administrator</p>
+            <h3>{adminName}</h3>
+            <p>{adminRole === "super_admin" ? "Super Admin" : "Sales Admin"}</p>
           </div>
         </div>
 
+        {hasPermission("dashboard") && (
         <button
           className={activeTab === "dashboard" ? "active" : ""}
           onClick={() => changeTab("dashboard")}
         >
           📊 Dashboard
         </button>
+        )}
 
+        {hasPermission("products") && (
         <button
           className={activeTab === "products" ? "active" : ""}
           onClick={() => changeTab("products")}
         >
           📦 Add Products
         </button>
+        )}
 
+        {hasPermission("collections") && (
         <button
           className={activeTab === "collections" ? "active" : ""}
           onClick={() => changeTab("collections")}
         >
           🖼 Collections
         </button>
+        )}
 
+        {hasPermission("manage") && (
         <button
           className={activeTab === "manage" ? "active" : ""}
           onClick={() => changeTab("manage")}
         >
           🛒 Manage Products
         </button>
+        )}
 
+        {hasPermission("analytics") && (
         <button
           className={activeTab === "analytics" ? "active" : ""}
           onClick={() => changeTab("analytics")}
         >
           📈 Analytics
         </button>
+        )}
 
+        {hasPermission("orders") && (
        <button
   className={activeTab === "orders" ? "active" : ""}
   onClick={() => changeTab("orders")}
 >
   📋 Orders
 </button>
+        )}
 
+        {hasPermission("reports") && (
         <button
           className={activeTab === "reports" ? "active" : ""}
           onClick={() => changeTab("reports")}
         >
           📄 Reports
         </button>
+        )}
 
+        {hasPermission("messages") && (
         <button
           className={activeTab === "messages" ? "active" : ""}
           onClick={() => changeTab("messages")}
         >
           💬 Messages
         </button>
+        )}
 
+        {hasPermission("history") && (
         <button
           className={activeTab === "history" ? "active" : ""}
           onClick={() => changeTab("history")}
         >
           📦 Inventory History
         </button>
+        )}
 
+        {hasPermission("settings") && (
         <button
           className={activeTab === "settings" ? "active" : ""}
           onClick={() => changeTab("settings")}
         >
           ⚙️ Settings
         </button>
+        )}
 
+        {hasPermission("users") && (
         <button
           className={activeTab === "users" ? "active" : ""}
           onClick={() => changeTab("users")}
         >
           👥 Users
         </button>
+        )}
 
         <div style={{ marginTop: "auto", paddingTop: "40px" }}>
           <button className="logout-btn sidebar-logout" onClick={handleLogout}>
@@ -1991,7 +2091,7 @@ const handleMultipleImages = (files) => {
 
         {message && <div className="admin-message">{message}</div>}
 
-        {activeTab === "dashboard" && (
+        {activeTab === "dashboard" && hasPermission("dashboard") && (
           <div className="admin-dashboard premium-dashboard">
             <div className="dashboard-cards premium-stat-grid">
               <div className="dashboard-card premium-stat-card">
@@ -2137,7 +2237,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "products" && (
+        {activeTab === "products" && hasPermission("products") && (
           <div className="admin-card">
 
 <div className="bulk-settings-box">
@@ -2392,7 +2492,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "collections" && (
+        {activeTab === "collections" && hasPermission("collections") && (
           <>
             <div className="admin-card">
               <h2>Add Explore Collection</h2>
@@ -2488,7 +2588,7 @@ const handleMultipleImages = (files) => {
           </>
         )}
 
-        {activeTab === "manage" && (
+        {activeTab === "manage" && hasPermission("manage") && (
           <div className="admin-card">
             <h2>Manage Products</h2>
 
@@ -2666,7 +2766,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "analytics" && (
+        {activeTab === "analytics" && hasPermission("analytics") && (
           <div className="advanced-analytics-page">
             <div className="admin-card analytics-hero-card">
               <div>
@@ -2991,7 +3091,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "reports" && (
+        {activeTab === "reports" && hasPermission("reports") && (
           <div className="reports-page">
             <div className="admin-card reports-summary-card">
               <h2>Reports Center</h2>
@@ -3051,7 +3151,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-         {activeTab === "orders" && (
+         {activeTab === "orders" && hasPermission("orders") && (
   <div className="admin-card">
     <h2>Orders</h2>
 
@@ -3114,7 +3214,7 @@ const handleMultipleImages = (files) => {
   </div>
 )}
 
-        {activeTab === "messages" && (
+        {activeTab === "messages" && hasPermission("messages") && (
           <div className="messages-page">
             <div className="admin-card messages-header-card">
               <div>
@@ -3243,7 +3343,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "history" && (
+        {activeTab === "history" && hasPermission("history") && (
           <div className="inventory-history-page">
             <div className="admin-card inventory-history-header">
               <div>
@@ -3348,7 +3448,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "settings" && (
+        {activeTab === "settings" && hasPermission("settings") && (
           <div className="settings-page advanced-settings-page">
             <div className="admin-card settings-hero-card">
               <div>
@@ -3640,7 +3740,7 @@ const handleMultipleImages = (files) => {
           </div>
         )}
 
-        {activeTab === "users" && (
+        {activeTab === "users" && hasPermission("users") && (
           <div className="admin-card">
             <h2>Registered Users</h2>
             <p>Total Users: {profiles.length}</p>
