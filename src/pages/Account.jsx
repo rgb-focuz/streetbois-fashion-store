@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -10,83 +10,149 @@ function Account() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const saveCustomerProfile = async (user) => {
+  if (!user?.id || !user?.email) return;
+
+  const fullNameFromGoogle =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    fullName ||
+    "Customer";
+
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: fullNameFromGoogle,
+      email: user.email.toLowerCase(),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" }
+  );
+
+  if (error) {
+    console.log("Profile save error:", error);
+    setMessage(error.message);
+  }
+};
+  useEffect(() => {
+  const handleAuthUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await saveCustomerProfile(user);
+      window.location.href = "/shop";
+    }
+  };
+
+  handleAuthUser();
+}, []);
+
+  const signInWithGoogle = async () => {
+  setMessage("");
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/account`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "select_account",
+      },
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  if (data?.url) {
+    window.location.href = data.url;
+  } else {
+    setMessage("Google login URL was not created.");
+
+    }
+
+    console.log("Google OAuth:", { data, error });
+
+    if (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!email.trim()) {
+      setMessage("Enter your email first.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      {
+        redirectTo: `${window.location.origin}/reset-password`,
+      }
+    );
+
+    setMessage(error ? error.message : "Password reset link sent to your email.");
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
     const cleanEmail = email.trim().toLowerCase();
 
-    const { data: existingUser } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("email", cleanEmail)
-      .maybeSingle();
-
-    if (existingUser) {
-      setMessage("This email already has an account. Please sign in instead.");
-      setMode("signin");
-      return;
-    }
-
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
       },
     });
+
+    setLoading(false);
 
     if (error) {
       setMessage(error.message);
       return;
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        full_name: fullName,
-        email: cleanEmail,
-      },
-    ]);
+    if (data.user) {
+      await saveCustomerProfile(data.user);
+    }
 
-   if (profileError) {
-  console.log("Profile insert error:", profileError);
-
-  if (profileError.code === "23505") {
-    setMessage("User account already exists. Please sign in.");
+    setMessage("Account created. Check your email to confirm.");
     setMode("signin");
-  } else {
-    setMessage("Account creation failed. Please try again.");
-  }
-
-  return;
-}
-
-    setMessage("Account created successfully. You can now sign in.");
-    setMode("signin");
-    setFullName("");
-    setEmail("");
-    setPassword("");
   };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
       password,
     });
 
+    setLoading(false);
+
     if (error) {
       setMessage("Login failed. Check your email and password.");
-    } else {
-      window.location.href = "/shop";
+      return;
     }
+
+    if (data.user) {
+      await saveCustomerProfile(data.user);
+    }
+
+    window.location.href = "/shop";
   };
 
   return (
@@ -113,6 +179,18 @@ function Account() {
             >
               Create Account
             </button>
+          </div>
+
+          <button
+            type="button"
+            className="google-auth-btn"
+            onClick={signInWithGoogle}
+          >
+            Continue with Google
+          </button>
+
+          <div className="auth-divider">
+            <span>OR</span>
           </div>
 
           {message && <div className="account-message">{message}</div>}
@@ -143,7 +221,9 @@ function Account() {
                 required
               />
 
-              <button type="submit">Create Account</button>
+              <button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Account"}
+              </button>
             </form>
           ) : (
             <form onSubmit={handleSignIn}>
@@ -163,7 +243,17 @@ function Account() {
                 required
               />
 
-              <button type="submit">Sign In</button>
+              <button type="submit" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+
+              <button
+                type="button"
+                className="forgot-password-btn"
+                onClick={resetPassword}
+              >
+                Forgot Password?
+              </button>
             </form>
           )}
         </div>

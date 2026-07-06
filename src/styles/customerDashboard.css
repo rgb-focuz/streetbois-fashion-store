@@ -1,0 +1,139 @@
+.customer-dashboard {
+  background: #000;
+  color: #fff;
+  min-height: 80vh;
+  padding: 70px 8%;
+}
+
+.customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  gap: 20px;
+}
+
+.customer-header h1 {
+  color: #d4af37;
+  font-size: 42px;
+}
+
+.customer-header p {
+  color: #bbb;
+  margin-top: 8px;
+}
+
+.customer-header button {
+  background: #d4af37;
+  color: #000;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.customer-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-bottom: 35px;
+}
+
+.customer-card,
+.customer-panel {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 18px;
+  padding: 25px;
+}
+
+.customer-card h3 {
+  color: #bbb;
+  margin-bottom: 12px;
+}
+
+.customer-card h2 {
+  color: #d4af37;
+  font-size: 36px;
+}
+
+.customer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+.customer-panel h2 {
+  color: #d4af37;
+  margin-bottom: 20px;
+}
+
+.customer-order {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid #222;
+}
+
+.customer-order p {
+  color: #aaa;
+  margin-top: 6px;
+}
+
+.customer-order span {
+  display: block;
+  margin-top: 6px;
+  color: #00d26a;
+  font-weight: 800;
+}
+
+.customer-panel a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 15px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.customer-panel a:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+.customer-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: #d4af37;
+  font-size: 24px;
+}
+
+@media (max-width: 768px) {
+  .customer-dashboard {
+    padding: 45px 5%;
+  }
+
+  .customer-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .customer-header h1 {
+    font-size: 30px;
+  }
+
+  .customer-cards,
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-order {
+    flex-direction: column;
+  }
+}

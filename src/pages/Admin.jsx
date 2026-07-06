@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../styles/admin.css";
+import AdminUsersManager from "../components/AdminUsersManager";
 
 function Admin() {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ function Admin() {
   const [products, setProducts] = useState([]);
   const [collections, setCollections] = useState([]);
   const [profiles, setProfiles] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
   const [orders, setOrders] = useState([]);
 const [selectedOrder, setSelectedOrder] = useState(null);
 const [orderFilter, setOrderFilter] = useState("All");
@@ -171,7 +173,7 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
       "settings",
       "users",
     ],
-    sales_admin: ["products", "manage", "orders"],
+    sales_admin: ["orders", "products", "manage"],
   };
 
   const hasPermission = (tab) => {
@@ -297,6 +299,7 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
     fetchProducts();
     fetchCollections();
     fetchProfiles();
+    fetchAdminUsers();
     fetchOrders();
     fetchContactMessages();
     fetchStoreSettings();
@@ -333,12 +336,31 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
   };
 
   const fetchProfiles = async () => {
-    const { data } = await supabase
-      .from("profiles")
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, created_at")
+    .order("created_at", { ascending: false });
+
+  console.log("Profiles:", data);
+  console.log("Profile Error:", error);
+
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  setProfiles(data || []);
+};
+
+  const fetchAdminUsers = async () => {
+    const { data, error } = await supabase
+      .from("admin_users")
       .select("*")
       .order("created_at", { ascending: false });
 
-    setProfiles(data || []);
+    if (!error) {
+      setAdminUsers(data || []);
+    }
   };
 
   const fetchOrders = async () => {
@@ -3741,30 +3763,12 @@ const handleMultipleImages = (files) => {
         )}
 
         {activeTab === "users" && hasPermission("users") && (
-          <div className="admin-card">
-            <h2>Registered Users</h2>
-            <p>Total Users: {profiles.length}</p>
-
-            <table className="admin-product-table">
-              <thead>
-                <tr>
-                  <th>Full Name</th>
-                  <th>Email</th>
-                  <th>Registered Date</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {profiles.map((profile) => (
-                  <tr key={profile.id}>
-                    <td>{profile.full_name}</td>
-                    <td>{profile.email}</td>
-                    <td>{new Date(profile.created_at).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminUsersManager
+  adminUsers={adminUsers}
+  fetchAdminUsers={fetchAdminUsers}
+  profiles={profiles}
+  setMessage={setMessage}
+/>
         )}
 
         {editingProduct && (

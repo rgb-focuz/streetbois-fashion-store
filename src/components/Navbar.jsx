@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "../styles/navbar.css";
 import logo from "../assets/logo.png";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [mobileSearch, setMobileSearch] = useState("");
@@ -13,6 +16,11 @@ function Navbar() {
   useEffect(() => {
     updateCartCount();
     updateWishlistCount();
+    loadUser();
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
 
     window.addEventListener("storage", updateCartCount);
     window.addEventListener("storage", updateWishlistCount);
@@ -20,6 +28,7 @@ function Navbar() {
     window.addEventListener("wishlistUpdated", updateWishlistCount);
 
     return () => {
+      data.subscription.unsubscribe();
       window.removeEventListener("storage", updateCartCount);
       window.removeEventListener("storage", updateWishlistCount);
       window.removeEventListener("cartUpdated", updateCartCount);
@@ -27,14 +36,38 @@ function Navbar() {
     };
   }, []);
 
+  const loadUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    setUser(user || null);
+  };
+
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
     setCartCount(cart.reduce((total, item) => total + item.quantity, 0));
   };
 
   const updateWishlistCount = () => {
-    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    const wishlist =
+      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
     setWishlistCount(wishlist.length);
+  };
+
+  const customerName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Customer";
+
+  const firstName = customerName.split(" ")[0];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setAccountOpen(false);
+    navigate("/account");
   };
 
   const handleMobileSearch = () => {
@@ -78,14 +111,49 @@ function Navbar() {
           </li>
 
           <li className="mobile-auth-link">
-            <Link onClick={() => setMenuOpen(false)} to="/account">
-              👤 Sign In / Up
-            </Link>
+            {user ? (
+              <Link onClick={() => setMenuOpen(false)} to="/customer-dashboard">
+                👤 Hi, {firstName}
+              </Link>
+            ) : (
+              <Link onClick={() => setMenuOpen(false)} to="/account">
+                👤 Sign In / Up
+              </Link>
+            )}
           </li>
         </ul>
 
         <div className="navbar-actions">
-          <Link to="/account" className="signin-btn">👤 Sign In / Up</Link>
+          {user ? (
+            <div className="account-dropdown-wrap">
+              <button
+                type="button"
+                className="signin-btn"
+                onClick={() => setAccountOpen(!accountOpen)}
+              >
+                👤 Hi, {firstName}
+              </button>
+
+              {accountOpen && (
+                <div className="account-dropdown">
+                  <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
+                    My Account
+                  </Link>
+                  <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
+                    My Orders
+                  </Link>
+                  <Link onClick={() => setAccountOpen(false)} to="/wishlist">
+                    Wishlist
+                  </Link>
+                  <button type="button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link to="/account" className="signin-btn">👤 Sign In / Up</Link>
+          )}
 
           <Link to="/shop" className="desktop-shop-btn">
             <button className="shop-btn">Shop Now</button>
@@ -93,9 +161,12 @@ function Navbar() {
         </div>
 
         <div className="mobile-icons">
-          <Link to="/account" className="mobile-icon-link account-mobile-icon">
-  👤
-</Link>
+          <Link
+            to={user ? "/customer-dashboard" : "/account"}
+            className="mobile-icon-link account-mobile-icon"
+          >
+            👤
+          </Link>
 
           <Link to="/cart" className="mobile-icon-link">
             🛒

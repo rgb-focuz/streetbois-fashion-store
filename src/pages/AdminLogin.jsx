@@ -13,8 +13,10 @@ function AdminLogin() {
     e.preventDefault();
     setError("");
 
+    const loginEmail = email.trim().toLowerCase();
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: loginEmail,
       password,
     });
 
@@ -26,10 +28,10 @@ function AdminLogin() {
     const { data: adminData, error: adminError } = await supabase
       .from("admin_users")
       .select("role,is_active")
-      .eq("email", data.user.email)
-      .single();
+      .ilike("email", loginEmail)
+      .maybeSingle();
 
-    if (adminError || !adminData || adminData.is_active === false) {
+    if (adminError || !adminData || adminData.is_active !== true) {
       await supabase.auth.signOut();
       setError("Access denied. This account is not an active admin.");
       return;

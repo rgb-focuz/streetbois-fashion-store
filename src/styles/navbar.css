@@ -281,3 +281,40 @@
     cursor: pointer;
   }
 }
+
+.account-dropdown-wrap {
+  position: relative;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 190px;
+  background: #111;
+  border: 1px solid #d4af37;
+  border-radius: 14px;
+  padding: 10px;
+  z-index: 999;
+  display: grid;
+  gap: 6px;
+}
+
+.account-dropdown a,
+.account-dropdown button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-dropdown a:hover,
+.account-dropdown button:hover {
+  background: #d4af37;
+  color: #000;
+}

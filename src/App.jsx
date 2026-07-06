@@ -9,6 +9,8 @@ import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import Cart from "./pages/Cart";
 import Account from "./pages/Account";
+import ResetPassword from "./pages/ResetPassword";
+import CustomerDashboard from "./pages/CustomerDashboard";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,6 +29,8 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/recently-viewed" element={<RecentlyViewed />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/customer-dashboard" element={<CustomerDashboard />} />
         <Route path="/admin-login" element={<AdminLogin />} />
 
         <Route
