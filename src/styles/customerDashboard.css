@@ -2,17 +2,18 @@
   background: #000;
   color: #fff;
   min-height: 80vh;
-  padding: 70px 8%;
+  padding: 55px 7%;
   overflow-x: hidden;
 }
 
 .customer-header {
-  margin-bottom: 35px;
+  margin-bottom: 25px;
 }
 
 .customer-header h1 {
   color: #d4af37;
-  font-size: 42px;
+  font-size: 38px;
+  line-height: 1.15;
 }
 
 .customer-header p {
@@ -24,49 +25,51 @@
 .customer-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
-  margin-bottom: 35px;
+  gap: 18px;
+  margin-bottom: 28px;
 }
 
 .customer-card,
 .customer-panel {
   background: #111;
-  border: 1px solid #222;
+  border: 1px solid #262626;
   border-radius: 18px;
-  padding: 25px;
+  padding: 22px;
   min-width: 0;
 }
 
 .customer-card h3 {
   color: #bbb;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  font-size: 17px;
 }
 
 .customer-card h2 {
   color: #d4af37;
-  font-size: 36px;
+  font-size: 34px;
 }
 
 .customer-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 25px;
+  grid-template-columns: 260px 1fr;
+  gap: 22px;
 }
 
 .customer-panel h2 {
   color: #d4af37;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .customer-panel p {
   word-break: break-word;
+  line-height: 1.5;
 }
 
 .customer-panel a {
   display: block;
   color: #fff;
   text-decoration: none;
-  padding: 15px;
+  padding: 14px;
   border: 1px solid #333;
   border-radius: 12px;
   margin-top: 12px;
@@ -82,7 +85,7 @@
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  padding: 18px 0;
+  padding: 16px 0;
   border-bottom: 1px solid #222;
 }
 
@@ -104,76 +107,92 @@
   place-items: center;
   background: #000;
   color: #d4af37;
-  font-size: 24px;
+  font-size: 22px;
 }
 
-@media (max-width: 900px) {
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
   .customer-dashboard {
     padding: 28px 18px;
-    width: 100%;
-    overflow-x: hidden;
-  }
-
-  .customer-header {
-    margin-bottom: 24px;
   }
 
   .customer-header h1 {
-    font-size: 28px;
-    line-height: 1.2;
+    font-size: 27px;
   }
 
   .customer-header p {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .customer-cards {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
   .customer-card {
-    padding: 22px;
-    min-height: 130px;
+    padding: 14px 10px;
+    border-radius: 14px;
   }
 
   .customer-card h3 {
-    font-size: 18px;
+    font-size: 12px;
+    margin-bottom: 8px;
   }
 
   .customer-card h2 {
-    font-size: 34px;
+    font-size: 22px;
   }
 
   .customer-grid {
     grid-template-columns: 1fr !important;
-    gap: 18px;
+    gap: 16px;
   }
 
   .customer-panel {
-    padding: 22px;
-    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .customer-panel:first-child {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 14px;
+  }
+
+  .customer-panel:first-child h2 {
+    display: none;
+  }
+
+  .customer-panel:first-child button {
+    min-width: max-content;
+    margin-bottom: 0 !important;
+    padding: 11px 14px !important;
+    font-size: 13px !important;
+    border-radius: 999px !important;
   }
 
   .customer-panel h2 {
-    font-size: 26px;
-  }
-
-  .customer-panel button,
-  .customer-panel a {
-    font-size: 15px !important;
-    padding: 14px 16px !important;
-    min-height: unset !important;
+    font-size: 24px;
   }
 
   .customer-panel p {
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 15px;
+  }
+
+  .customer-panel a {
+    font-size: 14px;
+    padding: 13px;
+  }
+
+  .customer-order {
+    flex-direction: column;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 430px) {
   .customer-dashboard {
     padding: 24px 16px;
   }
@@ -182,12 +201,19 @@
     font-size: 25px;
   }
 
-  .customer-card,
-  .customer-panel {
-    padding: 18px;
+  .customer-cards {
+    gap: 8px;
   }
 
-  .customer-panel h2 {
-    font-size: 24px;
+  .customer-card {
+    padding: 12px 8px;
+  }
+
+  .customer-card h3 {
+    font-size: 11px;
+  }
+
+  .customer-card h2 {
+    font-size: 20px;
   }
 }
