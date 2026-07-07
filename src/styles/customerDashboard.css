@@ -109,59 +109,85 @@
 
 @media (max-width: 900px) {
   .customer-dashboard {
-    padding: 45px 5%;
+    padding: 28px 18px;
     width: 100%;
     overflow-x: hidden;
   }
 
+  .customer-header {
+    margin-bottom: 24px;
+  }
+
   .customer-header h1 {
-    font-size: 32px;
-    line-height: 1.15;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .customer-header p {
+    font-size: 15px;
   }
 
   .customer-cards {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
   }
 
-  .customer-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .customer-card,
-  .customer-panel {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .customer-order {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 600px) {
-  .customer-dashboard {
-    padding: 38px 20px;
-  }
-
-  .customer-header h1 {
-    font-size: 30px;
-  }
-
-  .customer-card,
-  .customer-panel {
+  .customer-card {
     padding: 22px;
-    border-radius: 16px;
+    min-height: 130px;
+  }
+
+  .customer-card h3 {
+    font-size: 18px;
   }
 
   .customer-card h2 {
     font-size: 34px;
   }
 
-  .customer-panel button {
-    max-width: 100%;
+  .customer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px;
+  }
+
+  .customer-panel {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .customer-panel h2 {
+    font-size: 26px;
+  }
+
+  .customer-panel button,
+  .customer-panel a {
+    font-size: 15px !important;
+    padding: 14px 16px !important;
+    min-height: unset !important;
+  }
+
+  .customer-panel p {
+    font-size: 16px;
+    line-height: 1.5;
   }
 }
 
-body {
-  overflow-x: hidden;
+@media (max-width: 480px) {
+  .customer-dashboard {
+    padding: 24px 16px;
+  }
+
+  .customer-header h1 {
+    font-size: 25px;
+  }
+
+  .customer-card,
+  .customer-panel {
+    padding: 18px;
+  }
+
+  .customer-panel h2 {
+    font-size: 24px;
+  }
 }
