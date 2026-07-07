@@ -318,3 +318,10 @@
   background: #d4af37;
   color: #000;
 }
+
+@media (max-width: 768px) {
+  body.customer-account-page .nav-links,
+  body.customer-account-page .nav-links.active {
+    display: none !important;
+  }
+}

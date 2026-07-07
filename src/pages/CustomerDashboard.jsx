@@ -13,8 +13,13 @@ function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadCustomer();
-  }, []);
+  document.body.classList.add("customer-account-page");
+  loadCustomer();
+
+  return () => {
+    document.body.classList.remove("customer-account-page");
+  };
+}, []);
 
   const loadCustomer = async () => {
     const {
