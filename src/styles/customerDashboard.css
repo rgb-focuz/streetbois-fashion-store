@@ -3,14 +3,11 @@
   color: #fff;
   min-height: 80vh;
   padding: 70px 8%;
+  overflow-x: hidden;
 }
 
 .customer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 35px;
-  gap: 20px;
 }
 
 .customer-header h1 {
@@ -21,16 +18,7 @@
 .customer-header p {
   color: #bbb;
   margin-top: 8px;
-}
-
-.customer-header button {
-  background: #d4af37;
-  color: #000;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 10px;
-  font-weight: 800;
-  cursor: pointer;
+  word-break: break-word;
 }
 
 .customer-cards {
@@ -46,6 +34,7 @@
   border: 1px solid #222;
   border-radius: 18px;
   padding: 25px;
+  min-width: 0;
 }
 
 .customer-card h3 {
@@ -60,13 +49,33 @@
 
 .customer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 25px;
 }
 
 .customer-panel h2 {
   color: #d4af37;
   margin-bottom: 20px;
+}
+
+.customer-panel p {
+  word-break: break-word;
+}
+
+.customer-panel a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 15px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+.customer-panel a:hover {
+  background: #d4af37;
+  color: #000;
 }
 
 .customer-order {
@@ -89,22 +98,6 @@
   font-weight: 800;
 }
 
-.customer-panel a {
-  display: block;
-  color: #fff;
-  text-decoration: none;
-  padding: 15px;
-  border: 1px solid #333;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  font-weight: 700;
-}
-
-.customer-panel a:hover {
-  background: #d4af37;
-  color: #000;
-}
-
 .customer-loading {
   min-height: 100vh;
   display: grid;
@@ -114,26 +107,61 @@
   font-size: 24px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .customer-dashboard {
     padding: 45px 5%;
+    width: 100%;
+    overflow-x: hidden;
   }
 
-  .customer-header {
+  .customer-header h1 {
+    font-size: 32px;
+    line-height: 1.15;
+  }
+
+  .customer-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .customer-card,
+  .customer-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .customer-order {
     flex-direction: column;
-    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .customer-dashboard {
+    padding: 38px 20px;
   }
 
   .customer-header h1 {
     font-size: 30px;
   }
 
-  .customer-cards,
-  .customer-grid {
-    grid-template-columns: 1fr;
+  .customer-card,
+  .customer-panel {
+    padding: 22px;
+    border-radius: 16px;
   }
 
-  .customer-order {
-    flex-direction: column;
+  .customer-card h2 {
+    font-size: 34px;
   }
+
+  .customer-panel button {
+    max-width: 100%;
+  }
+}
+
+body {
+  overflow-x: hidden;
 }
