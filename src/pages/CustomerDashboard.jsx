@@ -36,11 +36,7 @@ function CustomerDashboard() {
       .order("created_at", { ascending: false });
 
     setOrders(orderData || []);
-
-    const savedWishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-
-    setWishlist(savedWishlist);
+    setWishlist(JSON.parse(localStorage.getItem("streetbois-wishlist")) || []);
     setLoading(false);
   };
 
@@ -56,14 +52,11 @@ function CustomerDashboard() {
     "Customer";
 
   const tabs = [
-    { id: "profile", label: "👤 Profile" },
-    { id: "orders", label: "📦 Orders" },
-    { id: "wishlist", label: "❤ Wishlist" },
-    { id: "addresses", label: "📍 Addresses" },
-    { id: "payments", label: "💳 Payments" },
-    { id: "coupons", label: "🎁 Coupons" },
-    { id: "rewards", label: "⭐ Rewards" },
-    { id: "settings", label: "⚙ Settings" },
+    { id: "profile", label: "Profile" },
+    { id: "orders", label: "Orders" },
+    { id: "wishlist", label: "Wishlist" },
+    { id: "addresses", label: "Address" },
+    { id: "settings", label: "Settings" },
   ];
 
   if (loading) return <div className="customer-loading">Loading...</div>;
@@ -73,186 +66,95 @@ function CustomerDashboard() {
       <Navbar />
 
       <section className="customer-dashboard">
-        <div className="customer-header">
+        <div className="customer-hero">
+          <p>My Account</p>
+          <h1>Welcome, {name}</h1>
+          <span>{user?.email}</span>
+        </div>
+
+        <div className="customer-stats">
           <div>
-            <h1>Welcome, {name}</h1>
-            <p>{user?.email}</p>
+            <small>Orders</small>
+            <strong>{orders.length}</strong>
+          </div>
+          <div>
+            <small>Wishlist</small>
+            <strong>{wishlist.length}</strong>
+          </div>
+          <div>
+            <small>Status</small>
+            <strong>Active</strong>
           </div>
         </div>
 
-        <div className="customer-cards">
-          <div className="customer-card">
-            <h3>Total Orders</h3>
-            <h2>{orders.length}</h2>
-          </div>
-
-          <div className="customer-card">
-            <h3>Wishlist Items</h3>
-            <h2>{wishlist.length}</h2>
-          </div>
-
-          <div className="customer-card">
-            <h3>Account Status</h3>
-            <h2>Active</h2>
-          </div>
-        </div>
-
-        <div
-          className="customer-grid"
-          style={{ gridTemplateColumns: "280px 1fr" }}
-        >
-          <div className="customer-panel">
-            <h2>My Account</h2>
-
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  width: "100%",
-                  padding: "15px",
-                  marginBottom: "10px",
-                  borderRadius: "12px",
-                  border:
-                    activeTab === tab.id
-                      ? "1px solid #d4af37"
-                      : "1px solid #333",
-                  background:
-                    activeTab === tab.id ? "#d4af37" : "transparent",
-                  color: activeTab === tab.id ? "#000" : "#fff",
-                  fontWeight: "800",
-                  textAlign: "left",
-                  cursor: "pointer",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-
+        <div className="customer-tabs">
+          {tabs.map((tab) => (
             <button
-              onClick={logout}
-              style={{
-                width: "100%",
-                padding: "15px",
-                borderRadius: "12px",
-                border: "1px solid #ff4d4d",
-                background: "transparent",
-                color: "#ff4d4d",
-                fontWeight: "800",
-                textAlign: "left",
-                cursor: "pointer",
-              }}
+              key={tab.id}
+              className={activeTab === tab.id ? "active" : ""}
+              onClick={() => setActiveTab(tab.id)}
             >
-              🚪 Logout
+              {tab.label}
             </button>
-          </div>
+          ))}
+        </div>
 
-          <div className="customer-panel">
-            {activeTab === "profile" && (
-              <>
-                <h2>👤 Profile</h2>
-                <p>
-                  <strong>Name:</strong> {name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user?.email}
-                </p>
-                <p>
-                  <strong>Status:</strong> Active
-                </p>
+        <div className="customer-content-card">
+          {activeTab === "profile" && (
+            <>
+              <h2>Profile Details</h2>
+              <div className="info-row"><span>Name</span><strong>{name}</strong></div>
+              <div className="info-row"><span>Email</span><strong>{user?.email}</strong></div>
+              <div className="info-row"><span>Status</span><strong>Active</strong></div>
+              <Link to="/reset-password" className="customer-action-btn">Change Password</Link>
+            </>
+          )}
 
-                <Link to="/reset-password">
-                  Change Password
-                </Link>
-              </>
-            )}
-
-            {activeTab === "orders" && (
-              <>
-                <h2>📦 My Orders</h2>
-
-                {orders.length === 0 ? (
-                  <p>No orders yet.</p>
-                ) : (
-                  orders.map((order) => (
-                    <div className="customer-order" key={order.id}>
-                      <div>
-                        <strong>
-                          Order #{String(order.id).slice(0, 8)}
-                        </strong>
-                        <p>
-                          {new Date(
-                            order.created_at
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-
-                      <div>
-                        <strong>
-                          GH₵{" "}
-                          {Number(order.total || 0).toFixed(2)}
-                        </strong>
-                        <span>{order.status || "Pending"}</span>
-                      </div>
+          {activeTab === "orders" && (
+            <>
+              <h2>My Orders</h2>
+              {orders.length === 0 ? (
+                <p className="empty-text">No orders yet.</p>
+              ) : (
+                orders.map((order) => (
+                  <div className="customer-order" key={order.id}>
+                    <div>
+                      <strong>Order #{String(order.id).slice(0, 8)}</strong>
+                      <p>{new Date(order.created_at).toLocaleString()}</p>
                     </div>
-                  ))
-                )}
-              </>
-            )}
+                    <div>
+                      <strong>GH₵ {Number(order.total || 0).toFixed(2)}</strong>
+                      <span>{order.status || "Pending"}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
 
-            {activeTab === "wishlist" && (
-              <>
-                <h2>❤ Wishlist</h2>
-                <p>You have {wishlist.length} item(s) saved.</p>
-                <Link to="/wishlist">View Wishlist</Link>
-              </>
-            )}
+          {activeTab === "wishlist" && (
+            <>
+              <h2>Wishlist</h2>
+              <p className="empty-text">You have {wishlist.length} saved item(s).</p>
+              <Link to="/wishlist" className="customer-action-btn">View Wishlist</Link>
+            </>
+          )}
 
-            {activeTab === "addresses" && (
-              <>
-                <h2>📍 Saved Addresses</h2>
-                <p>No saved delivery address yet.</p>
+          {activeTab === "addresses" && (
+            <>
+              <h2>Saved Address</h2>
+              <p className="empty-text">No saved delivery address yet.</p>
+              <button className="customer-action-btn">Add Address</button>
+            </>
+          )}
 
-                <button className="customer-header button">
-                  Add Address
-                </button>
-              </>
-            )}
-
-            {activeTab === "payments" && (
-              <>
-                <h2>💳 Payment Methods</h2>
-                <p>No payment method saved yet.</p>
-                <p>Paystack / Mobile Money setup can be added later.</p>
-              </>
-            )}
-
-            {activeTab === "coupons" && (
-              <>
-                <h2>🎁 Coupons</h2>
-                <p>No active coupons yet.</p>
-                <p>Available promo codes will appear here.</p>
-              </>
-            )}
-
-            {activeTab === "rewards" && (
-              <>
-                <h2>⭐ Loyalty Rewards</h2>
-                <p>Street Points: 0</p>
-                <p>Shop more to earn rewards.</p>
-              </>
-            )}
-
-            {activeTab === "settings" && (
-              <>
-                <h2>⚙ Account Settings</h2>
-
-                <Link to="/reset-password">
-                  Change Password
-                </Link>
-              </>
-            )}
-          </div>
+          {activeTab === "settings" && (
+            <>
+              <h2>Account Settings</h2>
+              <Link to="/reset-password" className="customer-action-btn">Change Password</Link>
+              <button onClick={logout} className="logout-action-btn">Logout</button>
+            </>
+          )}
         </div>
       </section>
 
