@@ -395,3 +395,9 @@
     cursor: pointer;
   }
 }
+
+.mobile-icons button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
