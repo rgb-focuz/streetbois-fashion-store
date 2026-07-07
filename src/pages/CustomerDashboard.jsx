@@ -13,13 +13,8 @@ function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  document.body.classList.add("customer-account-page");
-  loadCustomer();
-
-  return () => {
-    document.body.classList.remove("customer-account-page");
-  };
-}, []);
+    loadCustomer();
+  }, []);
 
   const loadCustomer = async () => {
     const {
@@ -62,74 +57,85 @@ function CustomerDashboard() {
       <Navbar />
 
       <section className="customer-dashboard">
-        <div className="customer-mobile-top">
-          <h2>My StreetBois</h2>
-        </div>
-
-        <div className="customer-profile-head">
-          <div className="customer-avatar">👤</div>
+        <div className="account-top-card">
+          <div className="account-avatar">👤</div>
           <div>
             <h1>{name}</h1>
             <p>{user?.email}</p>
           </div>
         </div>
 
-        <div className="customer-menu-list">
-          <Link to="/customer-dashboard" className="customer-menu-item">
+        <div className="account-stats-row">
+          <div>
+            <strong>{orders.length}</strong>
+            <span>Orders</span>
+          </div>
+          <div>
+            <strong>{wishlist.length}</strong>
+            <span>Wishlist</span>
+          </div>
+          <div>
+            <strong>Active</strong>
+            <span>Status</span>
+          </div>
+        </div>
+
+        <div className="account-menu-card">
+          <Link to="/customer-dashboard" className="account-menu-row">
             <span>📋</span>
             <p>Manage Orders</p>
-            <strong>{orders.length}</strong>
-            <b>›</b>
+            <b>{orders.length}</b>
+            <i>›</i>
           </Link>
 
-          <Link to="/cart" className="customer-menu-item">
+          <Link to="/cart" className="account-menu-row">
             <span>🛒</span>
             <p>Shopping Cart</p>
-            <b>›</b>
+            <i>›</i>
           </Link>
 
-          <Link to="/wishlist" className="customer-menu-item">
-            <span>♡</span>
+          <Link to="/wishlist" className="account-menu-row">
+            <span>❤️</span>
             <p>My Favorites</p>
-            <strong>{wishlist.length}</strong>
-            <b>›</b>
+            <b>{wishlist.length}</b>
+            <i>›</i>
           </Link>
 
-          <button className="customer-menu-item" type="button">
-            <span>🎟</span>
+          <button type="button" className="account-menu-row">
+            <span>🎟️</span>
             <p>My Coupons</p>
-            <b>›</b>
+            <i>›</i>
           </button>
 
-          <button className="customer-menu-item" type="button">
+          <button type="button" className="account-menu-row">
             <span>📍</span>
             <p>Delivery Address</p>
-            <b>›</b>
+            <i>›</i>
           </button>
 
-          <Link to="/reset-password" className="customer-menu-item">
-            <span>⚙</span>
+          <Link to="/reset-password" className="account-menu-row">
+            <span>⚙️</span>
             <p>Account Settings</p>
-            <b>›</b>
+            <i>›</i>
           </Link>
 
-          <button className="customer-menu-item logout-mobile" onClick={logout}>
+          <button type="button" onClick={logout} className="account-menu-row logout-row">
             <span>🚪</span>
             <p>Logout</p>
-            <b>›</b>
+            <i>›</i>
           </button>
         </div>
 
-        <div className="customer-orders-card">
+        <div className="recent-orders-card">
           <h2>Recent Orders</h2>
 
           {orders.length === 0 ? (
-            <p>No orders yet.</p>
+            <p className="empty-orders">No orders yet.</p>
           ) : (
             orders.slice(0, 3).map((order) => (
-              <div className="customer-order" key={order.id}>
+              <div className="recent-order-row" key={order.id}>
                 <div>
-                  <strong>Order #{String(order.id).slice(0, 8)}</strong>
+                  <h3>Order #{String(order.id).slice(0, 8)}</h3>
                   <p>{new Date(order.created_at).toLocaleString()}</p>
                 </div>
 
