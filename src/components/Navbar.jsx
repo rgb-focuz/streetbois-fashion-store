@@ -50,8 +50,7 @@ function Navbar() {
   };
 
   const updateWishlistCount = () => {
-    const wishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
     setWishlistCount(wishlist.length);
   };
 
@@ -76,7 +75,6 @@ function Navbar() {
   const handleMobileSearch = () => {
     const value = mobileSearch.trim();
     if (!value) return;
-
     navigate(`/shop?search=${encodeURIComponent(value)}`);
     setMenuOpen(false);
   };
@@ -97,117 +95,26 @@ function Navbar() {
           <h2>STREETBOIS FASHION</h2>
         </Link>
 
-        <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-          <li className="mobile-account-head">
-            <div className="mobile-account-avatar">👤</div>
-
-            <div>
-              {user ? (
-                <>
-                  <h3>{customerName}</h3>
-                  <p>{user.email}</p>
-                </>
-              ) : (
-                <>
-                  <h3>Welcome</h3>
-                  <p>Please sign in to continue</p>
-                </>
-              )}
-            </div>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/">
-              Home
-            </Link>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/shop">
-              Shop
-            </Link>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/contact">
-              Contact
-            </Link>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/faq">
-              FAQ
-            </Link>
-          </li>
-
-          <li className="mobile-menu-divider"></li>
-
-          <li>
-            <Link onClick={closeMenu} to="/cart" className="mobile-menu-row">
-              <span>🛒</span>
-              Shopping Cart
-              {cartCount > 0 && <em>{cartCount}</em>}
-              <b>›</b>
-            </Link>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/wishlist" className="mobile-menu-row">
-              <span>❤️</span>
-              My Favorites
-              {wishlistCount > 0 && <em>{wishlistCount}</em>}
-              <b>›</b>
-            </Link>
-          </li>
-
-          <li>
-            <button type="button" className="mobile-menu-row">
-              <span>🎟</span>
-              My Coupons
-              <b>›</b>
-            </button>
-          </li>
-
-          <li>
-            <button type="button" className="mobile-menu-row">
-              <span>📍</span>
-              Delivery Address
-              <b>›</b>
-            </button>
-          </li>
-
-          <li>
-            <Link onClick={closeMenu} to="/reset-password" className="mobile-menu-row">
-              <span>⚙</span>
-              Settings
-              <b>›</b>
-            </Link>
-          </li>
-
-          <li className="mobile-menu-divider"></li>
-
-          {user ? (
-            <li>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="mobile-menu-row logout-mobile-row"
-              >
-                <span>🚪</span>
-                Logout
-                <b>›</b>
-              </button>
-            </li>
-          ) : (
-            <li>
-              <Link onClick={closeMenu} to="/account" className="mobile-menu-row">
-                <span>👤</span>
-                Sign In / Up
-                <b>›</b>
-              </Link>
-            </li>
-          )}
+        <ul className="desktop-nav-links">
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/shop">Shop</Link></li>
+          <li><Link to="/contact">Contact</Link></li>
+          <li><Link to="/faq">FAQ</Link></li>
         </ul>
+
+        <div className="desktop-icons">
+          <button type="button" className="desktop-search-icon">⌕</button>
+
+          <Link to="/cart" className="desktop-icon-link">
+            🛒
+            {cartCount > 0 && <span>{cartCount}</span>}
+          </Link>
+
+          <Link to="/wishlist" className="desktop-icon-link">
+            ♡
+            {wishlistCount > 0 && <span>{wishlistCount}</span>}
+          </Link>
+        </div>
 
         <div className="navbar-actions">
           {user ? (
@@ -225,15 +132,12 @@ function Navbar() {
                   <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
                     My Account
                   </Link>
-
                   <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
                     My Orders
                   </Link>
-
                   <Link onClick={() => setAccountOpen(false)} to="/wishlist">
                     Wishlist
                   </Link>
-
                   <button type="button" onClick={handleLogout}>
                     Logout
                   </button>
@@ -275,9 +179,74 @@ function Navbar() {
           onChange={(e) => setMobileSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
         />
-
         <button onClick={handleMobileSearch}>🔍</button>
       </div>
+
+      <aside className={`mobile-account-drawer ${menuOpen ? "active" : ""}`}>
+        <div className="drawer-head">
+          <div className="drawer-avatar">👤</div>
+          <div>
+            <h3>{user ? customerName : "Welcome"}</h3>
+            <p>{user ? user.email : "Please sign in to continue"}</p>
+          </div>
+        </div>
+
+        <Link onClick={closeMenu} to="/" className="drawer-row">
+          <span>⌂</span> Home <b>›</b>
+        </Link>
+
+        <Link onClick={closeMenu} to="/shop" className="drawer-row">
+          <span>▣</span> Shop <b>›</b>
+        </Link>
+
+        <Link onClick={closeMenu} to="/contact" className="drawer-row">
+          <span>☎</span> Contact <b>›</b>
+        </Link>
+
+        <Link onClick={closeMenu} to="/faq" className="drawer-row">
+          <span>?</span> FAQ <b>›</b>
+        </Link>
+
+        <div className="drawer-divider"></div>
+
+        <Link onClick={closeMenu} to="/cart" className="drawer-row">
+          <span>🛒</span> Shopping Cart
+          {cartCount > 0 && <em>{cartCount}</em>}
+          <b>›</b>
+        </Link>
+
+        <Link onClick={closeMenu} to="/wishlist" className="drawer-row">
+          <span>♡</span> My Favorites
+          {wishlistCount > 0 && <em>{wishlistCount}</em>}
+          <b>›</b>
+        </Link>
+
+        <button type="button" className="drawer-row">
+          <span>🎟</span> My Coupons <b>›</b>
+        </button>
+
+        <button type="button" className="drawer-row">
+          <span>📍</span> Delivery Address <b>›</b>
+        </button>
+
+        <Link onClick={closeMenu} to="/reset-password" className="drawer-row">
+          <span>⚙</span> Settings <b>›</b>
+        </Link>
+
+        <div className="drawer-divider"></div>
+
+        {user ? (
+          <button type="button" onClick={handleLogout} className="drawer-row logout-drawer-row">
+            <span>⇥</span> Logout <b>›</b>
+          </button>
+        ) : (
+          <Link onClick={closeMenu} to="/account" className="drawer-row">
+            <span>👤</span> Sign In / Up <b>›</b>
+          </Link>
+        )}
+      </aside>
+
+      {menuOpen && <button className="drawer-overlay" onClick={closeMenu}></button>}
     </header>
   );
 }
