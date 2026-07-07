@@ -63,10 +63,13 @@ function Navbar() {
 
   const firstName = customerName.split(" ")[0];
 
+  const closeMenu = () => setMenuOpen(false);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setAccountOpen(false);
+    setMenuOpen(false);
     navigate("/account");
   };
 
@@ -81,7 +84,7 @@ function Navbar() {
     <header className="mobile-header-wrap">
       <nav className="navbar">
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-          ☰
+          {menuOpen ? "×" : "☰"}
         </button>
 
         <Link to="/" className="logo">
@@ -90,37 +93,75 @@ function Navbar() {
         </Link>
 
         <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-          <li><Link onClick={() => setMenuOpen(false)} to="/">Home</Link></li>
-          <li><Link onClick={() => setMenuOpen(false)} to="/shop">Shop</Link></li>
-          <li><Link onClick={() => setMenuOpen(false)} to="/about">About</Link></li>
-          <li><Link onClick={() => setMenuOpen(false)} to="/contact">Contact</Link></li>
-          <li><Link onClick={() => setMenuOpen(false)} to="/faq">FAQ</Link></li>
+          {user ? (
+            <li className="mobile-account-head">
+              <div className="mobile-account-avatar">👤</div>
+              <div>
+                <h3>{customerName}</h3>
+                <p>{user.email}</p>
+              </div>
+            </li>
+          ) : (
+            <li className="mobile-account-head">
+              <div className="mobile-account-avatar">👤</div>
+              <div>
+                <h3>Welcome</h3>
+                <p>Sign in to manage your account</p>
+              </div>
+            </li>
+          )}
 
-          <li>
-            <Link onClick={() => setMenuOpen(false)} to="/wishlist" className="cart-link">
-              Wishlist
-              {wishlistCount > 0 && <span className="cart-count">{wishlistCount}</span>}
-            </Link>
-          </li>
+          {user ? (
+            <>
+              <li>
+                <Link onClick={closeMenu} to="/customer-dashboard" className="mobile-menu-row">
+                  <span>📋</span> Manage Orders <b>›</b>
+                </Link>
+              </li>
 
-          <li>
-            <Link onClick={() => setMenuOpen(false)} to="/cart" className="cart-link">
-              Cart
-              {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-            </Link>
-          </li>
+              <li>
+                <Link onClick={closeMenu} to="/cart" className="mobile-menu-row">
+                  <span>🛒</span> Shopping Cart
+                  {cartCount > 0 && <em>{cartCount}</em>}
+                  <b>›</b>
+                </Link>
+              </li>
 
-          <li className="mobile-auth-link">
-            {user ? (
-              <Link onClick={() => setMenuOpen(false)} to="/customer-dashboard">
-                👤 Hi, {firstName}
+              <li>
+                <Link onClick={closeMenu} to="/wishlist" className="mobile-menu-row">
+                  <span>❤️</span> My Favorites
+                  {wishlistCount > 0 && <em>{wishlistCount}</em>}
+                  <b>›</b>
+                </Link>
+              </li>
+
+              <li>
+                <Link onClick={closeMenu} to="/reset-password" className="mobile-menu-row">
+                  <span>⚙️</span> Account Settings <b>›</b>
+                </Link>
+              </li>
+
+              <li>
+                <button type="button" onClick={handleLogout} className="mobile-menu-row logout-mobile-row">
+                  <span>🚪</span> Logout <b>›</b>
+                </button>
+              </li>
+            </>
+          ) : (
+            <li>
+              <Link onClick={closeMenu} to="/account" className="mobile-menu-row">
+                <span>👤</span> Sign In / Up <b>›</b>
               </Link>
-            ) : (
-              <Link onClick={() => setMenuOpen(false)} to="/account">
-                👤 Sign In / Up
-              </Link>
-            )}
-          </li>
+            </li>
+          )}
+
+          <li className="mobile-menu-divider"></li>
+
+          <li><Link onClick={closeMenu} to="/">🏠 Home</Link></li>
+          <li><Link onClick={closeMenu} to="/shop">🛍 Shop</Link></li>
+          <li><Link onClick={closeMenu} to="/about">ℹ️ About</Link></li>
+          <li><Link onClick={closeMenu} to="/contact">📞 Contact</Link></li>
+          <li><Link onClick={closeMenu} to="/faq">❓ FAQ</Link></li>
         </ul>
 
         <div className="navbar-actions">
