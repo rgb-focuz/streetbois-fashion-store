@@ -213,3 +213,9 @@
     flex-direction: column;
   }
 }
+
+.empty-customer-page {
+  min-height: 30vh;
+  padding: 0;
+  background: #000;
+}
