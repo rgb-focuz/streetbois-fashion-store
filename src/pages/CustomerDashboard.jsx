@@ -7,7 +7,6 @@ import "../styles/customerDashboard.css";
 
 function CustomerDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("profile");
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -51,14 +50,6 @@ function CustomerDashboard() {
     user?.email?.split("@")[0] ||
     "Customer";
 
-  const tabs = [
-    { id: "profile", label: "Profile" },
-    { id: "orders", label: "Orders" },
-    { id: "wishlist", label: "Wishlist" },
-    { id: "addresses", label: "Address" },
-    { id: "settings", label: "Settings" },
-  ];
-
   if (loading) return <div className="customer-loading">Loading...</div>;
 
   return (
@@ -66,94 +57,83 @@ function CustomerDashboard() {
       <Navbar />
 
       <section className="customer-dashboard">
-        <div className="customer-hero">
-          <p>My Account</p>
-          <h1>Welcome, {name}</h1>
-          <span>{user?.email}</span>
+        <div className="customer-mobile-top">
+          <h2>My StreetBois</h2>
         </div>
 
-        <div className="customer-stats">
+        <div className="customer-profile-head">
+          <div className="customer-avatar">👤</div>
           <div>
-            <small>Orders</small>
+            <h1>{name}</h1>
+            <p>{user?.email}</p>
+          </div>
+        </div>
+
+        <div className="customer-menu-list">
+          <Link to="/customer-dashboard" className="customer-menu-item">
+            <span>📋</span>
+            <p>Manage Orders</p>
             <strong>{orders.length}</strong>
-          </div>
-          <div>
-            <small>Wishlist</small>
+            <b>›</b>
+          </Link>
+
+          <Link to="/cart" className="customer-menu-item">
+            <span>🛒</span>
+            <p>Shopping Cart</p>
+            <b>›</b>
+          </Link>
+
+          <Link to="/wishlist" className="customer-menu-item">
+            <span>♡</span>
+            <p>My Favorites</p>
             <strong>{wishlist.length}</strong>
-          </div>
-          <div>
-            <small>Status</small>
-            <strong>Active</strong>
-          </div>
+            <b>›</b>
+          </Link>
+
+          <button className="customer-menu-item" type="button">
+            <span>🎟</span>
+            <p>My Coupons</p>
+            <b>›</b>
+          </button>
+
+          <button className="customer-menu-item" type="button">
+            <span>📍</span>
+            <p>Delivery Address</p>
+            <b>›</b>
+          </button>
+
+          <Link to="/reset-password" className="customer-menu-item">
+            <span>⚙</span>
+            <p>Account Settings</p>
+            <b>›</b>
+          </Link>
+
+          <button className="customer-menu-item logout-mobile" onClick={logout}>
+            <span>🚪</span>
+            <p>Logout</p>
+            <b>›</b>
+          </button>
         </div>
 
-        <div className="customer-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={activeTab === tab.id ? "active" : ""}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <div className="customer-orders-card">
+          <h2>Recent Orders</h2>
 
-        <div className="customer-content-card">
-          {activeTab === "profile" && (
-            <>
-              <h2>Profile Details</h2>
-              <div className="info-row"><span>Name</span><strong>{name}</strong></div>
-              <div className="info-row"><span>Email</span><strong>{user?.email}</strong></div>
-              <div className="info-row"><span>Status</span><strong>Active</strong></div>
-              <Link to="/reset-password" className="customer-action-btn">Change Password</Link>
-            </>
-          )}
+          {orders.length === 0 ? (
+            <p>No orders yet.</p>
+          ) : (
+            orders.slice(0, 3).map((order) => (
+              <div className="customer-order" key={order.id}>
+                <div>
+                  <strong>Order #{String(order.id).slice(0, 8)}</strong>
+                  <p>{new Date(order.created_at).toLocaleString()}</p>
+                </div>
 
-          {activeTab === "orders" && (
-            <>
-              <h2>My Orders</h2>
-              {orders.length === 0 ? (
-                <p className="empty-text">No orders yet.</p>
-              ) : (
-                orders.map((order) => (
-                  <div className="customer-order" key={order.id}>
-                    <div>
-                      <strong>Order #{String(order.id).slice(0, 8)}</strong>
-                      <p>{new Date(order.created_at).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <strong>GH₵ {Number(order.total || 0).toFixed(2)}</strong>
-                      <span>{order.status || "Pending"}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </>
-          )}
-
-          {activeTab === "wishlist" && (
-            <>
-              <h2>Wishlist</h2>
-              <p className="empty-text">You have {wishlist.length} saved item(s).</p>
-              <Link to="/wishlist" className="customer-action-btn">View Wishlist</Link>
-            </>
-          )}
-
-          {activeTab === "addresses" && (
-            <>
-              <h2>Saved Address</h2>
-              <p className="empty-text">No saved delivery address yet.</p>
-              <button className="customer-action-btn">Add Address</button>
-            </>
-          )}
-
-          {activeTab === "settings" && (
-            <>
-              <h2>Account Settings</h2>
-              <Link to="/reset-password" className="customer-action-btn">Change Password</Link>
-              <button onClick={logout} className="logout-action-btn">Logout</button>
-            </>
+                <div>
+                  <strong>GH₵ {Number(order.total || 0).toFixed(2)}</strong>
+                  <span>{order.status || "Pending"}</span>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </section>
