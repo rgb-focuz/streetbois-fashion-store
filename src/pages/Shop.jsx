@@ -9,14 +9,11 @@ import "../styles/shop.css";
 function Shop() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const searchQuery = searchParams.get("search") || "";
   const categoryQuery = searchParams.get("category") || "All";
-
   const [activeCategory, setActiveCategory] = useState(categoryQuery);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCategories, setShowCategories] = useState(false);
 
   const categories = [
     "All",
@@ -33,6 +30,21 @@ function Shop() {
   ];
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.log("Error fetching products:", error);
+      } else {
+        setProducts(data || []);
+      }
+
+      setLoading(false);
+    };
+
     fetchProducts();
   }, []);
 
@@ -40,30 +52,14 @@ function Shop() {
     setActiveCategory(categoryQuery);
   }, [categoryQuery]);
 
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("status", "Active")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.log("Error fetching products:", error);
-    } else {
-      setProducts(data || []);
-    }
-
-    setLoading(false);
-  };
-
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       activeCategory === "All" || product.category === activeCategory;
 
     const matchesSearch =
       searchQuery === "" ||
-      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (product.description || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
@@ -94,41 +90,28 @@ function Shop() {
           )}
         </div>
 
-        <div className="collapsed-category-wrap">
-          <button
-            type="button"
-            className="category-toggle-btn"
-            onClick={() => setShowCategories(!showCategories)}
-          >
-            Browse Categories {showCategories ? "▲" : "▼"}
-          </button>
-
-          {showCategories && (
-            <div className="filter-container collapsed-filter-container">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  className={
-                    activeCategory === category
-                      ? "filter-btn active-filter"
-                      : "filter-btn"
-                  }
-                  onClick={() => {
-                    setActiveCategory(category);
-                    setShowCategories(false);
-                  }}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="filter-container">
+          {categories.map((category) => (
+            <button
+              key={category}
+              className={
+                activeCategory === category
+                  ? "filter-btn active-filter"
+                  : "filter-btn"
+              }
+              onClick={() => setActiveCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
         {loading ? (
           <div className="shop-message">Loading products...</div>
         ) : filteredProducts.length === 0 ? (
-          <div className="shop-message">No products found in this category.</div>
+          <div className="shop-message">
+            No products found in this category.
+          </div>
         ) : (
           <div className="product-grid-universal">
             {filteredProducts.map((product) => (
