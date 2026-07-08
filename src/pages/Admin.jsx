@@ -1613,11 +1613,6 @@ const handleMultipleImages = (files) => {
     .sort((a, b) => b.wishlist_count - a.wishlist_count)
     .slice(0, 5);
 
-  const inventoryValue = products.reduce(
-    (sum, product) => sum + Number(product.stock || 0) * Number(product.price || 0),
-    0
-  );
-
 const inventoryGroupedMap = {};
 
 products.forEach((product) => {
@@ -1655,6 +1650,11 @@ products.forEach((product) => {
 
 const inventoryBreakdown = Object.values(inventoryGroupedMap).sort(
   (a, b) => b.value - a.value
+);
+
+const inventoryValue = inventoryBreakdown.reduce(
+  (sum, item) => sum + item.value,
+  0
 );
 
 const totalInventoryUnits = inventoryBreakdown.reduce(
