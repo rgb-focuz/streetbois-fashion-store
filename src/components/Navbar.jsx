@@ -103,16 +103,9 @@ function Navbar() {
         </ul>
 
         <div className="desktop-icons">
-          <button type="button" className="desktop-search-icon">⌕</button>
-
           <Link to="/cart" className="desktop-icon-link">
             🛒
             {cartCount > 0 && <span>{cartCount}</span>}
-          </Link>
-
-          <Link to="/wishlist" className="desktop-icon-link">
-            ♡
-            {wishlistCount > 0 && <span>{wishlistCount}</span>}
           </Link>
         </div>
 
