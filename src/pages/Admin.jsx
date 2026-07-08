@@ -2515,100 +2515,92 @@ const handleMultipleImages = (files) => {
         )}
 
         {activeTab === "collections" && hasPermission("collections") && (
-          <>
-            <div className="admin-card">
-              <h2>Add Explore Collection</h2>
+  <>
+    <div className="admin-card collection-upload-card">
+      <div className="collection-upload-header">
+        <div>
+          <h2>Add Explore Collection</h2>
+          <p>Create a collection that will appear on the home page.</p>
+        </div>
+      </div>
 
-              <div className="admin-table-scroll">
-                <table className="admin-product-table">
-                  <thead>
-                    <tr>
-                      <th>Collection Name</th>
-                      <th>Image</th>
-                      <th>Upload</th>
-                    </tr>
-                  </thead>
+      <div className="collection-upload-form">
+        <div className="collection-field">
+          <label>Collection Name</label>
+          <input
+            type="text"
+            value={collectionForm.name}
+            onChange={(e) =>
+              setCollectionForm({
+                ...collectionForm,
+                name: e.target.value,
+              })
+            }
+            placeholder="e.g. Sneakers"
+          />
+        </div>
 
-                  <tbody>
-                    <tr>
-                      <td>
-                        <input
-                          value={collectionForm.name}
-                          onChange={(e) =>
-                            setCollectionForm({
-                              ...collectionForm,
-                              name: e.target.value,
-                            })
-                          }
-                          placeholder="e.g. Sneakers"
-                        />
-                      </td>
+        <div className="collection-field">
+          <label>Collection Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              setCollectionForm({
+                ...collectionForm,
+                image_file: e.target.files[0],
+              })
+            }
+          />
+        </div>
 
-                      <td>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) =>
-                            setCollectionForm({
-                              ...collectionForm,
-                              image_file: e.target.files[0],
-                            })
-                          }
-                        />
-                      </td>
+        <button
+          className="collection-upload-btn"
+          onClick={uploadCollection}
+          disabled={collectionLoading}
+        >
+          {collectionLoading ? "Uploading..." : "Upload Collection"}
+        </button>
+      </div>
+    </div>
 
-                      <td>
-                        <button
-                          onClick={uploadCollection}
-                          disabled={collectionLoading}
-                        >
-                          {collectionLoading ? "Uploading..." : "Upload"}
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+    <div className="admin-card">
+      <h2>Uploaded Collections</h2>
+
+      <div className="collection-list">
+        {collections.length === 0 ? (
+          <p className="admin-muted-text">No collections uploaded yet.</p>
+        ) : (
+          collections.map((collection) => (
+            <div className="collection-item-card" key={collection.id}>
+              <img
+                src={collection.image_url}
+                alt={collection.name}
+                className="collection-item-image"
+              />
+
+              <div className="collection-item-content">
+                <h3>{collection.name}</h3>
+                <p>
+                  {collection.created_at
+                    ? new Date(collection.created_at).toLocaleString()
+                    : "No date"}
+                </p>
               </div>
+
+              <button
+                className="remove-row-btn"
+                onClick={() => deleteCollection(collection.id)}
+              >
+                Delete
+              </button>
             </div>
-
-            <div className="admin-card">
-              <h2>Uploaded Collections</h2>
-
-              <table className="admin-product-table">
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Delete</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {collections.map((collection) => (
-                    <tr key={collection.id}>
-                      <td>
-                        <img
-                          src={collection.image_url}
-                          alt={collection.name}
-                          className="admin-preview-img"
-                        />
-                      </td>
-                      <td>{collection.name}</td>
-                      <td>
-                        <button
-                          className="remove-row-btn"
-                          onClick={() => deleteCollection(collection.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+          ))
         )}
+      </div>
+    </div>
+  </>
+)}
 
         {activeTab === "manage" && hasPermission("manage") && (
           <div className="admin-card">
