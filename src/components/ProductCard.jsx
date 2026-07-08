@@ -1,19 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SalesRepModal from "./SalesRepModal";
 import "../styles/productCard.css";
 
 function ProductCard({ product, showWhatsApp = true }) {
+  const navigate = useNavigate();
   const [showSalesModal, setShowSalesModal] = useState(false);
 
-  const addToCart = () => {
-    const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
+  const productImage =
+    product.image_url ||
+    product.image ||
+    product.product_image ||
+    product.main_image ||
+    "";
 
-    const productImage =
-      product.image_url ||
-      product.image ||
-      product.product_image ||
-      product.main_image ||
-      "";
+  const openDetails = () => {
+    navigate(`/product/${product.id}`);
+  };
+
+  const addToCart = (e) => {
+    e.stopPropagation();
+
+    const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
 
     const existingProduct = cart.find((item) => item.id === product.id);
 
@@ -24,7 +32,7 @@ function ProductCard({ product, showWhatsApp = true }) {
         item.id === product.id
           ? {
               ...item,
-              quantity: item.quantity + 1,
+              quantity: Number(item.quantity || 1) + 1,
               image_url: item.image_url || productImage,
             }
           : item
@@ -53,17 +61,14 @@ Product: ${product.name}
 Price: GH₵ ${product.price}
 
 📷 Product Image:
-${product.image_url || product.image || product.product_image || product.main_image || "No image available"}
+${productImage || "No image available"}
 
 Please assist me with this order.`;
 
   return (
-    <div className="universal-product-card">
+    <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
-        <img
-          src={product.image_url || product.image || product.product_image || product.main_image}
-          alt={product.name}
-        />
+        <img src={productImage} alt={product.name} />
       </div>
 
       <div className="universal-product-info">
@@ -83,7 +88,10 @@ Please assist me with this order.`;
           <button
             type="button"
             className="universal-whatsapp-btn"
-            onClick={() => setShowSalesModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSalesModal(true);
+            }}
           >
             💬 Place Order
           </button>
