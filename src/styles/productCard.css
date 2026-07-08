@@ -23,7 +23,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  cursor: pointer;
+  cursor: default;
   transition: 0.35s ease;
 }
 
@@ -150,4 +150,8 @@
     font-size: 12px;
     margin-top: 7px;
   }
+}
+
+.quick-view-overlay {
+  display: none !important;
 }

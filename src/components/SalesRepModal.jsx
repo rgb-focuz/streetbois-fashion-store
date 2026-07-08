@@ -1,17 +1,17 @@
+import { createPortal } from "react-dom";
 import "../styles/salesRepModal.css";
 
 function SalesRepModal({ isOpen, onClose, message }) {
   if (!isOpen) return null;
 
   const salesReps = [
-    
-     {
-  initials: "MS",
-  name: "Main Sales Desk",
-  title: "Senior Wholesale Consultant",
-  phone: "233553606554",
-  status: "Online",
-},
+    {
+      initials: "MS",
+      name: "Main Sales Desk",
+      title: "Senior Wholesale Consultant",
+      phone: "233553606554",
+      status: "Online",
+    },
     {
       initials: "AF",
       name: "AFRIYIE",
@@ -44,11 +44,11 @@ function SalesRepModal({ isOpen, onClose, message }) {
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="sales-modal-overlay">
       <div className="sales-modal">
-
         <button
+          type="button"
           className="sales-modal-close"
           onClick={onClose}
         >
@@ -57,39 +57,24 @@ function SalesRepModal({ isOpen, onClose, message }) {
 
         <div className="sales-header">
           <div className="sales-logo">SB</div>
-
           <h2>StreetBois Fashion</h2>
-
-          <p>
-            Choose the sales representative you'd like to
-            chat with.
-          </p>
+          <p>Choose the sales representative you'd like to chat with.</p>
         </div>
 
         <div className="sales-rep-list">
           {salesReps.map((rep) => (
-            <div
-              className="sales-rep-card"
-              key={rep.phone}
-            >
-              <div className="sales-avatar">
-                {rep.initials}
-              </div>
+            <div className="sales-rep-card" key={rep.phone}>
+              <div className="sales-avatar">{rep.initials}</div>
 
               <div className="sales-details">
                 <h3>{rep.name}</h3>
-
                 <small>{rep.title}</small>
-
-                <div className="sales-status">
-                  🟢 {rep.status}
-                </div>
-
-
+                <div className="sales-status">🟢 {rep.status}</div>
                 <span>+{rep.phone}</span>
               </div>
 
               <button
+                type="button"
                 className="sales-chat-btn"
                 onClick={() => openWhatsApp(rep.phone)}
               >
@@ -99,7 +84,8 @@ function SalesRepModal({ isOpen, onClose, message }) {
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

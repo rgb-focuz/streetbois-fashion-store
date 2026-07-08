@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
 import "../styles/cart.css";
 
 function Cart() {
   const [cart, setCart] = useState([]);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [showSalesModal, setShowSalesModal] = useState(false);
+  const [orderMessage, setOrderMessage] = useState("");
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -26,6 +29,13 @@ function Cart() {
     (sum, item) => sum + Number(item.price) * Number(item.quantity),
     0
   );
+
+  const getProductImage = (item) =>
+    item.image_url ||
+    item.image ||
+    item.product_image ||
+    item.main_image ||
+    "";
 
   const removeItem = (id) => {
     const updatedCart = cart.filter((item) => item.id !== id);
@@ -161,7 +171,7 @@ function Cart() {
         name: item.name,
         price: Number(item.price),
         quantity: Number(item.quantity),
-        image_url: item.image_url,
+        image_url: getProductImage(item),
         subtotal: Number(item.price) * Number(item.quantity),
       }));
 
@@ -183,8 +193,12 @@ function Cart() {
 
       const message = orderItems
         .map(
-          (item) =>
-            `• ${item.name}\nQty: ${item.quantity}\nPrice: GH₵ ${item.price}\nSubtotal: GH₵ ${item.subtotal}`
+          (item, index) =>
+            `Product ${index + 1}: ${item.name}
+Qty: ${item.quantity}
+Price: GH₵ ${item.price}
+Subtotal: GH₵ ${item.subtotal}
+Product Image: ${item.image_url || "No image available"}`
         )
         .join("\n\n");
 
@@ -210,14 +224,10 @@ Please confirm my order.`;
       setCart([]);
       window.dispatchEvent(new Event("cartUpdated"));
 
-      window.open(
-        `https://wa.me/233202430406?text=${encodeURIComponent(
-          whatsappMessage
-        )}`,
-        "_blank"
-      );
+      setOrderMessage(whatsappMessage);
+      setShowSalesModal(true);
 
-      alert("Order placed successfully. Stock has been updated.");
+      alert("Order placed successfully. Please choose a sales person to send the order.");
     } catch (error) {
       alert(error.message);
     }
@@ -225,7 +235,7 @@ Please confirm my order.`;
     setPlacingOrder(false);
   };
 
-  if (cart.length === 0) {
+  if (cart.length === 0 && !showSalesModal) {
     return (
       <>
         <Navbar />
@@ -265,18 +275,18 @@ Please confirm my order.`;
             <div className="cart-items">
               {cart.map((item) => (
                 <div className="cart-item" key={item.id}>
-                  <img src={item.image_url} alt={item.name} />
+                  <img src={getProductImage(item)} alt={item.name} />
 
                   <div className="cart-details">
                     <h3>{item.name}</h3>
                     <p className="cart-price">GH₵ {item.price}</p>
 
                     <div className="cart-quantity">
-                      <button onClick={() => updateQuantity(item.id, -1)}>
+                      <button type="button" onClick={() => updateQuantity(item.id, -1)}>
                         -
                       </button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)}>
+                      <button type="button" onClick={() => updateQuantity(item.id, 1)}>
                         +
                       </button>
                     </div>
@@ -287,6 +297,7 @@ Please confirm my order.`;
                     <h4>GH₵ {Number(item.price) * Number(item.quantity)}</h4>
 
                     <button
+                      type="button"
                       className="remove-cart-btn"
                       onClick={() => removeItem(item.id)}
                     >
@@ -364,6 +375,12 @@ Please confirm my order.`;
           </form>
         </div>
       </section>
+
+      <SalesRepModal
+        isOpen={showSalesModal}
+        onClose={() => setShowSalesModal(false)}
+        message={orderMessage}
+      />
 
       <Footer />
     </>
