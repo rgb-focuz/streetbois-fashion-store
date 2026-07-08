@@ -39,14 +39,15 @@ function Admin() {
   };
 
   const [rows, setRows] = useState([{ ...emptyRow }]);
-  const [bulkSettings, setBulkSettings] = useState({
-    price: "",
-    category: "",
-    stock: "",
-    size_stock: [createEmptySizeRow()],
-    featured: false,
-    description: "",
-  });
+const [bulkSettings, setBulkSettings] = useState({
+  name: "",
+  price: "",
+  category: "",
+  stock: "",
+  size_stock: [createEmptySizeRow()],
+  featured: false,
+  description: "",
+});
   const [collectionForm, setCollectionForm] = useState({ ...emptyCollection });
 
   const [products, setProducts] = useState([]);
@@ -2268,6 +2269,14 @@ const handleMultipleImages = (files) => {
 
   <div className="bulk-settings-grid">
     <input
+  type="text"
+  placeholder="Product Name"
+  value={bulkSettings.name}
+  onChange={(e) =>
+    setBulkSettings({ ...bulkSettings, name: e.target.value })
+  }
+/>
+    <input
       type="number"
       placeholder="Price"
       value={bulkSettings.price}
@@ -2331,19 +2340,20 @@ const handleMultipleImages = (files) => {
     className="apply-bulk-btn"
     onClick={() => {
       setRows((currentRows) =>
-        currentRows.map((row) => ({
-          ...row,
-          price: bulkSettings.price || row.price,
-          category: bulkSettings.category || row.category,
-          stock: bulkSettings.stock || row.stock,
-          size_stock:
-            sizeRowsToObject(bulkSettings.size_stock)
-              ? bulkSettings.size_stock.map((sizeRow) => ({ ...sizeRow }))
-              : row.size_stock,
-          featured: bulkSettings.featured,
-          description: bulkSettings.description || row.description,
-        }))
-      );
+  currentRows.map((row) => ({
+    ...row,
+    name: bulkSettings.name || row.name,
+    price: bulkSettings.price || row.price,
+    category: bulkSettings.category || row.category,
+    stock: bulkSettings.stock || row.stock,
+    size_stock:
+      sizeRowsToObject(bulkSettings.size_stock)
+        ? bulkSettings.size_stock.map((sizeRow) => ({ ...sizeRow }))
+        : row.size_stock,
+    featured: bulkSettings.featured,
+    description: bulkSettings.description || row.description,
+  }))
+);
     }}
   >
     Apply to All Products
