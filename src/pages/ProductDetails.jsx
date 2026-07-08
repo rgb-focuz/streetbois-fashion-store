@@ -312,17 +312,19 @@ Please assist me with this order.`
             </button>
           </div>
 
-          <button className="add-cart-btn" onClick={handleAddToCart}>
-            Add to Cart
-          </button>
+          <div className="product-details-actions">
+  <button className="add-cart-btn" onClick={handleAddToCart}>
+    🛒 Cart
+  </button>
 
-          <button
-            type="button"
-            className="details-whatsapp-btn"
-            onClick={handlePlaceOrder}
-          >
-            💬 Place Order
-          </button>
+  <button
+    type="button"
+    className="details-whatsapp-btn"
+    onClick={handlePlaceOrder}
+  >
+    💬 Order
+  </button>
+</div>
         </div>
       </section>
 
