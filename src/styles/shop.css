@@ -262,3 +262,48 @@
     padding-right: 14px;
   }
 }
+
+.collapsed-category-wrap {
+  max-width: 1500px;
+  margin: 0 auto 25px;
+  padding: 0 0 10px;
+}
+
+.category-toggle-btn {
+  width: 100%;
+  max-width: 280px;
+  display: block;
+  margin: 0 auto 15px;
+  background: #d4af37;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.collapsed-filter-container {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .collapsed-category-wrap {
+    margin-bottom: 16px;
+  }
+
+  .category-toggle-btn {
+    max-width: 100%;
+    font-size: 14px;
+  }
+
+  .collapsed-filter-container {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 12px;
+  }
+}
