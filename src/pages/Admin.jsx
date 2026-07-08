@@ -1618,23 +1618,44 @@ const handleMultipleImages = (files) => {
     0
   );
 
-const inventoryBreakdown = products
-  .map((product) => {
-    const price = Number(product.price || 0);
-    const stock = Number(product.stock || 0);
-    const value = price * stock;
+const inventoryGroupedMap = {};
 
-    return {
+products.forEach((product) => {
+  const name = String(product.name || "").trim().toUpperCase();
+  const category = product.category || "Uncategorized";
+  const price = Number(product.price || 0);
+  const stock = Number(product.stock || 0);
+
+  if (!name) return;
+
+  const key = `${name}-${category}-${price}`;
+
+  if (!inventoryGroupedMap[key]) {
+    inventoryGroupedMap[key] = {
       id: product.id,
-      name: product.name,
-      category: product.category,
+      name,
+      category,
       price,
       stock,
-      value,
+      value: price * stock,
       image_url: product.image_url,
+      image_count: 1,
+      product_ids: [product.id],
     };
-  })
-  .sort((a, b) => b.value - a.value);
+  } else {
+    inventoryGroupedMap[key].image_count += 1;
+    inventoryGroupedMap[key].product_ids.push(product.id);
+
+    // Keep the stock as one total stock for the grouped product.
+    // We do not add stock again for each image.
+    inventoryGroupedMap[key].stock = stock;
+    inventoryGroupedMap[key].value = price * stock;
+  }
+});
+
+const inventoryBreakdown = Object.values(inventoryGroupedMap).sort(
+  (a, b) => b.value - a.value
+);
 
 const totalInventoryUnits = inventoryBreakdown.reduce(
   (sum, item) => sum + item.stock,
