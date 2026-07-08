@@ -827,9 +827,7 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
 
   const uploadImage = async (file, category) => {
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2)}.${fileExt}`;
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     const folder = category.toLowerCase().replaceAll(" ", "-");
     const filePath = `${folder}/${fileName}`;
@@ -849,9 +847,7 @@ const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
 
   const uploadCollectionImage = async (file) => {
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2)}.${fileExt}`;
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     const filePath = `collections/${fileName}`;
 
