@@ -33,32 +33,31 @@
 
 .product-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .product-title-row h3 {
-  flex: 1;
   margin: 0;
   color: #111;
   font-size: 13px;
   font-weight: 800;
   line-height: 1.2;
-  min-height: auto;
   text-transform: uppercase;
-  white-space: nowrap;
+  flex: 0 1 auto;
+  max-width: 65%;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .universal-price {
-  margin: 0;
   color: #f57224;
   font-size: 14px;
   font-weight: 900;
-  white-space: nowrap;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .product-action-row {
