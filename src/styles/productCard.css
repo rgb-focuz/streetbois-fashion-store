@@ -1,14 +1,15 @@
 .universal-product-card {
   background: #fff;
+  border: 1px solid #e6e6e6;
   border-radius: 10px;
   overflow: hidden;
   color: #111;
   cursor: pointer;
-  border: 1px solid #e5e5e5;
+  transition: 0.25s ease;
 }
 
 .universal-product-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .product-image-wrap {
@@ -22,47 +23,66 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
+/* Compact product info */
 .universal-product-info {
-  padding: 10px;
+  padding: 8px 9px 10px;
 }
 
-.universal-product-info h3 {
-  color: #222;
-  font-size: 14px;
-  line-height: 1.35;
-  min-height: 38px;
-  margin: 0 0 8px;
-  font-weight: 600;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+.product-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.product-title-row h3 {
+  flex: 1;
+  margin: 0;
+  color: #111;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  min-height: auto;
+  text-transform: uppercase;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .universal-price {
+  margin: 0;
   color: #f57224;
+  font-size: 14px;
   font-weight: 900;
-  font-size: 18px;
-  margin: 0 0 8px;
+  white-space: nowrap;
+}
+
+.product-action-row {
+  display: flex;
+  gap: 6px;
+}
+
+.product-action-row button {
+  flex: 1;
+  margin: 0;
 }
 
 .universal-cart-btn,
 .universal-whatsapp-btn {
-  width: 100%;
-  height: 38px;
-  border-radius: 6px;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  font-size: 11px;
   font-weight: 800;
   cursor: pointer;
-  font-size: 12px;
-  margin-top: 6px;
-  border: none;
 }
 
 .universal-cart-btn {
-  background: #ffcc00;
+  background: #f6b800;
   color: #000;
 }
 
@@ -74,7 +94,7 @@
 .product-grid-universal {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
-  gap: 14px;
+  gap: 12px;
   align-items: start;
   max-width: 1500px;
   margin: 0 auto;
@@ -95,21 +115,26 @@
   }
 
   .universal-product-info {
-    padding: 8px;
+    padding: 7px 8px 9px;
   }
 
-  .universal-product-info h3 {
+  .product-title-row {
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+
+  .product-title-row h3 {
     font-size: 12px;
-    min-height: 34px;
   }
 
   .universal-price {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .universal-cart-btn,
   .universal-whatsapp-btn {
-    height: 34px;
-    font-size: 11px;
+    height: 30px;
+    font-size: 10px;
+    border-radius: 6px;
   }
 }

@@ -22,7 +22,6 @@ function ProductCard({ product, showWhatsApp = true }) {
     e.stopPropagation();
 
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
-
     const existingProduct = cart.find((item) => item.id === product.id);
 
     let updatedCart;
@@ -72,30 +71,33 @@ Please assist me with this order.`;
       </div>
 
       <div className="universal-product-info">
-        <h3>{product.name}</h3>
+        <div className="product-title-row">
+          <h3>{product.name}</h3>
+          <span className="universal-price">GH₵ {product.price}</span>
+        </div>
 
-        <p className="universal-price">GH₵ {product.price}</p>
-
-        <button
-          type="button"
-          className="universal-cart-btn"
-          onClick={addToCart}
-        >
-          🛒 Add to Cart
-        </button>
-
-        {showWhatsApp && (
+        <div className="product-action-row">
           <button
             type="button"
-            className="universal-whatsapp-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSalesModal(true);
-            }}
+            className="universal-cart-btn"
+            onClick={addToCart}
           >
-            💬 Place Order
+            🛒 Cart
           </button>
-        )}
+
+          {showWhatsApp && (
+            <button
+              type="button"
+              className="universal-whatsapp-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSalesModal(true);
+              }}
+            >
+              WhatsApp
+            </button>
+          )}
+        </div>
       </div>
 
       <SalesRepModal
