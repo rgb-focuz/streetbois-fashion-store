@@ -68,6 +68,7 @@ const [reviews, setReviews] = useState([]);
 const [analyticsStartDate, setAnalyticsStartDate] = useState("");
 const [analyticsEndDate, setAnalyticsEndDate] = useState("");
 const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
+const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -1617,6 +1618,29 @@ const handleMultipleImages = (files) => {
     0
   );
 
+const inventoryBreakdown = products
+  .map((product) => {
+    const price = Number(product.price || 0);
+    const stock = Number(product.stock || 0);
+    const value = price * stock;
+
+    return {
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      price,
+      stock,
+      value,
+      image_url: product.image_url,
+    };
+  })
+  .sort((a, b) => b.value - a.value);
+
+const totalInventoryUnits = inventoryBreakdown.reduce(
+  (sum, item) => sum + item.stock,
+  0
+);
+
   const estimatedProfit = totalRevenue * 0.3;
 
   const analyticsKpis = [
@@ -2865,6 +2889,16 @@ const handleMultipleImages = (files) => {
                   </div>
                   <h1>{card.value}</h1>
                   <p>{card.note}</p>
+{card.title === "Inventory Value" && (
+  <button
+    type="button"
+    className="inventory-breakdown-btn"
+    onClick={() => setShowInventoryBreakdown(true)}
+  >
+    View Breakdown
+  </button>
+)}
+
                 </div>
               ))}
             </div>
@@ -4045,6 +4079,77 @@ const handleMultipleImages = (files) => {
           <option>Delivered</option>
           <option>Cancelled</option>
         </select>
+      </div>
+    </div>
+  </div>
+)}
+
+{showInventoryBreakdown && (
+  <div className="inventory-modal-overlay">
+    <div className="inventory-modal">
+      <div className="inventory-modal-head">
+        <div>
+          <h2>Inventory Value Breakdown</h2>
+          <p>
+            Total Products: {products.length} · Total Units: {totalInventoryUnits} ·
+            Total Value: GH₵ {inventoryValue.toFixed(2)}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowInventoryBreakdown(false)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="admin-table-scroll">
+        <table className="admin-product-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {inventoryBreakdown.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  <div className="inventory-product-cell">
+                    {item.image_url && (
+                      <img src={item.image_url} alt={item.name} />
+                    )}
+                    <span>{item.name}</span>
+                  </div>
+                </td>
+
+                <td>{item.category}</td>
+                <td>GH₵ {item.price.toFixed(2)}</td>
+                <td>{item.stock}</td>
+                <td>GH₵ {item.value.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+
+          <tfoot>
+            <tr>
+              <td colSpan="3">
+                <strong>Total</strong>
+              </td>
+              <td>
+                <strong>{totalInventoryUnits}</strong>
+              </td>
+              <td>
+                <strong>GH₵ {inventoryValue.toFixed(2)}</strong>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   </div>
