@@ -14,6 +14,7 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminResetPassword from "./pages/AdminResetPassword";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/customer-dashboard" element={<CustomerDashboard />} />
         <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-reset-password" element={<AdminResetPassword />} />
 
         <Route
           path="/admin"
