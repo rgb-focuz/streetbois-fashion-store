@@ -220,7 +220,7 @@ Please assist me with this order.`
       .eq("category", category)
       .neq("id", productId)
       .eq("status", "Active")
-      .limit(4);
+      .limit(12);
 
     if (!error) setRelatedProducts(data || []);
   };
@@ -328,78 +328,19 @@ Please assist me with this order.`
         </div>
       </section>
 
-      <section className="reviews-section">
-        <h2>Customer Reviews</h2>
+      <section className="reviews-section compact-reviews-section">
+  <h2>Customer Rating</h2>
 
-        <div className="reviews-overview">
-          <div className="average-box">
-            <h3>{averageRating}</h3>
-            <p>{"★".repeat(Math.round(Number(averageRating)))}</p>
-            <span>{reviews.length} reviews</span>
-          </div>
-
-          <div className="rating-bars">
-            {[5, 4, 3, 2, 1].map((star) => (
-              <div className="rating-bar-row" key={star}>
-                <span>{star}★</span>
-                <div className="rating-bar">
-                  <div style={{ width: `${getRatingPercent(star)}%` }}></div>
-                </div>
-                <small>{getRatingCount(star)}</small>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <form className="review-form" onSubmit={submitReview}>
-          <input
-            type="text"
-            placeholder="Your name"
-            value={reviewName}
-            onChange={(e) => setReviewName(e.target.value)}
-          />
-
-          <div className="star-selector">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                type="button"
-                key={star}
-                onClick={() => setReviewRating(star)}
-                className={star <= reviewRating ? "active-star" : ""}
-              >
-                ★
-              </button>
-            ))}
-          </div>
-
-          <textarea
-            placeholder="Write your review..."
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-          ></textarea>
-
-          <button type="submit">Submit Review</button>
-        </form>
-
-        <div className="reviews-list">
-          {reviews.length === 0 ? (
-            <p className="no-reviews">No reviews yet. Be the first to review.</p>
-          ) : (
-            reviews.map((item) => (
-              <div className="review-card" key={item.id}>
-                <h3>{item.customer_name}</h3>
-                <p className="review-stars">{"★".repeat(item.rating)}</p>
-                <p>{item.review}</p>
-                <small>{new Date(item.created_at).toLocaleDateString()}</small>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+  <div className="compact-rating-box">
+    <h3>{averageRating}</h3>
+    <p>★★★★★</p>
+    <span>{reviews.length} reviews</span>
+  </div>
+</section>
 
       {relatedProducts.length > 0 && (
         <section className="related-products-section">
-          <h2>Related Products</h2>
+          <h2>You May Also Like</h2>
 
           <div className="product-grid-universal">
             {relatedProducts.map((item) => (

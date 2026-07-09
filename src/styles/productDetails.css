@@ -466,3 +466,53 @@
     font-size: 14px;
   }
 }
+
+.compact-reviews-section {
+  padding: 40px 8%;
+  text-align: center;
+}
+
+.compact-rating-box {
+  max-width: 420px;
+  margin: 0 auto;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 30px 20px;
+}
+
+.compact-rating-box h3 {
+  color: #d4af37;
+  font-size: 56px;
+  margin: 0;
+}
+
+.compact-rating-box p {
+  color: #f6b800;
+  font-size: 34px;
+  margin: 8px 0;
+  letter-spacing: 4px;
+}
+
+.compact-rating-box span {
+  color: #ccc;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .compact-reviews-section {
+    padding: 30px 5%;
+  }
+
+  .compact-rating-box {
+    padding: 24px 15px;
+  }
+
+  .compact-rating-box h3 {
+    font-size: 44px;
+  }
+
+  .compact-rating-box p {
+    font-size: 28px;
+  }
+}
