@@ -54,3 +54,16 @@
   border-radius: 8px;
   margin-bottom: 16px;
 }
+
+.admin-reset-password-btn {
+  margin-top: 14px;
+  background: transparent !important;
+  color: #d4af37 !important;
+  border: none !important;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-reset-password-btn:hover {
+  text-decoration: underline;
+}

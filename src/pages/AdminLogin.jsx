@@ -6,6 +6,7 @@ import "../styles/adminLogin.css";
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -15,7 +16,7 @@ function AdminLogin() {
 
     const loginEmail = email.trim().toLowerCase();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password,
     });
@@ -38,6 +39,32 @@ function AdminLogin() {
     }
 
     navigate("/admin");
+  };
+
+  const handleResetPassword = async () => {
+    setError("");
+
+    const resetEmail = email.trim().toLowerCase();
+
+    if (!resetEmail) {
+      setError("Please enter your admin email first.");
+      return;
+    }
+
+    setResetLoading(true);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      setError(error.message);
+      setResetLoading(false);
+      return;
+    }
+
+    setError("Password reset link sent to your email.");
+    setResetLoading(false);
   };
 
   return (
@@ -65,6 +92,15 @@ function AdminLogin() {
         />
 
         <button type="submit">Login</button>
+
+        <button
+          type="button"
+          className="admin-reset-password-btn"
+          onClick={handleResetPassword}
+          disabled={resetLoading}
+        >
+          {resetLoading ? "Sending reset link..." : "Forgot password?"}
+        </button>
       </form>
     </section>
   );
