@@ -274,3 +274,10 @@
     text-align: center;
   }
 }
+
+.checkout-price-note {
+  margin: 12px 0 18px;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.5;
+}
