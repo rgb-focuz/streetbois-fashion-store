@@ -67,3 +67,26 @@
 .admin-reset-password-btn:hover {
   text-decoration: underline;
 }
+
+.admin-login-box .turnstile-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 16px 0;
+  min-height: 65px;
+}
+
+.admin-login-cooldown {
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  color: #d4af37;
+  text-align: center;
+}
+
+.login-message-success {
+  border-color: #20c875 !important;
+  color: #20c875 !important;
+  background: rgba(32, 200, 117, 0.08) !important;
+}
