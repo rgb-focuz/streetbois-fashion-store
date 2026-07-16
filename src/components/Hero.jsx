@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/hero.css";
 
-import banner1 from "../assets/banner1.png";
+import banner1 from "../assets/banner1.webp";
 
 function Hero() {
   const navigate = useNavigate();

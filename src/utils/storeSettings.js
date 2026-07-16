@@ -1,5 +1,9 @@
 import fallbackLogo from "../assets/logo.png";
-import { supabase } from "../supabaseClient";
+
+const getSupabase = async () => {
+  const module = await import("../supabaseClient");
+  return module.supabase;
+};
 
 export const defaultStoreSettings = {
   store_name: "StreetBois Fashion",
@@ -49,13 +53,17 @@ export const fetchStoreSettings = async () => {
   if (cachedSettings) return cachedSettings;
   if (settingsRequest) return settingsRequest;
 
-  settingsRequest = supabase
-    .from("store_settings")
-    .select("*")
-    .eq("id", 1)
-    .maybeSingle()
+  settingsRequest = getSupabase()
+    .then((supabase) =>
+      supabase
+        .from("store_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle()
+    )
     .then(({ data, error }) => {
-      cachedSettings = error || !data ? defaultStoreSettings : { ...defaultStoreSettings, ...data };
+      cachedSettings =
+        error || !data ? defaultStoreSettings : { ...defaultStoreSettings, ...data };
       return cachedSettings;
     })
     .finally(() => {
@@ -68,6 +76,7 @@ export const fetchStoreSettings = async () => {
 export const refreshStoreSettings = async () => {
   cachedSettings = null;
   settingsRequest = null;
+  const supabase = await getSupabase();
 
   const { data, error } = await supabase
     .from("store_settings")

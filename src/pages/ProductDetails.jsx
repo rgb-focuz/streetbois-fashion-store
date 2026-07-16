@@ -246,7 +246,7 @@ Please assist me with this order.`
 
       <section className="product-details-page">
         <div className="product-details-image">
-          <img src={product.image_url} alt={product.name} />
+          <img src={product.image_url} alt={product.name} decoding="async" />
         </div>
 
         <div className="product-details-info">

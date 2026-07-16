@@ -2,12 +2,12 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "../styles/about.css";
 
-import heroImage from "../assets/about-hero.png";
-import pants from "../assets/about-pants.png";
-import shirt from "../assets/about-shirt.png";
-import jersey from "../assets/about-jersey.png";
-import tee from "../assets/about-tee.png";
-import jeans from "../assets/about-jeans.png";
+import heroImage from "../assets/about-hero.webp";
+import pants from "../assets/about-pants.webp";
+import shirt from "../assets/about-shirt.webp";
+import jersey from "../assets/about-jersey.webp";
+import tee from "../assets/about-tee.webp";
+import jeans from "../assets/about-jeans.webp";
 
 function About() {
   return (
@@ -73,7 +73,7 @@ function About() {
           </div>
 
           <div className="about-image">
-            <img src={heroImage} alt="" />
+            <img src={heroImage} alt="" loading="lazy" decoding="async" />
           </div>
 
         </section>
@@ -194,15 +194,15 @@ function About() {
 
           <div className="showcase-grid">
 
-            <img src={pants} alt="" />
+            <img src={pants} alt="" loading="lazy" decoding="async" />
 
-            <img src={shirt} alt="" />
+            <img src={shirt} alt="" loading="lazy" decoding="async" />
 
-            <img src={jersey} alt="" />
+            <img src={jersey} alt="" loading="lazy" decoding="async" />
 
-            <img src={tee} alt="" />
+            <img src={tee} alt="" loading="lazy" decoding="async" />
 
-            <img src={jeans} alt="" />
+            <img src={jeans} alt="" loading="lazy" decoding="async" />
 
           </div>
 

@@ -351,6 +351,8 @@ Please confirm my order.`;
                     <img
                       src={getProductImage(item)}
                       alt={item.name || "Product"}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <div className="cart-details">

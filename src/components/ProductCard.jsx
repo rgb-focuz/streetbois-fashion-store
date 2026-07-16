@@ -93,7 +93,7 @@ Please assist me with this order.`;
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
-        <img src={productImage} alt={displayName} />
+        <img src={productImage} alt={displayName} loading="lazy" decoding="async" />
       </div>
 
       <div className="universal-product-info">
