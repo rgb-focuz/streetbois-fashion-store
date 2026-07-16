@@ -39,8 +39,11 @@ function SalesRepModal({ isOpen, onClose, message, salesReps }) {
 
         <div className="sales-header">
           <div className="sales-logo">SB</div>
-          <h2>StreetBois Fashion</h2>
-          <p>Choose the sales representative you'd like to chat with.</p>
+          <span>WhatsApp order support</span>
+          <h2>Complete your order</h2>
+          <p>
+            Send your selected product details to our sales desk on WhatsApp.
+          </p>
         </div>
 
         <div className="sales-rep-list">
@@ -51,8 +54,10 @@ function SalesRepModal({ isOpen, onClose, message, salesReps }) {
               <div className="sales-details">
                 <h3>{rep.name}</h3>
                 <small>{rep.title}</small>
-                <div className="sales-status">🟢 {rep.status}</div>
-                <span>+{rep.phone}</span>
+                <div className="sales-meta-row">
+                  <span className="sales-status">{rep.status}</span>
+                  <span>+{rep.phone}</span>
+                </div>
               </div>
 
               <button
@@ -60,11 +65,15 @@ function SalesRepModal({ isOpen, onClose, message, salesReps }) {
                 className="sales-chat-btn"
                 onClick={() => openWhatsApp(rep.phone)}
               >
-                Chat
+                Continue
               </button>
             </div>
           ))}
         </div>
+
+        <p className="sales-modal-note">
+          WhatsApp will open with the order message already filled in.
+        </p>
       </div>
     </div>,
     document.body
