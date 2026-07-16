@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/navbar.css";
 import logo from "../assets/logo.png";
+import {
+  defaultStoreSettings,
+  fetchStoreSettings,
+  getLogoUrl,
+  getSalesWhatsApp,
+  getWhatsAppLink,
+} from "../utils/storeSettings";
 
 const getSupabase = async () => {
   const module = await import("../supabaseClient");
@@ -90,6 +97,7 @@ function Navbar() {
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [mobileSearch, setMobileSearch] = useState("");
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -98,6 +106,10 @@ function Navbar() {
 
     updateCartCount();
     updateWishlistCount();
+
+    fetchStoreSettings().then((settings) => {
+      if (isMounted) setStoreSettings(settings);
+    });
 
     const loadAuthState = async () => {
       const supabase = await getSupabase();
@@ -155,6 +167,15 @@ function Navbar() {
     "Customer";
 
   const firstName = customerName.split(" ")[0];
+  const brandName = storeSettings.store_name || defaultStoreSettings.store_name;
+  const brandWords = brandName.trim().split(/\s+/);
+  const firstBrandWords = brandWords.slice(0, -1).join(" ") || brandName;
+  const lastBrandWord =
+    brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
+  const displayedPhone = storeSettings.phone || defaultStoreSettings.phone;
+  const cleanTel = displayedPhone.replace(/\D/g, "");
+  const helpWhatsAppMessage =
+    `Hello ${brandName}, I need help with my order.`;
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -202,9 +223,9 @@ function Navbar() {
         </button>
 
         <Link to="/" className="logo" onClick={closeMenu}>
-          <img src={logo} alt="StreetBois Fashion Logo" />
+          <img src={getLogoUrl(storeSettings) || logo} alt={`${brandName} Logo`} />
           <h2>
-            STREETBOIS <span>FASHION</span>
+            {firstBrandWords} {lastBrandWord && <span>{lastBrandWord}</span>}
           </h2>
         </Link>
 
@@ -319,7 +340,10 @@ function Navbar() {
                 </Link>
 
                 <a
-                  href="https://wa.me/233202430406?text=Hello%20StreetBois%20Fashion%2C%20I%20need%20help%20with%20my%20order."
+                  href={getWhatsAppLink(
+                    getSalesWhatsApp(storeSettings),
+                    helpWhatsAppMessage
+                  )}
                   target="_blank"
                   rel="noreferrer"
                   className="desktop-help-whatsapp"
@@ -409,8 +433,8 @@ function Navbar() {
         <button onClick={handleMobileSearch}>Search</button>
       </div>
 
-      <a className="mobile-call-strip" href="tel:0202430406">
-        Call to Order: 020 243 0406
+      <a className="mobile-call-strip" href={`tel:${cleanTel}`}>
+        Call to Order: {displayedPhone}
       </a>
 
       <aside className={`mobile-account-drawer ${menuOpen ? "active" : ""}`}>
@@ -425,8 +449,8 @@ function Navbar() {
           </button>
 
           <Link to="/" className="drawer-logo" onClick={closeMenu}>
-            <img src={logo} alt="StreetBois Fashion Logo" />
-            <strong>STREETBOIS</strong>
+            <img src={getLogoUrl(storeSettings) || logo} alt={`${brandName} Logo`} />
+            <strong>{brandName}</strong>
           </Link>
 
           <Link to="/cart" className="drawer-cart" onClick={closeMenu} aria-label="Cart">
@@ -475,29 +499,6 @@ function Navbar() {
           <Icon name="shirt" />
           <span>Men Clothing</span>
         </Link>
-
-        <div className="drawer-subcategory-list">
-          {[
-            "Armless",
-            "Jeans",
-            "Joggers",
-            "Shorts",
-            "T-Shirt",
-            "Official Wear",
-            "Sweater",
-            "Hoodie",
-            "Trousers",
-            "Top & Down",
-          ].map((item) => (
-            <Link
-              key={item}
-              onClick={closeMenu}
-              to={`/shop?category=Men%20Clothing&subcategory=${encodeURIComponent(item)}`}
-            >
-              {item}
-            </Link>
-          ))}
-        </div>
 
         <Link onClick={closeMenu} to="/shop?category=Kids%20Wear" className="drawer-row">
           <span className="drawer-letter">K</span>

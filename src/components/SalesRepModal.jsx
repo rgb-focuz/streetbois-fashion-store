@@ -1,39 +1,21 @@
 import { createPortal } from "react-dom";
 import "../styles/salesRepModal.css";
 
-function SalesRepModal({ isOpen, onClose, message }) {
+function SalesRepModal({ isOpen, onClose, message, salesReps }) {
   if (!isOpen) return null;
 
-  const salesReps = [
+  const defaultSalesReps = [
     {
-      initials: "MS",
-      name: "Main Sales Desk",
-      title: "Senior Wholesale Consultant",
-      phone: "233553606554",
-      status: "Online",
-    },
-    {
-      initials: "AF",
-      name: "AFRIYIE",
-      title: "Wholesale Sales",
-      phone: "233249141659",
-      status: "Online",
-    },
-    {
-      initials: "MO",
-      name: "MONO",
-      title: "Wholesale Sales",
-      phone: "233591969427",
-      status: "Online",
-    },
-    {
-      initials: "JA",
-      name: "JOSHUA",
-      title: "Customer Support",
+      initials: "SB",
+      name: "StreetBois Sales",
+      title: "Sales WhatsApp",
       phone: "233202430406",
       status: "Online",
     },
   ];
+
+  const activeSalesReps =
+    Array.isArray(salesReps) && salesReps.length > 0 ? salesReps : defaultSalesReps;
 
   const openWhatsApp = (phone) => {
     window.open(
@@ -62,7 +44,7 @@ function SalesRepModal({ isOpen, onClose, message }) {
         </div>
 
         <div className="sales-rep-list">
-          {salesReps.map((rep) => (
+          {activeSalesReps.map((rep) => (
             <div className="sales-rep-card" key={rep.phone}>
               <div className="sales-avatar">{rep.initials}</div>
 

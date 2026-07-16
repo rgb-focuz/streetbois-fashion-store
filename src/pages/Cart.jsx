@@ -4,6 +4,11 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
+import {
+  buildSalesRepsFromSettings,
+  defaultStoreSettings,
+  fetchStoreSettings,
+} from "../utils/storeSettings";
 import "../styles/cart.css";
 
 function Cart() {
@@ -11,6 +16,7 @@ function Cart() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [showSalesModal, setShowSalesModal] = useState(false);
   const [orderMessage, setOrderMessage] = useState("");
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -33,6 +39,7 @@ function Cart() {
     };
 
     loadCart();
+    fetchStoreSettings().then(setStoreSettings);
   }, []);
 
   /*
@@ -152,7 +159,7 @@ Product Image: ${item.image_url || "No image available"}`
       )
       .join("\n\n");
 
-    return `Hello StreetBois Fashion,
+    return `Hello ${storeSettings.store_name || "StreetBois Fashion"},
 
 I have placed an order.
 
@@ -500,6 +507,7 @@ Please confirm my order.`;
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={orderMessage}
+        salesReps={buildSalesRepsFromSettings(storeSettings)}
       />
 
       <Footer />

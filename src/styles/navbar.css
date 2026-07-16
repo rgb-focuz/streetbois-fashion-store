@@ -141,6 +141,56 @@
   }
 }
 
+/* Black marketplace navbar */
+.navbar {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+.logo h2,
+.desktop-action-link,
+.desktop-icon-link,
+.desktop-nav-links a,
+.hamburger,
+.mobile-icon-link {
+  color: #fff !important;
+}
+
+.logo img {
+  background: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.desktop-search-bar {
+  background: #fff !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.desktop-search-bar .nav-icon,
+.desktop-search-bar input {
+  color: #202020 !important;
+}
+
+.desktop-menu-button.active {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.desktop-action-link:hover,
+.desktop-nav-links a:hover {
+  color: #f6b800 !important;
+}
+
+.mobile-search-bar {
+  background: #050505 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mobile-search-bar input {
+  background: #fff !important;
+  color: #202020 !important;
+}
+
 .desktop-search-bar .nav-icon {
   color: #333;
   width: 26px;
@@ -507,7 +557,7 @@
   }
 
   .logo h2 {
-    font-size: clamp(21px, 6vw, 28px);
+    font-size: clamp(17px, 5vw, 23px);
     letter-spacing: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -515,7 +565,7 @@
   }
 
   .logo h2 span {
-    display: none;
+    display: inline;
   }
 
   .desktop-nav-links,

@@ -1,21 +1,43 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  defaultStoreSettings,
+  fetchStoreSettings,
+  getSalesWhatsApp,
+  getWhatsAppLink,
+} from "../utils/storeSettings";
 import "../styles/footer.css";
 
 function Footer() {
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetchStoreSettings().then((settings) => {
+      if (isMounted) setStoreSettings(settings);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const storeName = storeSettings.store_name || defaultStoreSettings.store_name;
+
   return (
     <footer>
       <div className="footer-grid">
 
         <div>
-          <h2>STREETBOIS FASHION</h2>
+          <h2>{storeName.toUpperCase()}</h2>
 
           <p>
-            Ghana's premium fashion destination for quality clothing,
-            footwear, bags and accessories.
+            {storeSettings.about || defaultStoreSettings.about}
           </p>
 
           <a
-            href="https://wa.me/233202430406"
+            href={getWhatsAppLink(getSalesWhatsApp(storeSettings))}
             target="_blank"
             rel="noopener noreferrer"
             className="footer-whatsapp"
@@ -47,18 +69,18 @@ function Footer() {
         <div>
           <h3>Contact Us</h3>
 
-          <p>📍 Accra (Tudu), Ghana</p>
-          <p>📞 +233 20 243 0406</p>
-          <p>✉️ apodeijoshuaagudey1@gmail.com</p>
+          <p>{storeSettings.location_name || "Accra (Tudu), Ghana"}</p>
+          <p>{storeSettings.phone}</p>
+          <p>{storeSettings.email}</p>
 
           <p><strong>Business Hours</strong></p>
-          <p>Mon - Sat: 8:00 AM - 7:00 PM</p>
+          <p>{storeSettings.business_hours}</p>
         </div>
 
       </div>
 
       <div className="copyright">
-        © {new Date().getFullYear()} STREETBOIS FASHION. All Rights Reserved.
+        © {new Date().getFullYear()} {storeName.toUpperCase()}. All Rights Reserved.
       </div>
     </footer>
   );

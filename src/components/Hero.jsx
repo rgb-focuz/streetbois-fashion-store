@@ -1,17 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/hero.css";
 
 import banner1 from "../assets/banner1.png";
-import banner2 from "../assets/banner2.png";
-import banner3 from "../assets/banner3.png";
-import banner4 from "../assets/banner4.png";
-import banner5 from "../assets/banner5.png";
-import banner6 from "../assets/banner6.png";
 
 function Hero() {
   const navigate = useNavigate();
-  const banners = [banner1, banner2, banner3, banner4, banner5, banner6];
+  const banners = [banner1];
   const categories = [
     "Men Clothing",
     "Kids Wear",
@@ -26,22 +21,6 @@ function Hero() {
   ];
 
   const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    const slider = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % banners.length);
-    }, 4000);
-
-    return () => clearInterval(slider);
-  }, [banners.length]);
-
-  const nextSlide = () => {
-    setCurrent((prev) => (prev + 1) % banners.length);
-  };
-
-  const prevSlide = () => {
-    setCurrent((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-  };
 
   return (
     <section className="hero">
@@ -67,14 +46,6 @@ function Hero() {
             backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.52), rgba(0,0,0,.1)), url(${banners[current]})`,
           }}
         >
-          <button
-            className="arrow left"
-            onClick={prevSlide}
-            aria-label="Previous banner"
-          >
-            ‹
-          </button>
-
           <div className="hero-content">
             <span>Premium Ghanaian Fashion Store</span>
             <h1>Crazy Fashion Deals</h1>
@@ -101,25 +72,19 @@ function Hero() {
             </div>
           </div>
 
-          <div className="hero-dots">
-            {banners.map((banner, index) => (
-              <button
-                key={banner}
-                type="button"
-                className={index === current ? "active" : ""}
-                aria-label={`Show banner ${index + 1}`}
-                onClick={() => setCurrent(index)}
-              />
-            ))}
-          </div>
-
-          <button
-            className="arrow right"
-            onClick={nextSlide}
-            aria-label="Next banner"
-          >
-            ›
-          </button>
+          {banners.length > 1 && (
+            <div className="hero-dots">
+              {banners.map((banner, index) => (
+                <button
+                  key={banner}
+                  type="button"
+                  className={index === current ? "active" : ""}
+                  aria-label={`Show banner ${index + 1}`}
+                  onClick={() => setCurrent(index)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <aside className="hero-side-panel">

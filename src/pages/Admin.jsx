@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
 import AdminUsersManager from "../components/AdminUsersManager";
+import { defaultStoreSettings, refreshStoreSettings } from "../utils/storeSettings";
 
 function Admin() {
   const navigate = useNavigate();
@@ -84,30 +85,11 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const defaultStoreSettings = {
-    store_name: "StreetBois Fashion",
-    phone: "0202430406",
-    whatsapp: "233202430406",
-    email: "apodeijoshuaagudey1@gmail.com",
-    address: "Tudu, Accra - Ghana",
-    business_hours: "Monday - Saturday, 8:30am - 6:00pm",
-    about:
-      "StreetBois Fashion is Ghana's premium wholesale destination for fashion, footwear and accessories.",
-    facebook: "",
-    instagram: "",
-    tiktok: "",
-    twitter: "",
-    google_map: "",
-    delivery_note: "Delivery available within Ghana.",
-    currency: "GH₵",
-    delivery_fee: "",
-    free_shipping_threshold: "",
-    tax_percentage: "",
-  };
 
   const [settings, setSettings] = useState(defaultStoreSettings);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsLogoUploading, setSettingsLogoUploading] = useState(false);
 
 
   const categories = [
@@ -255,9 +237,12 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
     const payload = {
       store_name: settings.store_name,
+      logo_url: settings.logo_url,
       phone: settings.phone,
       whatsapp: settings.whatsapp,
+      sales_whatsapp: settings.sales_whatsapp,
       email: settings.email,
+      location_name: settings.location_name,
       address: settings.address,
       business_hours: settings.business_hours,
       about: settings.about,
@@ -290,6 +275,7 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     }
 
     setMessage("Store settings saved successfully.");
+    await refreshStoreSettings();
     fetchStoreSettings();
     setSettingsSaving(false);
   };
@@ -861,6 +847,41 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       .getPublicUrl(filePath);
 
     return data.publicUrl;
+  };
+
+  const uploadBrandLogo = async (file) => {
+    if (!file) return;
+
+    setSettingsLogoUploading(true);
+    setMessage("");
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `brand/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from("product-images")
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+      updateSettingsField("logo_url", data.publicUrl);
+      setMessage("Logo uploaded. Click Save Changes to publish it.");
+    } catch (error) {
+      const uploadMessage =
+        error.message?.includes("row-level security")
+          ? "Logo upload is blocked by Supabase Storage security policy. Run the storage policy SQL, or paste a logo URL below."
+          : error.message || "Logo upload failed.";
+
+      setMessage(uploadMessage);
+    } finally {
+      setSettingsLogoUploading(false);
+    }
   };
 
 const handleMultipleImages = (files) => {
@@ -1881,7 +1902,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
   };
 
   const pageSubtitles = {
-    dashboard: "Welcome back, Admin 👋",
+    dashboard: "Welcome back, Admin.",
     products: "Upload and manage product entries.",
     collections: "Create and organize product collections.",
     manage: "Search, edit, preview and manage inventory.",
@@ -1893,6 +1914,20 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     settings: "Manage store business details.",
     users: "View registered customer accounts.",
   };
+
+  const adminNavItems = [
+    { key: "dashboard", label: "Dashboard", short: "D" },
+    { key: "products", label: "Add Products", short: "A" },
+    { key: "collections", label: "Collections", short: "C" },
+    { key: "manage", label: "Products", short: "P" },
+    { key: "analytics", label: "Analytics", short: "AN" },
+    { key: "orders", label: "Orders", short: "O" },
+    { key: "reports", label: "Reports", short: "R" },
+    { key: "messages", label: "Messages", short: "M" },
+    { key: "history", label: "Inventory History", short: "H" },
+    { key: "settings", label: "Settings", short: "S" },
+    { key: "users", label: "Users", short: "U" },
+  ];
 
   const renderPresetSizeStockBox = ({
     title = "Size Stock",
@@ -1991,7 +2026,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open admin menu"
         >
-          ☰
+          Menu
         </button>
 
         <div>
@@ -2004,7 +2039,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           onClick={() => changeTab("orders")}
           aria-label="Open notifications"
         >
-          🔔
+          !
           {notificationCount > 0 && <span>{notificationCount}</span>}
         </button>
       </div>
@@ -2036,108 +2071,24 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           </div>
         </div>
 
-        {hasPermission("dashboard") && (
-        <button
-          className={activeTab === "dashboard" ? "active" : ""}
-          onClick={() => changeTab("dashboard")}
-        >
-          📊 Dashboard
-        </button>
-        )}
-
-        {hasPermission("products") && (
-        <button
-          className={activeTab === "products" ? "active" : ""}
-          onClick={() => changeTab("products")}
-        >
-          📦 Add Products
-        </button>
-        )}
-
-        {hasPermission("collections") && (
-        <button
-          className={activeTab === "collections" ? "active" : ""}
-          onClick={() => changeTab("collections")}
-        >
-          🖼 Collections
-        </button>
-        )}
-
-        {hasPermission("manage") && (
-        <button
-          className={activeTab === "manage" ? "active" : ""}
-          onClick={() => changeTab("manage")}
-        >
-          🛒 Manage Products
-        </button>
-        )}
-
-        {hasPermission("analytics") && (
-        <button
-          className={activeTab === "analytics" ? "active" : ""}
-          onClick={() => changeTab("analytics")}
-        >
-          📈 Analytics
-        </button>
-        )}
-
-        {hasPermission("orders") && (
-       <button
-  className={activeTab === "orders" ? "active" : ""}
-  onClick={() => changeTab("orders")}
->
-  📋 Orders
-</button>
-        )}
-
-        {hasPermission("reports") && (
-        <button
-          className={activeTab === "reports" ? "active" : ""}
-          onClick={() => changeTab("reports")}
-        >
-          📄 Reports
-        </button>
-        )}
-
-        {hasPermission("messages") && (
-        <button
-          className={activeTab === "messages" ? "active" : ""}
-          onClick={() => changeTab("messages")}
-        >
-          💬 Messages
-        </button>
-        )}
-
-        {hasPermission("history") && (
-        <button
-          className={activeTab === "history" ? "active" : ""}
-          onClick={() => changeTab("history")}
-        >
-          📦 Inventory History
-        </button>
-        )}
-
-        {hasPermission("settings") && (
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => changeTab("settings")}
-        >
-          ⚙️ Settings
-        </button>
-        )}
-
-        {hasPermission("users") && (
-        <button
-          className={activeTab === "users" ? "active" : ""}
-          onClick={() => changeTab("users")}
-        >
-          👥 Users
-        </button>
-        )}
+        <nav className="admin-nav-list" aria-label="Admin sections">
+          {adminNavItems
+            .filter((item) => hasPermission(item.key))
+            .map((item) => (
+              <button
+                key={item.key}
+                className={activeTab === item.key ? "active" : ""}
+                onClick={() => changeTab(item.key)}
+              >
+                <span className="admin-nav-dot">{item.short}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+        </nav>
 
         <div style={{ marginTop: "auto", paddingTop: "40px" }}>
           <button className="logout-btn sidebar-logout" onClick={handleLogout}>
-            🚪 Logout
+            Logout
           </button>
         </div>
       </aside>
@@ -2146,13 +2097,13 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
         <div className="admin-topbar premium-topbar">
           <div>
             <h1>{pageTitles[activeTab] || "Dashboard"}</h1>
-            <p>{pageSubtitles[activeTab] || "Welcome back, Admin 👋"}</p>
+            <p>{pageSubtitles[activeTab] || "Welcome back, Admin."}</p>
           </div>
 
           <div className="admin-topbar-actions">
             <div className="admin-date-card premium-date-card">
               <strong>{formattedDate}</strong>
-              <small>🗓</small>
+              <small>Date</small>
             </div>
 
             <button
@@ -2160,7 +2111,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
               onClick={() => changeTab("orders")}
               aria-label="Open notifications"
             >
-              🔔
+              !
               {notificationCount > 0 && <span>{notificationCount}</span>}
             </button>
           </div>
@@ -3584,6 +3535,17 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                       </label>
 
                       <label>
+                        Location Name
+                        <input
+                          value={settings.location_name || ""}
+                          onChange={(e) =>
+                            updateSettingsField("location_name", e.target.value)
+                          }
+                          placeholder="e.g. Tudu, Accra"
+                        />
+                      </label>
+
+                      <label>
                         Business Hours
                         <input
                           value={settings.business_hours || ""}
@@ -3593,6 +3555,41 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                         />
                       </label>
                     </div>
+
+                    <div className="settings-logo-panel">
+                      <div className="settings-logo-preview">
+                        {settings.logo_url ? (
+                          <img src={settings.logo_url} alt="Brand logo preview" />
+                        ) : (
+                          <span>SB</span>
+                        )}
+                      </div>
+
+                      <label>
+                        Brand Logo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => uploadBrandLogo(e.target.files?.[0])}
+                        />
+                        <small>
+                          {settingsLogoUploading
+                            ? "Uploading logo..."
+                            : "Upload a square logo or paste a logo URL below."}
+                        </small>
+                      </label>
+                    </div>
+
+                    <label className="settings-full-label">
+                      Brand Logo URL
+                      <input
+                        value={settings.logo_url || ""}
+                        onChange={(e) =>
+                          updateSettingsField("logo_url", e.target.value)
+                        }
+                        placeholder="Paste image URL here if upload is blocked"
+                      />
+                    </label>
 
                     <label className="settings-full-label">
                       Store Address
@@ -3642,6 +3639,17 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                           onChange={(e) =>
                             updateSettingsField("whatsapp", e.target.value)
                           }
+                        />
+                      </label>
+
+                      <label>
+                        Sales WhatsApp Number
+                        <input
+                          value={settings.sales_whatsapp || ""}
+                          onChange={(e) =>
+                            updateSettingsField("sales_whatsapp", e.target.value)
+                          }
+                          placeholder="Used when customers place orders"
                         />
                       </label>
 

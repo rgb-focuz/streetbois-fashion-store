@@ -5,6 +5,11 @@ import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
+import {
+  buildSalesRepsFromSettings,
+  defaultStoreSettings,
+  fetchStoreSettings,
+} from "../utils/storeSettings";
 import "../styles/productDetails.css";
 
 function ProductDetails() {
@@ -17,6 +22,7 @@ function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [showSalesModal, setShowSalesModal] = useState(false);
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
 
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -25,6 +31,7 @@ function ProductDetails() {
   useEffect(() => {
     fetchProduct();
     fetchReviews();
+    fetchStoreSettings().then(setStoreSettings);
   }, [id]);
 
   useEffect(() => {
@@ -83,7 +90,7 @@ function ProductDetails() {
     : Number(product?.stock || 0);
 
   const whatsappMessage = product
-    ? `Hello StreetBois Fashion,
+    ? `Hello ${storeSettings.store_name || "StreetBois Fashion"},
 
 I am interested in this product:
 
@@ -354,6 +361,7 @@ Please assist me with this order.`
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={whatsappMessage}
+        salesReps={buildSalesRepsFromSettings(storeSettings)}
       />
 
       <Footer />

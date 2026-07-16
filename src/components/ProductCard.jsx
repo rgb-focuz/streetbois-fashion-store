@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SalesRepModal from "./SalesRepModal";
+import {
+  buildSalesRepsFromSettings,
+  defaultStoreSettings,
+  fetchStoreSettings,
+} from "../utils/storeSettings";
 import "../styles/productCard.css";
 
 function ProductCard({ product, showWhatsApp = true }) {
   const navigate = useNavigate();
   const [showSalesModal, setShowSalesModal] = useState(false);
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
+
+  useEffect(() => {
+    fetchStoreSettings().then(setStoreSettings);
+  }, []);
 
   const productImage =
     product.image_url ||
@@ -68,7 +78,7 @@ function ProductCard({ product, showWhatsApp = true }) {
     alert("Product added to cart");
   };
 
-  const whatsappMessage = `Hello StreetBois Fashion,
+  const whatsappMessage = `Hello ${storeSettings.store_name || "StreetBois Fashion"},
 
 🛍 New Customer Enquiry
 
@@ -120,6 +130,7 @@ Please assist me with this order.`;
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={whatsappMessage}
+        salesReps={buildSalesRepsFromSettings(storeSettings)}
       />
     </div>
   );

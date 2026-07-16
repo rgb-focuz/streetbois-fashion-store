@@ -3,24 +3,17 @@ import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { supabase } from "../supabaseClient";
+import {
+  defaultStoreSettings,
+  fetchStoreSettings as loadStoreSettings,
+  getWhatsAppLink,
+} from "../utils/storeSettings";
 import "../styles/contact.css";
 
 function Contact() {
   const [searchParams] = useSearchParams();
 
-  const defaultSettings = {
-    store_name: "StreetBois Fashion",
-    phone: "0202430406",
-    whatsapp: "233202430406",
-    email: "apodeijoshuaagudey1@gmail.com",
-    address: "Tudu, Accra - Ghana",
-    business_hours: "Monday - Saturday, 8:30am - 6:00pm",
-    about:
-      "StreetBois Fashion is Ghana's premium wholesale destination for fashion, footwear and accessories.",
-    google_map: "",
-  };
-
-  const [storeSettings, setStoreSettings] = useState(defaultSettings);
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -52,27 +45,12 @@ function Contact() {
   }, [searchParams]);
 
   const fetchStoreSettings = async () => {
-    const { data, error } = await supabase
-      .from("store_settings")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle();
-
-    if (!error && data) {
-      setStoreSettings({ ...defaultSettings, ...data });
-    }
+    const settings = await loadStoreSettings();
+    setStoreSettings(settings);
   };
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-  };
-
-  const formatWhatsAppLink = (number) => {
-    const cleaned = String(number || "")
-      .replace(/\D/g, "")
-      .replace(/^0/, "233");
-
-    return `https://wa.me/${cleaned || "233202430406"}`;
   };
 
   const handleSubmit = async (e) => {
@@ -112,28 +90,16 @@ function Contact() {
 
   const locations = [
     {
-      title: "Our Main Location in Tudu, Accra",
-      text: "Orange Building, 3rd Floor & Top Floor, Tudu - Accra, Ghana",
+      title: storeSettings.location_name || "Main Location",
+      text: storeSettings.address || defaultStoreSettings.address,
     },
     {
-      title: "Street Electronics",
-      text: "Orange Building, 3rd Floor, Tudu - Accra, Ghana",
+      title: "Business Hours",
+      text: storeSettings.business_hours || defaultStoreSettings.business_hours,
     },
     {
-      title: "STC Building Branch",
-      text: "STC Building, 2nd & 3rd Floor, Tudu - Accra, Ghana",
-    },
-    {
-      title: "Hisense Building Branch",
-      text: "Hisense Building, Tudu - Accra, Ghana",
-    },
-    {
-      title: "Wholesale Warehouse",
-      text: "Large warehouse serving all StreetBois Fashion branches in Accra.",
-    },
-    {
-      title: "More Branches Coming Soon",
-      text: "As StreetBois Fashion grows, more locations will be added.",
+      title: "Delivery Coverage",
+      text: storeSettings.delivery_note || defaultStoreSettings.delivery_note,
     },
   ];
 
@@ -196,7 +162,7 @@ function Contact() {
           </div>
 
           <a
-            href={formatWhatsAppLink(storeSettings.whatsapp)}
+            href={getWhatsAppLink(storeSettings.whatsapp)}
             target="_blank"
             rel="noreferrer"
             className="contact-whatsapp"
