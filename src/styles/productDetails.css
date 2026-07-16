@@ -4,17 +4,26 @@
   min-height: 80vh;
   padding: 80px 8%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(320px, 1fr);
   gap: 60px;
   align-items: center;
 }
 
-.product-details-image img {
+.product-details-image {
   width: 100%;
-  height: 520px;
-  object-fit: contain;
+  max-width: 760px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
   background: #fff;
   border-radius: 12px;
+}
+
+.product-details-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .breadcrumb {
@@ -177,7 +186,12 @@
   }
 
   .product-details-image img {
-    height: 360px;
+    height: 100%;
+  }
+
+  .product-details-image {
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
   }
 
   .product-details-info h1 {

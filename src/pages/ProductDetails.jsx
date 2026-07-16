@@ -89,12 +89,30 @@ function ProductDetails() {
     ? Number(sizeStock[selectedSize] || 0)
     : Number(product?.stock || 0);
 
+  const formatProductName = (name, category) => {
+    const normalizedName = String(name || "").trim();
+    const lowerName = normalizedName.toLowerCase();
+
+    if (["t=shirt", "t-shirt", "tshirt", "t shirt"].includes(lowerName)) {
+      return category === "Men Clothing" ? "Men's T-Shirt" : "T-Shirt";
+    }
+
+    if (lowerName === "official-wear") return "Official Wear";
+    if (lowerName === "swearter") return "Sweater";
+
+    return normalizedName || category || "Product";
+  };
+
+  const displayName = product
+    ? formatProductName(product.name, product.category)
+    : "Product";
+
   const whatsappMessage = product
     ? `Hello ${storeSettings.store_name || "StreetBois Fashion"},
 
 I am interested in this product:
 
-Product: ${product.name}
+Product: ${displayName}
 Price: GH₵ ${product.price}
 Category: ${product.category || "Not provided"}
 Size: ${selectedSize || "Not selected"}
@@ -246,12 +264,12 @@ Please assist me with this order.`
 
       <section className="product-details-page">
         <div className="product-details-image">
-          <img src={product.image_url} alt={product.name} decoding="async" />
+          <img src={product.image_url} alt={displayName} decoding="async" />
         </div>
 
         <div className="product-details-info">
         
-          <h1>{product.name}</h1>
+          <h1>{displayName}</h1>
 
 
           <h2>GH₵ {product.price}</h2>
