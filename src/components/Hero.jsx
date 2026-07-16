@@ -10,17 +10,22 @@ import banner5 from "../assets/banner5.png";
 import banner6 from "../assets/banner6.png";
 
 function Hero() {
-  const banners = [
-    banner1,
-    banner2,
-    banner3,
-    banner4,
-    banner5,
-    banner6,
+  const navigate = useNavigate();
+  const banners = [banner1, banner2, banner3, banner4, banner5, banner6];
+  const categories = [
+    "Men Clothing",
+    "Kids Wear",
+    "Bags",
+    "Belts",
+    "Caps",
+    "Watches",
+    "Perfumes",
+    "Accessories",
+    "Sneakers",
+    "Slides",
   ];
 
   const [current, setCurrent] = useState(0);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const slider = setInterval(() => {
@@ -28,73 +33,118 @@ function Hero() {
     }, 4000);
 
     return () => clearInterval(slider);
-  }, []);
+  }, [banners.length]);
 
   const nextSlide = () => {
     setCurrent((prev) => (prev + 1) % banners.length);
   };
 
   const prevSlide = () => {
-    setCurrent((prev) =>
-      prev === 0 ? banners.length - 1 : prev - 1
-    );
+    setCurrent((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
   };
 
   return (
-    <section
-      className="hero"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,.58), rgba(0,0,0,.58)), url(${banners[current]})`,
-      }}
-    >
-      <button className="arrow left" onClick={prevSlide}>
-        ❮
-      </button>
+    <section className="hero">
+      <div className="hero-shell">
+        <aside className="hero-category-panel">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() =>
+                navigate(`/shop?category=${encodeURIComponent(category)}`)
+              }
+            >
+              <span>{category.slice(0, 1)}</span>
+              {category}
+            </button>
+          ))}
+        </aside>
 
-      <div className="hero-content">
-        <span>Premium Ghanaian Fashion Store</span>
-
-        <h1>Style Beyond Trends.</h1>
-
-        <p>
-          Quality clothing, shoes, bags, belts and accessories
-          for modern fashion lovers.
-        </p>
-
-        <div className="hero-quick-links">
+        <div
+          className="hero-stage"
+          style={{
+            backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.52), rgba(0,0,0,.1)), url(${banners[current]})`,
+          }}
+        >
           <button
-            className="hero-quick-btn"
-            onClick={() => navigate("/shop")}
+            className="arrow left"
+            onClick={prevSlide}
+            aria-label="Previous banner"
           >
-            <span className="hero-icon">🛍️</span>
-
-            <span className="hero-text">
-              Shop Collection
-            </span>
-
-            <span className="hero-arrow">›</span>
+            ‹
           </button>
 
-          <div className="hero-divider"></div>
+          <div className="hero-content">
+            <span>Premium Ghanaian Fashion Store</span>
+            <h1>Crazy Fashion Deals</h1>
+            <p>Clothing, shoes, bags and accessories for everyday style.</p>
+
+            <div className="hero-quick-links">
+              <button
+                className="hero-quick-btn"
+                onClick={() => navigate("/shop")}
+              >
+                <span className="hero-text">Shop Collection</span>
+                <span className="hero-arrow">›</span>
+              </button>
+
+              <div className="hero-divider"></div>
+
+              <button
+                className="hero-quick-btn"
+                onClick={() => navigate("/contact")}
+              >
+                <span className="hero-text">Contact Us</span>
+                <span className="hero-arrow">›</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-dots">
+            {banners.map((banner, index) => (
+              <button
+                key={banner}
+                type="button"
+                className={index === current ? "active" : ""}
+                aria-label={`Show banner ${index + 1}`}
+                onClick={() => setCurrent(index)}
+              />
+            ))}
+          </div>
 
           <button
-            className="hero-quick-btn"
-            onClick={() => navigate("/contact")}
+            className="arrow right"
+            onClick={nextSlide}
+            aria-label="Next banner"
           >
-            <span className="hero-icon">📞</span>
-
-            <span className="hero-text">
-              Contact Us
-            </span>
-
-            <span className="hero-arrow">›</span>
+            ›
           </button>
         </div>
-      </div>
 
-      <button className="arrow right" onClick={nextSlide}>
-        ❯
-      </button>
+        <aside className="hero-side-panel">
+          <a href="tel:0202430406" className="hero-service-card">
+            <strong>Call / WhatsApp</strong>
+            <span>020 243 0406</span>
+          </a>
+          <button
+            type="button"
+            className="hero-service-card"
+            onClick={() => navigate("/contact")}
+          >
+            <strong>Need Help?</strong>
+            <span>Talk to support</span>
+          </button>
+          <button
+            type="button"
+            className="hero-promo-card"
+            onClick={() => navigate("/shop")}
+          >
+            <strong>Shopping Spree</strong>
+            <span>Up to 40% off</span>
+          </button>
+        </aside>
+      </div>
     </section>
   );
 }

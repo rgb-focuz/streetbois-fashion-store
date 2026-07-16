@@ -34,6 +34,7 @@
 .product-title-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   margin-bottom: 6px;
 }
@@ -45,8 +46,8 @@
   font-weight: 800;
   line-height: 1.2;
   text-transform: uppercase;
-  flex: 0 1 auto;
-  max-width: 65%;
+  flex: 1 1 auto;
+  max-width: none;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

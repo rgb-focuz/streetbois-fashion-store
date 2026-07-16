@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
 import ProductCard from "./ProductCard";
 import "../styles/home.css";
+
+const getSupabase = async () => {
+  const module = await import("../supabaseClient");
+  return module.supabase;
+};
 
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
@@ -28,6 +32,7 @@ function FeaturedProducts() {
 
   const fetchProducts = async () => {
     setLoading(true);
+    const supabase = await getSupabase();
 
     const { data, error } = await supabase
       .from("products")
@@ -45,8 +50,11 @@ function FeaturedProducts() {
   return (
     <section className="home-products-feed">
       <div className="home-feed-header">
-        <h2>Recommended For You</h2>
-        <p>Keep scrolling to discover more StreetBois Fashion products.</p>
+        <div>
+          <h2>Flash Sales</h2>
+          <p>Time Left: 00h : 00m : 00s</p>
+        </div>
+        <a href="/shop">See All</a>
       </div>
 
       {loading ? (

@@ -1,10 +1,12 @@
+import { lazy, Suspense } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import HomeCategories from "../components/HomeCategories";
-import FeaturedProducts from "../components/FeaturedProducts";
-import ContactSection from "../components/ContactSection";
-import Footer from "../components/Footer";
-import WhatsAppButton from "../components/WhatsAppButton";
+
+const FeaturedProducts = lazy(() => import("../components/FeaturedProducts"));
+const ContactSection = lazy(() => import("../components/ContactSection"));
+const Footer = lazy(() => import("../components/Footer"));
+const WhatsAppButton = lazy(() => import("../components/WhatsAppButton"));
 
 function Home() {
   return (
@@ -15,13 +17,15 @@ function Home() {
 
       <HomeCategories />
 
-      <FeaturedProducts />
+      <Suspense fallback={null}>
+        <FeaturedProducts />
 
-      <ContactSection />
+        <ContactSection />
 
-      <Footer />
+        <Footer />
 
-      <WhatsAppButton />
+        <WhatsAppButton />
+      </Suspense>
     </>
   );
 }

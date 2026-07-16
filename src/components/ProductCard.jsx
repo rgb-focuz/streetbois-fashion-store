@@ -14,6 +14,22 @@ function ProductCard({ product, showWhatsApp = true }) {
     product.main_image ||
     "";
 
+  const formatProductName = (name, category) => {
+    const normalizedName = String(name || "").trim();
+    const lowerName = normalizedName.toLowerCase();
+
+    if (["t=shirt", "t-shirt", "tshirt", "t shirt"].includes(lowerName)) {
+      return category === "Men Clothing" ? "Men's T-Shirt" : "T-Shirt";
+    }
+
+    if (lowerName === "official-wear") return "Official Wear";
+    if (lowerName === "swearter") return "Sweater";
+
+    return normalizedName || category || "Product";
+  };
+
+  const displayName = formatProductName(product.name, product.category);
+
   const openDetails = () => {
     navigate(`/product/${product.id}`);
   };
@@ -56,7 +72,7 @@ function ProductCard({ product, showWhatsApp = true }) {
 
 🛍 New Customer Enquiry
 
-Product: ${product.name}
+Product: ${displayName}
 Price: GH₵ ${product.price}
 
 📷 Product Image:
@@ -67,12 +83,12 @@ Please assist me with this order.`;
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
-        <img src={productImage} alt={product.name} />
+        <img src={productImage} alt={displayName} />
       </div>
 
       <div className="universal-product-info">
         <div className="product-title-row">
-          <h3>{product.name}</h3>
+          <h3 title={displayName}>{displayName}</h3>
           <span className="universal-price">GH₵ {product.price}</span>
         </div>
 

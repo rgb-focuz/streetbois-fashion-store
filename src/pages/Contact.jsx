@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { supabase } from "../supabaseClient";
 import "../styles/contact.css";
 
 function Contact() {
+  const [searchParams] = useSearchParams();
+
   const defaultSettings = {
     store_name: "StreetBois Fashion",
     phone: "0202430406",
@@ -34,6 +37,19 @@ function Contact() {
   useEffect(() => {
     fetchStoreSettings();
   }, []);
+
+  useEffect(() => {
+    const subject = searchParams.get("subject");
+    const message = searchParams.get("message");
+
+    if (!subject && !message) return;
+
+    setFormData((current) => ({
+      ...current,
+      subject: subject || current.subject,
+      message: message || current.message,
+    }));
+  }, [searchParams]);
 
   const fetchStoreSettings = async () => {
     const { data, error } = await supabase

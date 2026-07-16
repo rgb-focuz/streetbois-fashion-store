@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 import "../styles/admin.css";
 import AdminUsersManager from "../components/AdminUsersManager";
 
@@ -1716,7 +1714,20 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     downloadCSV("streetbois-analytics-report.csv", rows[0], rows.slice(1));
   };
 
-  const exportAnalyticsPDF = () => {
+  const loadPdfTools = async () => {
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
+    return {
+      jsPDF,
+      autoTable: autoTableModule.default,
+    };
+  };
+
+  const exportAnalyticsPDF = async () => {
+    const { jsPDF, autoTable } = await loadPdfTools();
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("STREETBOIS FASHION", 14, 18);
@@ -1800,7 +1811,8 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     );
   };
 
-  const exportProductsPDF = () => {
+  const exportProductsPDF = async () => {
+    const { jsPDF, autoTable } = await loadPdfTools();
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("STREETBOIS FASHION", 14, 18);
@@ -1826,7 +1838,8 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     doc.save("streetbois-products-report.pdf");
   };
 
-  const exportOrdersPDF = () => {
+  const exportOrdersPDF = async () => {
+    const { jsPDF, autoTable } = await loadPdfTools();
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("STREETBOIS FASHION", 14, 18);

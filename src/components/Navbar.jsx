@@ -1,12 +1,91 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import "../styles/navbar.css";
 import logo from "../assets/logo.png";
+
+const getSupabase = async () => {
+  const module = await import("../supabaseClient");
+  return module.supabase;
+};
+
+const Icon = ({ name }) => {
+  const icons = {
+    menu: (
+      <>
+        <path d="M4 7h16" />
+        <path d="M4 12h16" />
+        <path d="M4 17h16" />
+      </>
+    ),
+    close: (
+      <>
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </>
+    ),
+    user: (
+      <>
+        <path d="M20 21a8 8 0 0 0-16 0" />
+        <circle cx="12" cy="7" r="4" />
+      </>
+    ),
+    cart: (
+      <>
+        <path d="M6 6h15l-2 9H8L6 3H3" />
+        <circle cx="9" cy="20" r="1.5" />
+        <circle cx="18" cy="20" r="1.5" />
+      </>
+    ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </>
+    ),
+    chevron: <path d="m9 18 6-6-6-6" />,
+    order: (
+      <>
+        <path d="M5 7h14v13H5Z" />
+        <path d="M8 7a4 4 0 0 1 8 0" />
+      </>
+    ),
+    heart: (
+      <path d="M20.5 8.5c0 6-8.5 11-8.5 11s-8.5-5-8.5-11A4.7 4.7 0 0 1 12 5a4.7 4.7 0 0 1 8.5 3.5Z" />
+    ),
+    phone: (
+      <>
+        <rect x="7" y="3" width="10" height="18" rx="2" />
+        <path d="M11 18h2" />
+      </>
+    ),
+    shirt: (
+      <path d="M9 4h6l2 3 4 1-2 5-3-1v8H8v-8l-3 1-2-5 4-1Z" />
+    ),
+    help: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.8 9a2.5 2.5 0 1 1 4.2 1.8c-1.2.9-2 1.4-2 3.2" />
+        <path d="M12 17h.01" />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      className="nav-icon"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {icons[name]}
+    </svg>
+  );
+};
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -14,13 +93,35 @@ function Navbar() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+    let authSubscription = null;
+
     updateCartCount();
     updateWishlistCount();
-    loadUser();
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
+    const loadAuthState = async () => {
+      const supabase = await getSupabase();
+
+      if (!isMounted) return;
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (isMounted) {
+        setUser(user || null);
+      }
+
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (isMounted) {
+          setUser(session?.user || null);
+        }
+      });
+
+      authSubscription = data.subscription;
+    };
+
+    loadAuthState();
 
     window.addEventListener("storage", updateCartCount);
     window.addEventListener("storage", updateWishlistCount);
@@ -28,21 +129,14 @@ function Navbar() {
     window.addEventListener("wishlistUpdated", updateWishlistCount);
 
     return () => {
-      data.subscription.unsubscribe();
+      isMounted = false;
+      authSubscription?.unsubscribe();
       window.removeEventListener("storage", updateCartCount);
       window.removeEventListener("storage", updateWishlistCount);
       window.removeEventListener("cartUpdated", updateCartCount);
       window.removeEventListener("wishlistUpdated", updateWishlistCount);
     };
   }, []);
-
-  const loadUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    setUser(user || null);
-  };
 
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
@@ -64,10 +158,17 @@ function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const closeDesktopMenus = () => {
+    setAccountOpen(false);
+    setHelpOpen(false);
+  };
+
   const handleLogout = async () => {
+    const supabase = await getSupabase();
     await supabase.auth.signOut();
     setUser(null);
     setAccountOpen(false);
+    setHelpOpen(false);
     setMenuOpen(false);
     navigate("/account");
   };
@@ -81,18 +182,30 @@ function Navbar() {
 
   return (
     <header className="mobile-header-wrap">
+      <div className="desktop-top-strip">
+        <Link to="/admin-login">Sell on StreetBois</Link>
+        <div>
+          <strong>STREETBOIS</strong>
+          <span>PAY</span>
+          <span>DELIVERY</span>
+        </div>
+      </div>
+
       <nav className="navbar">
         <button
           type="button"
           className="hamburger"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? "×" : "☰"}
+          <Icon name={menuOpen ? "close" : "menu"} />
         </button>
 
         <Link to="/" className="logo" onClick={closeMenu}>
           <img src={logo} alt="StreetBois Fashion Logo" />
-          <h2>STREETBOIS FASHION</h2>
+          <h2>
+            STREETBOIS <span>FASHION</span>
+          </h2>
         </Link>
 
         <ul className="desktop-nav-links">
@@ -102,10 +215,126 @@ function Navbar() {
           <li><Link to="/faq">FAQ</Link></li>
         </ul>
 
+        <form
+          className="desktop-search-bar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleMobileSearch();
+          }}
+        >
+          <Icon name="search" />
+          <input
+            type="text"
+            placeholder="Search products, brands and categories"
+            value={mobileSearch}
+            onChange={(event) => setMobileSearch(event.target.value)}
+          />
+          <button type="submit">Search</button>
+        </form>
+
         <div className="desktop-icons">
-          <Link to="/cart" className="desktop-icon-link">
-            🛒
-            {cartCount > 0 && <span>{cartCount}</span>}
+          <div className="desktop-menu-wrap">
+            <button
+              type="button"
+              className={`desktop-action-link desktop-menu-button ${accountOpen ? "active" : ""}`}
+              onClick={() => {
+                setAccountOpen((open) => !open);
+                setHelpOpen(false);
+              }}
+            >
+              <Icon name="user" />
+              <span>Account</span>
+              <span className="desktop-caret">{accountOpen ? "⌃" : "⌄"}</span>
+            </button>
+
+            {accountOpen && (
+              <div className="desktop-popover account-popover">
+                <Link
+                  to="/account"
+                  className="desktop-popover-primary"
+                  onClick={closeDesktopMenus}
+                >
+                  {user ? `Hi, ${firstName}` : "Sign In"}
+                </Link>
+
+                <Link to="/customer-dashboard" onClick={closeDesktopMenus}>
+                  <Icon name="user" />
+                  <span>My Account</span>
+                </Link>
+
+                <Link to="/customer-dashboard" onClick={closeDesktopMenus}>
+                  <Icon name="order" />
+                  <span>Orders</span>
+                </Link>
+
+                <Link to="/wishlist" onClick={closeDesktopMenus}>
+                  <Icon name="heart" />
+                  <span>Wishlist</span>
+                </Link>
+
+                {user && (
+                  <button type="button" onClick={handleLogout}>
+                    <Icon name="user" />
+                    <span>Logout</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="desktop-menu-wrap">
+            <button
+              type="button"
+              className={`desktop-action-link desktop-menu-button ${helpOpen ? "active" : ""}`}
+              onClick={() => {
+                setHelpOpen((open) => !open);
+                setAccountOpen(false);
+              }}
+            >
+              <Icon name="help" />
+              <span>Help</span>
+              <span className="desktop-caret">{helpOpen ? "⌃" : "⌄"}</span>
+            </button>
+
+            {helpOpen && (
+              <div className="desktop-popover help-popover">
+                <Link to="/faq" onClick={closeDesktopMenus}>Help Center</Link>
+                <Link to="/shop" onClick={closeDesktopMenus}>Place an Order</Link>
+                <Link to="/cart" onClick={closeDesktopMenus}>Pay For Your Order</Link>
+                <Link to="/customer-dashboard" onClick={closeDesktopMenus}>Track Your Order</Link>
+                <Link
+                  to="/contact?subject=Cancel%20an%20Order"
+                  onClick={closeDesktopMenus}
+                >
+                  Cancel an Order
+                </Link>
+                <Link to="/faq" onClick={closeDesktopMenus}>Returns & Refunds</Link>
+
+                <Link
+                  to="/contact?subject=Live%20Chat"
+                  className="desktop-help-live"
+                  onClick={closeDesktopMenus}
+                >
+                  Live Chat
+                </Link>
+
+                <a
+                  href="https://wa.me/233202430406?text=Hello%20StreetBois%20Fashion%2C%20I%20need%20help%20with%20my%20order."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="desktop-help-whatsapp"
+                  onClick={closeDesktopMenus}
+                >
+                  WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+
+          <Link to="/cart" className="desktop-action-link desktop-cart-link" aria-label="Cart">
+            <Icon name="cart" />
+            <span>Cart</span>
+            {cartCount > 0 && <em>{cartCount}</em>}
           </Link>
         </div>
 
@@ -117,7 +346,7 @@ function Navbar() {
                 className="signin-btn"
                 onClick={() => setAccountOpen(!accountOpen)}
               >
-                👤 Hi, {firstName}
+                <Icon name="user" /> Hi, {firstName}
               </button>
 
               {accountOpen && (
@@ -139,7 +368,7 @@ function Navbar() {
             </div>
           ) : (
             <Link to="/account" className="signin-btn">
-              👤 Sign In / Up
+              <Icon name="user" /> Sign In / Up
             </Link>
           )}
 
@@ -152,94 +381,168 @@ function Navbar() {
           <button
             type="button"
             className="mobile-icon-link account-mobile-icon"
-            onClick={() => setMenuOpen(true)}
+            aria-label="Sign in or create account"
+            onClick={() => {
+              setMenuOpen(false);
+              navigate("/account");
+            }}
           >
-            👤
+            <Icon name="user" />
           </button>
 
-          <Link to="/cart" className="mobile-icon-link">
-            🛒
+          <Link to="/cart" className="mobile-icon-link" aria-label="Cart">
+            <Icon name="cart" />
             {cartCount > 0 && <span>{cartCount}</span>}
           </Link>
         </div>
       </nav>
 
       <div className="mobile-search-bar">
+        <Icon name="search" />
         <input
           type="text"
-          placeholder="Search StreetBois Fashion"
+          placeholder="Search products, brands and categories"
           value={mobileSearch}
           onChange={(e) => setMobileSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
         />
-        <button onClick={handleMobileSearch}>🔍</button>
+        <button onClick={handleMobileSearch}>Search</button>
       </div>
+
+      <a className="mobile-call-strip" href="tel:0202430406">
+        Call to Order: 020 243 0406
+      </a>
 
       <aside className={`mobile-account-drawer ${menuOpen ? "active" : ""}`}>
         <div className="drawer-head">
-          <div className="drawer-avatar">👤</div>
-          <div>
-            <h3>{user ? customerName : "Welcome"}</h3>
-            <p>{user ? user.email : "Please sign in to continue"}</p>
-          </div>
+          <button
+            type="button"
+            className="drawer-close"
+            onClick={closeMenu}
+            aria-label="Close menu"
+          >
+            <Icon name="close" />
+          </button>
+
+          <Link to="/" className="drawer-logo" onClick={closeMenu}>
+            <img src={logo} alt="StreetBois Fashion Logo" />
+            <strong>STREETBOIS</strong>
+          </Link>
+
+          <Link to="/cart" className="drawer-cart" onClick={closeMenu} aria-label="Cart">
+            <Icon name="cart" />
+          </Link>
         </div>
 
-        <Link onClick={closeMenu} to="/" className="drawer-row">
-          <span>⌂</span> Home <b>›</b>
+        <Link onClick={closeMenu} to="/contact" className="drawer-section-link">
+          <span>Need Help?</span>
+          <Icon name="chevron" />
         </Link>
 
-        <Link onClick={closeMenu} to="/shop" className="drawer-row">
-          <span>▣</span> Shop <b>›</b>
+        <Link onClick={closeMenu} to="/account" className="drawer-section-link">
+          <span>My StreetBois Account</span>
+          <Icon name="chevron" />
         </Link>
 
-        <Link onClick={closeMenu} to="/contact" className="drawer-row">
-          <span>☎</span> Contact <b>›</b>
+        <Link onClick={closeMenu} to="/customer-dashboard" className="drawer-row">
+          <Icon name="order" />
+          <span>Orders</span>
         </Link>
 
         <Link onClick={closeMenu} to="/faq" className="drawer-row">
-          <span>?</span> FAQ <b>›</b>
-        </Link>
-
-        <div className="drawer-divider"></div>
-
-        <Link onClick={closeMenu} to="/cart" className="drawer-row">
-          <span>🛒</span> Shopping Cart
-          {cartCount > 0 && <em>{cartCount}</em>}
-          <b>›</b>
+          <Icon name="help" />
+          <span>Help & FAQ</span>
         </Link>
 
         <Link onClick={closeMenu} to="/wishlist" className="drawer-row">
-          <span>♡</span> My Favorites
+          <Icon name="heart" />
+          <span>Wishlist</span>
           {wishlistCount > 0 && <em>{wishlistCount}</em>}
-          <b>›</b>
         </Link>
 
-        <button type="button" className="drawer-row">
-          <span>🎟</span> My Coupons <b>›</b>
-        </button>
-
-        <button type="button" className="drawer-row">
-          <span>📍</span> Delivery Address <b>›</b>
-        </button>
-
-        <Link onClick={closeMenu} to="/reset-password" className="drawer-row">
-          <span>⚙</span> Settings <b>›</b>
+        <Link onClick={closeMenu} to="/cart" className="drawer-row">
+          <Icon name="cart" />
+          <span>Shopping Cart</span>
+          {cartCount > 0 && <em>{cartCount}</em>}
         </Link>
 
-        <div className="drawer-divider"></div>
+        <div className="drawer-category-head">
+          <span>Our Categories</span>
+          <Link to="/shop" onClick={closeMenu}>See All</Link>
+        </div>
+
+        <Link onClick={closeMenu} to="/shop?category=Men%20Clothing" className="drawer-row">
+          <Icon name="shirt" />
+          <span>Men Clothing</span>
+        </Link>
+
+        <div className="drawer-subcategory-list">
+          {[
+            "Armless",
+            "Jeans",
+            "Joggers",
+            "Shorts",
+            "T-Shirt",
+            "Official Wear",
+            "Sweater",
+            "Hoodie",
+            "Trousers",
+            "Top & Down",
+          ].map((item) => (
+            <Link
+              key={item}
+              onClick={closeMenu}
+              to={`/shop?category=Men%20Clothing&subcategory=${encodeURIComponent(item)}`}
+            >
+              {item}
+            </Link>
+          ))}
+        </div>
+
+        <Link onClick={closeMenu} to="/shop?category=Kids%20Wear" className="drawer-row">
+          <span className="drawer-letter">K</span>
+          <span>Kids Wear</span>
+        </Link>
+
+        <Link onClick={closeMenu} to="/shop?category=Sneakers" className="drawer-row">
+          <span className="drawer-letter">S</span>
+          <span>Sneakers</span>
+        </Link>
+
+        <Link onClick={closeMenu} to="/shop?category=Bags" className="drawer-row">
+          <span className="drawer-letter">B</span>
+          <span>Bags</span>
+        </Link>
+
+        <Link onClick={closeMenu} to="/shop?category=Perfumes" className="drawer-row">
+          <span className="drawer-letter">P</span>
+          <span>Perfumes</span>
+        </Link>
+
+        <Link onClick={closeMenu} to="/shop?category=Accessories" className="drawer-row">
+          <span className="drawer-letter">A</span>
+          <span>Accessories</span>
+        </Link>
+
+        <Link onClick={closeMenu} to="/contact" className="drawer-row">
+          <Icon name="phone" />
+          <span>Contact Us</span>
+        </Link>
 
         {user ? (
           <button type="button" onClick={handleLogout} className="drawer-row logout-drawer-row">
-            <span>⇥</span> Logout <b>›</b>
+            <Icon name="user" />
+            <span>Logout</span>
           </button>
         ) : (
           <Link onClick={closeMenu} to="/account" className="drawer-row">
-            <span>👤</span> Sign In / Up <b>›</b>
+            <Icon name="user" />
+            <span>Sign In / Up</span>
           </Link>
         )}
       </aside>
 
-      {menuOpen && <button className="drawer-overlay" onClick={closeMenu}></button>}
+      {menuOpen && <button className="drawer-overlay" onClick={closeMenu} aria-label="Close menu"></button>}
     </header>
   );
 }

@@ -61,6 +61,59 @@
   color: #000;
 }
 
+.subcategory-panel {
+  max-width: 1500px;
+  margin: 10px auto 28px;
+  padding: 22px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 18px;
+  background: #101010;
+}
+
+.subcategory-panel-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.subcategory-panel-head h2 {
+  color: #d4af37;
+  font-size: 24px;
+  margin: 0;
+}
+
+.subcategory-panel-head p {
+  color: #cfcfcf;
+  margin: 0;
+}
+
+.subcategory-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.subcategory-btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #343434;
+  border-radius: 999px;
+  background: #181818;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.subcategory-btn:hover,
+.active-subcategory {
+  background: #f6b800;
+  border-color: #f6b800;
+  color: #000;
+}
+
 .shop-message {
   text-align: center;
   color: #d4af37;
@@ -191,6 +244,38 @@
   .filter-btn {
     padding: 8px 14px;
     font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .subcategory-panel {
+    margin: 8px 0 18px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .subcategory-panel-head {
+    display: block;
+  }
+
+  .subcategory-panel-head h2 {
+    font-size: 19px;
+  }
+
+  .subcategory-panel-head p {
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .subcategory-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+
+  .subcategory-btn {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 12px;
     white-space: nowrap;
   }
 

@@ -38,6 +38,26 @@ function FAQ() {
             <h3>What payment methods do you accept?</h3>
             <p>We accept Mobile Money, Bank Transfer and other approved payment methods.</p>
           </div>
+
+          <div className="faq-item">
+            <h3>How do I place an order?</h3>
+            <p>Go to the Shop page, choose your product, add it to cart and complete your order details.</p>
+          </div>
+
+          <div className="faq-item">
+            <h3>How do I track my order?</h3>
+            <p>Sign in to your account and open your customer dashboard to view order updates.</p>
+          </div>
+
+          <div className="faq-item">
+            <h3>Can I cancel an order?</h3>
+            <p>Contact us as soon as possible with your order details so our team can assist before delivery is processed.</p>
+          </div>
+
+          <div className="faq-item">
+            <h3>What is your return policy?</h3>
+            <p>Returns are reviewed by our team. Contact us with your order details and reason for return.</p>
+          </div>
         </div>
       </section>
 

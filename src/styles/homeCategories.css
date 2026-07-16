@@ -3,6 +3,12 @@
   padding: 28px 5%;
 }
 
+@media (min-width: 769px) {
+  .home-categories {
+    display: none;
+  }
+}
+
 .home-categories-head {
   max-width: 1500px;
   margin: 0 auto;
