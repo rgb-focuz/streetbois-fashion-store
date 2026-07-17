@@ -89,6 +89,22 @@ function ProductDetails() {
     ? Number(sizeStock[selectedSize] || 0)
     : Number(product?.stock || 0);
 
+  const availableStock = hasSizeStock
+    ? selectedSize
+      ? selectedSizeStock
+      : 0
+    : Number(product?.stock || 0);
+
+  const isOutOfStock = hasSizeStock
+    ? selectedSize
+      ? availableStock <= 0
+      : false
+    : availableStock <= 0 ||
+      product?.in_stock === false ||
+      product?.status === "Out of Stock";
+
+  const canBuy = hasSizeStock ? Boolean(selectedSize) && availableStock > 0 : !isOutOfStock;
+
   const formatProductName = (name, category) => {
     const normalizedName = String(name || "").trim();
     const lowerName = normalizedName.toLowerCase();
@@ -182,6 +198,11 @@ Please assist me with this order.`
     reviews.length > 0 ? (getRatingCount(star) / reviews.length) * 100 : 0;
 
   const validateOrder = () => {
+    if (!product || isOutOfStock) {
+      alert("This product is currently out of stock.");
+      return false;
+    }
+
     if (hasSizeStock && !selectedSize) {
       alert("Please select a size.");
       return false;
@@ -194,6 +215,11 @@ Please assist me with this order.`
 
     if (hasSizeStock && quantity > selectedSizeStock) {
       alert(`Only ${selectedSizeStock} item(s) available for size ${selectedSize}.`);
+      return false;
+    }
+
+    if (!hasSizeStock && quantity > availableStock) {
+      alert(`Only ${availableStock} item(s) available.`);
       return false;
     }
 
@@ -275,6 +301,12 @@ Please assist me with this order.`
           <h2>GH₵ {product.price}</h2>
           <p className="product-category">{product.category}</p>
 
+          <div className="details-rating-inline">
+            <strong>{averageRating}</strong>
+            <span>★★★★★</span>
+            <small>{reviews.length} reviews</small>
+          </div>
+
           {hasSizeStock && (
             <div className="details-size-box">
               <p>Size:</p>
@@ -317,16 +349,20 @@ Please assist me with this order.`
           </p>
 
           <div className="quantity-box">
-            <button onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>
+            <button
+              disabled={!canBuy || quantity <= 1}
+              onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+            >
               -
             </button>
 
             <span>{quantity}</span>
 
             <button
+              disabled={!canBuy || quantity >= availableStock}
               onClick={() => {
-                if (hasSizeStock && selectedSize && quantity >= selectedSizeStock) {
-                  alert(`Only ${selectedSizeStock} item(s) available.`);
+                if (quantity >= availableStock) {
+                  alert(`Only ${availableStock} item(s) available.`);
                   return;
                 }
 
@@ -338,7 +374,7 @@ Please assist me with this order.`
           </div>
 
           <div className="product-details-actions">
-  <button className="add-cart-btn" onClick={handleAddToCart}>
+  <button className="add-cart-btn" onClick={handleAddToCart} disabled={!canBuy}>
     🛒 Cart
   </button>
 
@@ -346,22 +382,13 @@ Please assist me with this order.`
     type="button"
     className="details-whatsapp-btn"
     onClick={handlePlaceOrder}
+    disabled={!canBuy}
   >
-    💬 Order
+    {isOutOfStock ? "Out of Stock" : "💬 Order"}
   </button>
 </div>
         </div>
       </section>
-
-      <section className="reviews-section compact-reviews-section">
-  <h2>Customer Rating</h2>
-
-  <div className="compact-rating-box">
-    <h3>{averageRating}</h3>
-    <p>★★★★★</p>
-    <span>{reviews.length} reviews</span>
-  </div>
-</section>
 
       {relatedProducts.length > 0 && (
         <section className="related-products-section">
