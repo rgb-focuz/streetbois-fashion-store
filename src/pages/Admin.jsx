@@ -118,6 +118,38 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     return group ? group.sizes : [];
   };
 
+  const normalizeProductGroupValue = (value) =>
+    String(value || "").trim().toLowerCase();
+
+  const getProductGroupKey = (product) =>
+    [
+      normalizeProductGroupValue(product?.name),
+      normalizeProductGroupValue(product?.category),
+      Number(product?.price || 0).toFixed(2),
+    ].join("|");
+
+  const getProductGroupMembers = (product) => {
+    const groupKey = getProductGroupKey(product);
+    return products.filter((item) => getProductGroupKey(item) === groupKey);
+  };
+
+  const getSharedStockForProduct = (product) => {
+    const groupMembers = getProductGroupMembers(product);
+    const stockValues = groupMembers.map((item) => Number(item.stock || 0));
+
+    return stockValues.length > 0 ? Math.max(...stockValues) : Number(product?.stock || 0);
+  };
+
+  const withSharedStock = (product) => {
+    const groupMembers = getProductGroupMembers(product);
+
+    return {
+      ...product,
+      shared_stock: getSharedStockForProduct(product),
+      variant_count: groupMembers.length,
+    };
+  };
+
   const getSizeTypeFromSize = (size) => {
     if (!size) return "";
 
@@ -1000,9 +1032,12 @@ const handleMultipleImages = (files) => {
       price: product.price,
       category: product.category,
       description: product.description || "",
-      stock: product.stock || 0,
+      stock: getSharedStockForProduct(product),
       size_stock: normalizeSizeStockForInput(product.size_stock, product.sizes),
-      original_stock: product.stock || 0,
+      original_stock: getSharedStockForProduct(product),
+      original_name: product.name,
+      original_price: product.price,
+      original_category: product.category,
       stock_reason: "Manual admin update",
       featured: product.featured || false,
       status: product.status || "Active",
@@ -1049,6 +1084,22 @@ const handleMultipleImages = (files) => {
         .eq("id", editingProduct.id);
 
       if (error) throw error;
+
+      const { error: groupStockError } = await supabase
+        .from("products")
+        .update({
+          stock: newStock,
+          sizes: getSizesFromSizeStock(sizeStock),
+          size_stock: sizeStock,
+          in_stock: newStock > 0,
+          status: newStock > 0 ? editingProduct.status : "Out of Stock",
+        })
+        .neq("id", editingProduct.id)
+        .eq("name", editingProduct.original_name)
+        .eq("category", editingProduct.original_category)
+        .eq("price", Number(editingProduct.original_price));
+
+      if (groupStockError) throw groupStockError;
 
       await recordInventoryHistory({
         productId: editingProduct.id,
@@ -1150,7 +1201,7 @@ const handleMultipleImages = (files) => {
     return <span className="stock-badge in">In Stock</span>;
   };
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = products.map(withSharedStock).filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -1179,11 +1230,11 @@ const handleMultipleImages = (files) => {
     }
 
     if (sortBy === "stock-low") {
-      return Number(a.stock || 0) - Number(b.stock || 0);
+      return Number(a.shared_stock || 0) - Number(b.shared_stock || 0);
     }
 
     if (sortBy === "stock-high") {
-      return Number(b.stock || 0) - Number(a.stock || 0);
+      return Number(b.shared_stock || 0) - Number(a.shared_stock || 0);
     }
 
     return 0;
@@ -2721,8 +2772,15 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                       <td>GH₵ {product.price}</td>
                       <td>{product.category}</td>
                       <td>{formatSizeStockForDisplay(product.size_stock, product.sizes)}</td>
-                      <td>{product.stock || 0}</td>
-                      <td>{getStockBadge(product.stock)}</td>
+                      <td>
+                        <div className="shared-stock-cell">
+                          <strong>{product.shared_stock || 0}</strong>
+                          {product.variant_count > 1 && (
+                            <small>Shared across {product.variant_count} variants</small>
+                          )}
+                        </div>
+                      </td>
+                      <td>{getStockBadge(product.shared_stock)}</td>
 
                       <td>
                         <button

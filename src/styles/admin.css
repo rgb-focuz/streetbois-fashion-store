@@ -4849,3 +4849,20 @@
 .settings-status-card strong {
   color: #93c5fd !important;
 }
+
+.shared-stock-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.shared-stock-cell strong {
+  color: var(--admin-text);
+  font-weight: 900;
+}
+
+.shared-stock-cell small {
+  max-width: 150px;
+  color: var(--admin-muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
