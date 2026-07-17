@@ -2090,6 +2090,14 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     { key: "users", label: "Users", short: "U" },
   ];
 
+  const adminInitials =
+    adminName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "AD";
+
   const renderPresetSizeStockBox = ({
     title = "Size Stock",
     sizeRows = [],
@@ -2225,7 +2233,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
         </div>
 
         <div className="admin-profile-card">
-          <div className="admin-profile-avatar">JA</div>
+          <div className="admin-profile-avatar">{adminInitials}</div>
           <div>
             <h3>{adminName}</h3>
             <p>{adminRole === "super_admin" ? "Super Admin" : "Sales Admin"}</p>
