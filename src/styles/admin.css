@@ -2862,6 +2862,11 @@
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
+.advanced-settings-page .settings-grid textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
 .advanced-settings-page input:focus,
 .advanced-settings-page textarea:focus {
   outline: none;

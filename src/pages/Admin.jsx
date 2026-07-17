@@ -3645,19 +3645,19 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                       </label>
 
                       <label>
-                        Sales WhatsApp Number
+                        General Sales WhatsApp Numbers
                         <input
                           value={settings.sales_whatsapp || ""}
                           onChange={(e) =>
                             updateSettingsField("sales_whatsapp", e.target.value)
                           }
-                          placeholder="Fallback for other categories"
+                          placeholder="Up to 3 numbers, separated by commas"
                         />
                       </label>
 
                       <label>
-                        Menswear Shop WhatsApp
-                        <input
+                        Menswear Shop WhatsApp Numbers
+                        <textarea
                           value={settings.mens_wear_sales_whatsapp || ""}
                           onChange={(e) =>
                             updateSettingsField(
@@ -3665,13 +3665,13 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                               e.target.value
                             )
                           }
-                          placeholder="Receives Men Clothing orders"
-                        />
+                          placeholder="Enter up to 3 numbers, one per line or separated by commas"
+                        ></textarea>
                       </label>
 
                       <label>
-                        Sneakers Shop WhatsApp
-                        <input
+                        Sneakers Shop WhatsApp Numbers
+                        <textarea
                           value={settings.sneakers_sales_whatsapp || ""}
                           onChange={(e) =>
                             updateSettingsField(
@@ -3679,8 +3679,8 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                               e.target.value
                             )
                           }
-                          placeholder="Receives Sneakers orders"
-                        />
+                          placeholder="Enter up to 3 numbers, one per line or separated by commas"
+                        ></textarea>
                       </label>
 
                       <label>

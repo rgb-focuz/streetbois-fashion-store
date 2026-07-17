@@ -42,6 +42,19 @@ export const normalizeWhatsAppNumber = (number) =>
     .replace(/\D/g, "")
     .replace(/^0/, "233");
 
+const parseWhatsAppNumbers = (value, fallback) => {
+  const numbers = String(value || "")
+    .split(/[\n,;]+/)
+    .map((number) => normalizeWhatsAppNumber(number))
+    .filter(Boolean);
+
+  const uniqueNumbers = [...new Set(numbers)].slice(0, 3);
+
+  if (uniqueNumbers.length > 0) return uniqueNumbers;
+
+  return [normalizeWhatsAppNumber(fallback || defaultStoreSettings.sales_whatsapp)];
+};
+
 export const getWhatsAppLink = (number, message = "") => {
   const cleaned = normalizeWhatsAppNumber(number || defaultStoreSettings.whatsapp);
   const query = message ? `?text=${encodeURIComponent(message)}` : "";
@@ -91,15 +104,22 @@ export const refreshStoreSettings = async () => {
   return cachedSettings;
 };
 
-export const buildSalesRepsFromSettings = (settings = defaultStoreSettings) => [
-  {
+const buildSalesReps = ({ initials, name, title, numbers }) =>
+  numbers.map((phone, index) => ({
+    initials,
+    name: numbers.length > 1 ? `${name} ${index + 1}` : name,
+    title,
+    phone,
+    status: "Online",
+  }));
+
+export const buildSalesRepsFromSettings = (settings = defaultStoreSettings) =>
+  buildSalesReps({
     initials: "SB",
     name: `${settings.store_name || "StreetBois Fashion"} Sales`,
-    title: "Sales WhatsApp",
-    phone: normalizeWhatsAppNumber(getSalesWhatsApp(settings)),
-    status: "Online",
-  },
-];
+    title: "General Sales Representative",
+    numbers: parseWhatsAppNumbers(getSalesWhatsApp(settings), settings.whatsapp),
+  });
 
 const getCategorySalesConfig = (category, settings = defaultStoreSettings) => {
   const normalizedCategory = String(category || "").trim().toLowerCase();
@@ -109,7 +129,10 @@ const getCategorySalesConfig = (category, settings = defaultStoreSettings) => {
       initials: "SN",
       name: "StreetBois Sneakers Shop",
       title: "Sneakers Sales Representative",
-      phone: settings.sneakers_sales_whatsapp,
+      numbers: parseWhatsAppNumbers(
+        settings.sneakers_sales_whatsapp,
+        getSalesWhatsApp(settings)
+      ),
     };
   }
 
@@ -118,7 +141,10 @@ const getCategorySalesConfig = (category, settings = defaultStoreSettings) => {
       initials: "MW",
       name: "StreetBois Menswear Shop",
       title: "Menswear Sales Representative",
-      phone: settings.mens_wear_sales_whatsapp,
+      numbers: parseWhatsAppNumbers(
+        settings.mens_wear_sales_whatsapp,
+        getSalesWhatsApp(settings)
+      ),
     };
   }
 
@@ -126,7 +152,7 @@ const getCategorySalesConfig = (category, settings = defaultStoreSettings) => {
     initials: "SB",
     name: `${settings.store_name || "StreetBois Fashion"} Sales`,
     title: "General Sales Representative",
-    phone: getSalesWhatsApp(settings),
+    numbers: parseWhatsAppNumbers(getSalesWhatsApp(settings), settings.whatsapp),
   };
 };
 
@@ -136,13 +162,7 @@ export const buildSalesRepsForCategory = (
 ) => {
   const rep = getCategorySalesConfig(category, settings);
 
-  return [
-    {
-      ...rep,
-      phone: normalizeWhatsAppNumber(rep.phone || getSalesWhatsApp(settings)),
-      status: "Online",
-    },
-  ];
+  return buildSalesReps(rep);
 };
 
 export const buildSalesRepsForItems = (
