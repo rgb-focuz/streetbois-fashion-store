@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -22,11 +22,6 @@ function ProductDetails() {
   const [reviewText, setReviewText] = useState("");
 
   useEffect(() => {
-    fetchProduct();
-    fetchReviews();
-  }, [id]);
-
-  useEffect(() => {
     if (product) {
       const viewedProduct = {
         id: product.id,
@@ -46,7 +41,19 @@ function ProductDetails() {
     }
   }, [product]);
 
-  const fetchProduct = async () => {
+  const fetchRelatedProducts = useCallback(async (category, productId) => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("category", category)
+      .neq("id", productId)
+      .eq("status", "Active")
+      .limit(12);
+
+    if (!error) setRelatedProducts(data || []);
+  }, []);
+
+  const fetchProduct = useCallback(async () => {
     setLoading(true);
 
     const { data, error } = await supabase
@@ -61,9 +68,9 @@ function ProductDetails() {
     }
 
     setLoading(false);
-  };
+  }, [fetchRelatedProducts, id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     const { data, error } = await supabase
       .from("reviews")
       .select("*")
@@ -71,7 +78,12 @@ function ProductDetails() {
       .order("created_at", { ascending: false });
 
     if (!error) setReviews(data || []);
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+    fetchReviews();
+  }, [fetchProduct, fetchReviews]);
 
   const sizeStock = product?.size_stock || {};
   const availableSizes = Object.keys(sizeStock);
@@ -278,18 +290,6 @@ Please assist me with this order.`
     if (addSelectedProductToCart({ showAlert: false })) {
       navigate("/cart");
     }
-  };
-
-  const fetchRelatedProducts = async (category, productId) => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("category", category)
-      .neq("id", productId)
-      .eq("status", "Active")
-      .limit(12);
-
-    if (!error) setRelatedProducts(data || []);
   };
 
   if (loading) {

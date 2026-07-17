@@ -392,12 +392,16 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     fetchStoreSettings();
     fetchInventoryHistory();
     fetchReviews();
+    // Admin bootstrap intentionally runs once when the dashboard opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!roleLoading && adminRole && !hasPermission(activeTab)) {
       setActiveTab(getFirstAllowedTab(adminRole));
     }
+    // Permission guard depends on stable role helpers inside this admin module.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminRole, activeTab, roleLoading]);
 
   useEffect(() => {

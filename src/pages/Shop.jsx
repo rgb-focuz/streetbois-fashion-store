@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -6,10 +6,54 @@ import ProductCard from "../components/ProductCard";
 import { supabase } from "../supabaseClient";
 import "../styles/shop.css";
 
+const PAGE_SIZE = 48;
+
+const CATEGORIES = [
+  "All",
+  "Men Clothing",
+  "Kids Wear",
+  "Bags",
+  "Belts",
+  "Caps",
+  "Watches",
+  "Perfumes",
+  "Accessories",
+  "Sneakers",
+  "Slides",
+];
+
+const MEN_SUBCATEGORIES = [
+  { label: "All Men Clothing", value: "All", keywords: [] },
+  { label: "Armless", value: "Armless", keywords: ["armless", "sleeveless", "singlet", "vest"] },
+  { label: "Jeans", value: "Jeans", keywords: ["jeans", "denim"] },
+  { label: "Joggers", value: "Joggers", keywords: ["jogger", "joggers"] },
+  { label: "Shorts", value: "Shorts", keywords: ["short", "shorts"] },
+  { label: "T-Shirt", value: "T-Shirt", keywords: ["t=shirt", "t-shirt", "tshirt", "tee", "t shirt"] },
+  {
+    label: "Official Wear",
+    value: "Official Wear",
+    keywords: [
+      "official",
+      "office wear",
+      "formal",
+      "church",
+      "work wear",
+      "suit",
+      "blazer",
+      "kaftan",
+      "senator",
+      "agbada",
+    ],
+  },
+  { label: "Sweater", value: "Sweater", keywords: ["sweater", "sweatshirt"] },
+  { label: "Hoodie", value: "Hoodie", keywords: ["hoodie", "hooded"] },
+  { label: "Trousers", value: "Trousers", keywords: ["trouser", "trousers", "pants"] },
+  { label: "Top & Down", value: "Top & Down", keywords: ["top and down", "top & down", "set", "two piece", "2 piece"] },
+];
+
 function Shop() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const pageSize = 48;
   const searchQuery = searchParams.get("search") || "";
   const categoryQuery = searchParams.get("category") || "All";
   const subcategoryQuery = searchParams.get("subcategory") || "All";
@@ -21,58 +65,15 @@ function Shop() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const categories = [
-    "All",
-    "Men Clothing",
-    "Kids Wear",
-    "Bags",
-    "Belts",
-    "Caps",
-    "Watches",
-    "Perfumes",
-    "Accessories",
-    "Sneakers",
-    "Slides",
-  ];
-
-  const menSubcategories = [
-    { label: "All Men Clothing", value: "All", keywords: [] },
-    { label: "Armless", value: "Armless", keywords: ["armless", "sleeveless", "singlet", "vest"] },
-    { label: "Jeans", value: "Jeans", keywords: ["jeans", "denim"] },
-    { label: "Joggers", value: "Joggers", keywords: ["jogger", "joggers"] },
-    { label: "Shorts", value: "Shorts", keywords: ["short", "shorts"] },
-    { label: "T-Shirt", value: "T-Shirt", keywords: ["t=shirt", "t-shirt", "tshirt", "tee", "t shirt"] },
-    {
-      label: "Official Wear",
-      value: "Official Wear",
-      keywords: [
-        "official",
-        "office wear",
-        "formal",
-        "church",
-        "work wear",
-        "suit",
-        "blazer",
-        "kaftan",
-        "senator",
-        "agbada",
-      ],
-    },
-    { label: "Sweater", value: "Sweater", keywords: ["sweater", "sweatshirt"] },
-    { label: "Hoodie", value: "Hoodie", keywords: ["hoodie", "hooded"] },
-    { label: "Trousers", value: "Trousers", keywords: ["trouser", "trousers", "pants"] },
-    { label: "Top & Down", value: "Top & Down", keywords: ["top and down", "top & down", "set", "two piece", "2 piece"] },
-  ];
-
-  const getSubcategoryKeywords = (subcategoryValue) => {
-    const selectedSubcategory = menSubcategories.find(
+  const getSubcategoryKeywords = useCallback((subcategoryValue) => {
+    const selectedSubcategory = MEN_SUBCATEGORIES.find(
       (subcategory) => subcategory.value === subcategoryValue
     );
 
     return selectedSubcategory?.keywords || [];
-  };
+  }, []);
 
-  const buildProductQuery = () => {
+  const buildProductQuery = useCallback(() => {
     let query = supabase
       .from("products")
       .select("*", { count: "exact" })
@@ -106,13 +107,13 @@ function Shop() {
     }
 
     return query;
-  };
+  }, [activeCategory, activeSubcategory, getSubcategoryKeywords, searchQuery]);
 
-  const fetchProducts = async ({ page = 0, append = false } = {}) => {
+  const fetchProducts = useCallback(async ({ page = 0, append = false } = {}) => {
     append ? setLoadingMore(true) : setLoading(true);
 
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     const { data, error, count } = await buildProductQuery().range(from, to);
 
     if (error) {
@@ -125,11 +126,11 @@ function Shop() {
 
     setLoading(false);
     setLoadingMore(false);
-  };
+  }, [buildProductQuery]);
 
   useEffect(() => {
     fetchProducts({ page: 0, append: false });
-  }, [activeCategory, activeSubcategory, searchQuery]);
+  }, [fetchProducts]);
 
   useEffect(() => {
     setActiveCategory(categoryQuery);
@@ -171,7 +172,7 @@ function Shop() {
         </div>
 
         <div className="filter-container">
-          {categories.map((category) => (
+          {CATEGORIES.map((category) => (
             <button
               key={category}
               className={
@@ -194,7 +195,7 @@ function Shop() {
             </div>
 
             <div className="subcategory-grid">
-              {menSubcategories.map((subcategory) => (
+              {MEN_SUBCATEGORIES.map((subcategory) => (
                 <button
                   key={subcategory.value}
                   type="button"
