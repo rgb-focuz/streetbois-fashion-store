@@ -144,11 +144,29 @@ function Cart() {
     return "";
   };
 
+  const formatOrderReference = (orderId, items = []) => {
+    const firstItemName = items[0]?.name || "ORDER";
+    const productCode =
+      String(firstItemName)
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 16) || "ORDER";
+    const numericCode =
+      String(orderId || "")
+        .replace(/\D/g, "")
+        .slice(-6)
+        .padStart(6, "0") || "000000";
+
+    return `${productCode}-${numericCode}`;
+  };
+
   const createWhatsAppMessage = ({
     trustedItems,
     trustedTotal,
     orderId,
   }) => {
+    const orderReference = formatOrderReference(orderId, trustedItems);
     const itemMessage = trustedItems
       .map(
         (item, index) =>
@@ -164,7 +182,7 @@ Product Image: ${item.image_url || "No image available"}`
 
 I have placed an order.
 
-Order ID: ${orderId}
+Order ID: ${orderReference}
 
 Customer Details:
 Name: ${customer.name.trim()}

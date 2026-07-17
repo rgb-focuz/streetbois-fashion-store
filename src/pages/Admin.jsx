@@ -150,6 +150,23 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     };
   };
 
+  const formatOrderReference = (order) => {
+    const firstItemName = order?.items?.[0]?.name || "ORDER";
+    const productCode =
+      String(firstItemName)
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 16) || "ORDER";
+    const numericCode =
+      String(order?.id || "")
+        .replace(/\D/g, "")
+        .slice(-6)
+        .padStart(6, "0") || "000000";
+
+    return `${productCode}-${numericCode}`;
+  };
+
   const getSizeTypeFromSize = (size) => {
     if (!size) return "";
 
@@ -2369,7 +2386,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                       <div className="order-avatar">{(order.customer_name || "SB").slice(0, 2).toUpperCase()}</div>
                       <div className="order-name">
                         <h4>{order.customer_name}</h4>
-                        <p>#{String(order.id).slice(0, 6).toUpperCase()}</p>
+                        <p>#{formatOrderReference(order)}</p>
                       </div>
                       <div className="order-total">
                         <strong>GH₵ {Number(order.total || 0).toFixed(0)}</strong>
@@ -3363,6 +3380,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
       <table className="admin-product-table">
         <thead>
           <tr>
+            <th>Order ID</th>
             <th>Customer</th>
             <th>Phone</th>
             <th>Total</th>
@@ -3379,6 +3397,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
             )
             .map((order) => (
               <tr key={order.id}>
+                <td>{formatOrderReference(order)}</td>
                 <td>{order.customer_name}</td>
                 <td>{order.customer_phone}</td>
                 <td>GH₵ {order.total}</td>
@@ -4270,6 +4289,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
       <div className="modal-details">
         <h2>Order Details</h2>
 
+        <p><strong>Order ID:</strong> {formatOrderReference(selectedOrder)}</p>
         <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
         <p><strong>Phone:</strong> {selectedOrder.customer_phone}</p>
         <p><strong>Email:</strong> {selectedOrder.customer_email || "N/A"}</p>
