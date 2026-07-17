@@ -264,6 +264,49 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     setSettings((current) => ({ ...current, [field]: value }));
   };
 
+  const getWhatsAppNumbers = (value) =>
+    String(value || "")
+      .split(/[\n,;]+/)
+      .map((number) => number.trim())
+      .filter(Boolean);
+
+  const validateStoreSettings = () => {
+    if (!String(settings.store_name || "").trim()) {
+      return "Store name is required.";
+    }
+
+    if (!String(settings.phone || "").trim()) {
+      return "Phone number is required.";
+    }
+
+    if (!String(settings.whatsapp || "").trim()) {
+      return "WhatsApp number is required.";
+    }
+
+    const whatsappGroups = [
+      ["General Sales WhatsApp", settings.sales_whatsapp],
+      ["Menswear Shop WhatsApp", settings.mens_wear_sales_whatsapp],
+      ["Sneakers Shop WhatsApp", settings.sneakers_sales_whatsapp],
+    ];
+
+    for (const [label, value] of whatsappGroups) {
+      const numbers = getWhatsAppNumbers(value);
+
+      if (numbers.length > 3) {
+        return `${label} can only contain up to 3 numbers.`;
+      }
+    }
+
+    if (
+      settings.email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(settings.email).trim())
+    ) {
+      return "Enter a valid email address.";
+    }
+
+    return "";
+  };
+
   const fetchStoreSettings = async () => {
     setSettingsLoading(true);
 
@@ -284,26 +327,34 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     setSettingsSaving(true);
     setMessage("");
 
+    const validationError = validateStoreSettings();
+
+    if (validationError) {
+      setMessage(validationError);
+      setSettingsSaving(false);
+      return;
+    }
+
     const payload = {
-      store_name: settings.store_name,
-      logo_url: settings.logo_url,
-      phone: settings.phone,
-      whatsapp: settings.whatsapp,
-      sales_whatsapp: settings.sales_whatsapp,
-      mens_wear_sales_whatsapp: settings.mens_wear_sales_whatsapp,
-      sneakers_sales_whatsapp: settings.sneakers_sales_whatsapp,
-      email: settings.email,
-      location_name: settings.location_name,
-      address: settings.address,
-      business_hours: settings.business_hours,
-      about: settings.about,
-      facebook: settings.facebook,
-      instagram: settings.instagram,
-      tiktok: settings.tiktok,
-      twitter: settings.twitter,
-      google_map: settings.google_map,
-      delivery_note: settings.delivery_note,
-      currency: settings.currency,
+      store_name: String(settings.store_name || "").trim(),
+      logo_url: String(settings.logo_url || "").trim(),
+      phone: String(settings.phone || "").trim(),
+      whatsapp: String(settings.whatsapp || "").trim(),
+      sales_whatsapp: String(settings.sales_whatsapp || "").trim(),
+      mens_wear_sales_whatsapp: String(settings.mens_wear_sales_whatsapp || "").trim(),
+      sneakers_sales_whatsapp: String(settings.sneakers_sales_whatsapp || "").trim(),
+      email: String(settings.email || "").trim(),
+      location_name: String(settings.location_name || "").trim(),
+      address: String(settings.address || "").trim(),
+      business_hours: String(settings.business_hours || "").trim(),
+      about: String(settings.about || "").trim(),
+      facebook: String(settings.facebook || "").trim(),
+      instagram: String(settings.instagram || "").trim(),
+      tiktok: String(settings.tiktok || "").trim(),
+      twitter: String(settings.twitter || "").trim(),
+      google_map: String(settings.google_map || "").trim(),
+      delivery_note: String(settings.delivery_note || "").trim(),
+      currency: String(settings.currency || "").trim(),
       delivery_fee: settings.delivery_fee === "" ? null : Number(settings.delivery_fee),
       free_shipping_threshold:
         settings.free_shipping_threshold === ""
@@ -327,6 +378,10 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
     setMessage("Store settings saved successfully.");
     await refreshStoreSettings();
+    localStorage.setItem(
+      "streetbois-store-settings-updated",
+      new Date().toISOString()
+    );
     fetchStoreSettings();
     setSettingsSaving(false);
   };

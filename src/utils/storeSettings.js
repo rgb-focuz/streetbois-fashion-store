@@ -64,6 +64,15 @@ export const getWhatsAppLink = (number, message = "") => {
 let cachedSettings = null;
 let settingsRequest = null;
 
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key === "streetbois-store-settings-updated") {
+      cachedSettings = null;
+      settingsRequest = null;
+    }
+  });
+}
+
 export const fetchStoreSettings = async () => {
   if (cachedSettings) return cachedSettings;
   if (settingsRequest) return settingsRequest;
