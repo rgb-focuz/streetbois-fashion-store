@@ -14,16 +14,20 @@
 }
 
 .jumia-auth-mark {
-  width: 82px;
-  height: 82px;
+  width: 92px;
+  height: 92px;
   margin: 0 auto 24px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: #ff9900;
-  color: #fff;
-  font-size: 48px;
-  line-height: 1;
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.jumia-auth-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .jumia-auth-shell h1 {
@@ -161,11 +165,6 @@
   font-size: 48px;
   font-weight: 900;
   line-height: 1;
-}
-
-.facebook-auth-circle {
-  color: #1877f2;
-  font-family: Arial, sans-serif;
 }
 
 .google-auth-circle {
@@ -315,9 +314,8 @@
   }
 
   .jumia-auth-mark {
-    width: 70px;
-    height: 70px;
-    font-size: 40px;
+    width: 76px;
+    height: 76px;
   }
 
   .jumia-auth-subtitle {

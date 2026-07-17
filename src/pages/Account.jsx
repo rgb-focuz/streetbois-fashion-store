@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Footer from "../components/Footer";
 import TurnstileWidget from "../components/TurnstileWidget";
+import logo from "../assets/logo.png";
 import "../styles/account.css";
 
 const MAX_LOCAL_ATTEMPTS = 5;
@@ -377,7 +378,9 @@ function Account() {
     <>
       <section className="account-page jumia-auth-page">
         <div className="jumia-auth-shell">
-          <div className="jumia-auth-mark">★</div>
+          <div className="jumia-auth-mark">
+            <img src={logo} alt="StreetBois Fashion logo" />
+          </div>
 
           {step === "identify" && (
             <>
@@ -420,15 +423,6 @@ function Account() {
               </div>
 
               <div className="social-auth-row">
-                <button
-                  type="button"
-                  className="facebook-auth-circle"
-                  onClick={() => signInWithProvider("facebook")}
-                  disabled={loading}
-                  aria-label="Continue with Facebook"
-                >
-                  f
-                </button>
                 <button
                   type="button"
                   className="google-auth-circle"
