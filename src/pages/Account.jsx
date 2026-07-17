@@ -1,30 +1,31 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TurnstileWidget from "../components/TurnstileWidget";
 import "../styles/account.css";
 
 const MAX_LOCAL_ATTEMPTS = 5;
 const COOLDOWN_SECONDS = 60;
+const RESEND_SECONDS = 60;
 const LOGIN_SECURITY_KEY = "streetbois-login-security";
 
 function Account() {
-  const [mode, setMode] = useState("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [step, setStep] = useState("identify");
+  const [identifier, setIdentifier] = useState("");
   const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [verificationCode, setVerificationCode] = useState(Array(6).fill(""));
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("error");
   const [loading, setLoading] = useState(false);
-
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [resendRemaining, setResendRemaining] = useState(0);
+  const codeInputRefs = useRef([]);
+
+  const cleanEmail = identifier.trim().toLowerCase();
 
   const handleCaptchaToken = useCallback((token) => {
     setCaptchaToken(token);
@@ -42,9 +43,7 @@ function Account() {
 
   const readLoginSecurity = () => {
     try {
-      const saved = JSON.parse(
-        localStorage.getItem(LOGIN_SECURITY_KEY)
-      );
+      const saved = JSON.parse(localStorage.getItem(LOGIN_SECURITY_KEY));
 
       return {
         failures: Number(saved?.failures || 0),
@@ -63,8 +62,7 @@ function Account() {
     const failures = security.failures + 1;
 
     if (failures >= MAX_LOCAL_ATTEMPTS) {
-      const blockedUntil =
-        Date.now() + COOLDOWN_SECONDS * 1000;
+      const blockedUntil = Date.now() + COOLDOWN_SECONDS * 1000;
 
       localStorage.setItem(
         LOGIN_SECURITY_KEY,
@@ -105,54 +103,29 @@ function Account() {
         return;
       }
 
-      setCooldownRemaining(
-        Math.ceil((blockedUntil - Date.now()) / 1000)
-      );
+      setCooldownRemaining(Math.ceil((blockedUntil - Date.now()) / 1000));
     };
 
     updateCooldown();
 
-    const interval = window.setInterval(
-      updateCooldown,
-      1000
-    );
+    const interval = window.setInterval(updateCooldown, 1000);
 
     return () => {
       window.clearInterval(interval);
     };
   }, []);
 
-  const saveCustomerProfile = async (user) => {
-    if (!user?.id || !user?.email) return;
+  useEffect(() => {
+    if (resendRemaining <= 0) return undefined;
 
-    const profileName =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      fullName.trim() ||
-      "Customer";
+    const timeout = window.setTimeout(() => {
+      setResendRemaining((current) => Math.max(0, current - 1));
+    }, 1000);
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert(
-        {
-          id: user.id,
-          full_name: profileName,
-          email: user.email.toLowerCase(),
-        },
-        {
-          onConflict: "id",
-        }
-      );
-
-    if (error) {
-      console.error("Profile save failed:", error);
-
-      showMessage(
-        "You are signed in, but we could not update your profile.",
-        "error"
-      );
-    }
-  };
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [resendRemaining]);
 
   useEffect(() => {
     let active = true;
@@ -162,7 +135,7 @@ function Account() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!active || !user) return;
+      if (!active || !user || step !== "identify") return;
 
       await saveCustomerProfile(user);
       window.location.replace("/shop");
@@ -173,93 +146,126 @@ function Account() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [step]);
 
-  const signInWithGoogle = async () => {
-    setMessage("");
-    setMessageType("error");
-    setLoading(true);
+  const saveCustomerProfile = async (user) => {
+    if (!user?.id || !user?.email) return;
 
-    try {
-      const { data, error } =
-        await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/account`,
-            queryParams: {
-              access_type: "offline",
-              prompt: "select_account",
-            },
-            skipBrowserRedirect: true,
-          },
-        });
+    const profileName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      fullName.trim() ||
+      "Customer";
 
-      if (error || !data?.url) {
-        console.error("Google OAuth failed:", error);
-
-        showMessage(
-          "Google sign-in is temporarily unavailable."
-        );
-        return;
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        full_name: profileName,
+        email: user.email.toLowerCase(),
+      },
+      {
+        onConflict: "id",
       }
+    );
 
-      window.location.assign(data.url);
-    } finally {
-      setLoading(false);
+    if (error) {
+      console.error("Profile save failed:", error);
+      showMessage("You are signed in, but we could not update your profile.");
     }
   };
 
-  const resetPassword = async () => {
+  const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const sendVerificationCode = async ({ isResend = false } = {}) => {
     setMessage("");
     setMessageType("error");
 
-    const cleanEmail = email.trim().toLowerCase();
+    if (cooldownRemaining > 0) {
+      showMessage(`Please wait ${cooldownRemaining} seconds before trying again.`);
+      return;
+    }
 
-    if (!cleanEmail) {
-      showMessage("Enter your email address first.");
+    if (!isEmail(cleanEmail)) {
+      showMessage("Enter a valid email address. Phone sign-in requires SMS setup.");
       return;
     }
 
     if (!captchaToken) {
-      showMessage(
-        "Complete the security verification first."
-      );
+      showMessage("Complete the security verification first.");
       return;
     }
 
     setLoading(true);
 
-    const { error } =
-      await supabase.auth.resetPasswordForEmail(
-        cleanEmail,
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-          captchaToken,
-        }
-      );
-
-    if (error) {
-      console.error("Password-reset request failed:", error);
-    }
-
-    /*
-     * Always return the same message so visitors cannot discover
-     * whether an email address exists.
-     */
-    showMessage(
-      "If an account exists for this email, a password-reset link will be sent.",
-      "success"
-    );
+    const { error } = await supabase.auth.signInWithOtp({
+      email: cleanEmail,
+      options: {
+        shouldCreateUser: true,
+        captchaToken,
+      },
+    });
 
     resetCaptcha();
     setLoading(false);
-  };
 
-  const validateSignup = () => {
-    if (fullName.trim().length < 2) {
-      return "Enter your full name.";
+    if (error) {
+      console.error("Verification code request failed:", error);
+      registerFailedAttempt();
+      showMessage("We could not send the verification code. Please try again.");
+      return;
     }
 
+    clearFailedAttempts();
+    setVerificationCode(Array(6).fill(""));
+    setStep("verify");
+    setResendRemaining(RESEND_SECONDS);
+
+    showMessage(
+      isResend
+        ? "A new verification code has been sent."
+        : "Verification code sent. Check your email.",
+      "success"
+    );
+
+    window.setTimeout(() => codeInputRefs.current[0]?.focus(), 100);
+  };
+
+  const verifyCode = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setMessageType("error");
+
+    const token = verificationCode.join("");
+
+    if (token.length !== 6) {
+      showMessage("Enter the 6-digit verification code.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token,
+      type: "email",
+    });
+
+    setLoading(false);
+
+    if (error || !data?.user) {
+      console.error("Verification failed:", error);
+      registerFailedAttempt();
+      showMessage("Invalid verification code.");
+      return;
+    }
+
+    clearFailedAttempts();
+    await saveCustomerProfile(data.user);
+    setStep("password");
+    showMessage("Email verified. Create your account password.", "success");
+  };
+
+  const validatePassword = () => {
     if (password.length < 10) {
       return "Your password must contain at least 10 characters.";
     }
@@ -273,181 +279,289 @@ function Account() {
       return "Use uppercase, lowercase, number and special-character combinations.";
     }
 
+    if (password !== confirmPassword) {
+      return "Passwords do not match.";
+    }
+
     return "";
   };
 
-  const handleSignUp = async (event) => {
+  const completePasswordSetup = async (event) => {
     event.preventDefault();
     setMessage("");
     setMessageType("error");
 
-    const validationError = validateSignup();
+    const validationError = validatePassword();
 
     if (validationError) {
       showMessage(validationError);
       return;
     }
 
-    if (!captchaToken) {
-      showMessage(
-        "Complete the security verification first."
-      );
-      return;
-    }
-
-    if (cooldownRemaining > 0) {
-      showMessage(
-        `Please wait ${cooldownRemaining} seconds before trying again.`
-      );
-      return;
-    }
-
     setLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
-
-    const { data, error } = await supabase.auth.signUp({
-      email: cleanEmail,
+    const { data, error } = await supabase.auth.updateUser({
       password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-        },
-        captchaToken,
+      data: {
+        full_name: fullName.trim() || undefined,
       },
     });
 
-    resetCaptcha();
     setLoading(false);
 
     if (error) {
-      console.error("Account creation failed:", error);
-      registerFailedAttempt();
-
-      showMessage(
-        "We could not create the account. Check your information and try again."
-      );
+      console.error("Password setup failed:", error);
+      showMessage("We could not save your password. Please try again.");
       return;
     }
 
-    clearFailedAttempts();
-
-    if (data.user) {
-      await saveCustomerProfile(data.user);
-    }
-
-    setPassword("");
-    setMode("signin");
-
-    showMessage(
-      "If registration was successful, check your email to confirm the account.",
-      "success"
-    );
-  };
-
-  const handleSignIn = async (event) => {
-    event.preventDefault();
-    setMessage("");
-    setMessageType("error");
-
-    if (cooldownRemaining > 0) {
-      showMessage(
-        `Too many attempts. Try again in ${cooldownRemaining} seconds.`
-      );
-      return;
-    }
-
-    if (!captchaToken) {
-      showMessage(
-        "Complete the security verification first."
-      );
-      return;
-    }
-
-    setLoading(true);
-
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          captchaToken,
-        },
-      });
-
-    resetCaptcha();
-    setLoading(false);
-
-    if (error || !data?.user) {
-      console.error("Customer sign-in failed:", error);
-      registerFailedAttempt();
-
-      showMessage("Invalid email or password.");
-      return;
-    }
-
-    clearFailedAttempts();
     await saveCustomerProfile(data.user);
-
     window.location.replace("/shop");
   };
 
-  const changeMode = (newMode) => {
-    setMode(newMode);
+  const signInWithProvider = async (provider) => {
     setMessage("");
     setMessageType("error");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/account`,
+          queryParams: provider === "google" ? { prompt: "select_account" } : {},
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error || !data?.url) {
+        console.error(`${provider} OAuth failed:`, error);
+        showMessage(`${provider} sign-in is temporarily unavailable.`);
+        return;
+      }
+
+      window.location.assign(data.url);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const editIdentifier = () => {
+    setStep("identify");
+    setMessage("");
+    setMessageType("error");
+    setVerificationCode(Array(6).fill(""));
     setPassword("");
+    setConfirmPassword("");
     resetCaptcha();
+  };
+
+  const handleCodeChange = (index, value) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const nextCode = [...verificationCode];
+    nextCode[index] = digit;
+    setVerificationCode(nextCode);
+
+    if (digit && index < verificationCode.length - 1) {
+      codeInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleCodeKeyDown = (index, event) => {
+    if (event.key === "Backspace" && !verificationCode[index] && index > 0) {
+      codeInputRefs.current[index - 1]?.focus();
+    }
   };
 
   return (
     <>
-      <Navbar />
+      <section className="account-page jumia-auth-page">
+        <div className="jumia-auth-shell">
+          <div className="jumia-auth-mark">★</div>
 
-      <section className="account-page">
-        <div className="account-card">
-          <h1>
-            {mode === "signin"
-              ? "Sign In"
-              : "Create Account"}
-          </h1>
+          {step === "identify" && (
+            <>
+              <h1>Welcome to StreetBois Fashion</h1>
+              <p className="jumia-auth-subtitle">
+                Use your email to log in or sign up.
+              </p>
 
-          <div className="account-tabs">
-            <button
-              type="button"
-              className={
-                mode === "signin" ? "active" : ""
-              }
-              onClick={() => changeMode("signin")}
-              disabled={loading}
-            >
-              Sign In
-            </button>
+              <form
+                className="jumia-auth-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  sendVerificationCode();
+                }}
+              >
+                <label className="jumia-field-label">
+                  <span>Email or Mobile Number*</span>
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={(event) => setIdentifier(event.target.value)}
+                    autoComplete="email"
+                    disabled={loading}
+                    required
+                  />
+                </label>
 
-            <button
-              type="button"
-              className={
-                mode === "signup" ? "active" : ""
-              }
-              onClick={() => changeMode("signup")}
-              disabled={loading}
-            >
-              Create Account
-            </button>
-          </div>
+                <TurnstileWidget
+                  onTokenChange={handleCaptchaToken}
+                  resetKey={captchaResetKey}
+                />
 
-          <button
-            type="button"
-            className="google-auth-btn"
-            onClick={signInWithGoogle}
-            disabled={loading}
-          >
-            Continue with Google
-          </button>
+                <button type="submit" disabled={loading || !captchaToken}>
+                  {loading ? "Sending..." : "Continue"}
+                </button>
+              </form>
 
-          <div className="auth-divider">
-            <span>OR</span>
-          </div>
+              <div className="auth-divider jumia-divider">
+                <span>Or log in with</span>
+              </div>
+
+              <div className="social-auth-row">
+                <button
+                  type="button"
+                  className="facebook-auth-circle"
+                  onClick={() => signInWithProvider("facebook")}
+                  disabled={loading}
+                  aria-label="Continue with Facebook"
+                >
+                  f
+                </button>
+                <button
+                  type="button"
+                  className="google-auth-circle"
+                  onClick={() => signInWithProvider("google")}
+                  disabled={loading}
+                  aria-label="Continue with Google"
+                >
+                  G
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === "verify" && (
+            <>
+              <h1>Verify your email address</h1>
+              <p className="jumia-auth-subtitle">
+                We have sent a verification code to
+                <br />
+                {cleanEmail}
+              </p>
+
+              <form className="jumia-auth-form" onSubmit={verifyCode}>
+                <div className="verification-code-row">
+                  {verificationCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(element) => {
+                        codeInputRefs.current[index] = element;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(event) => handleCodeChange(index, event.target.value)}
+                      onKeyDown={(event) => handleCodeKeyDown(index, event)}
+                      disabled={loading}
+                    />
+                  ))}
+                </div>
+
+                <button type="submit" disabled={loading}>
+                  {loading ? "Verifying..." : "Submit"}
+                </button>
+              </form>
+
+              <p className="resend-code-text">
+                Didn't receive the verification code?{" "}
+                {resendRemaining > 0 ? (
+                  <span>Request a new code in {resendRemaining} seconds</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => sendVerificationCode({ isResend: true })}
+                    disabled={loading || !captchaToken}
+                  >
+                    Request a new code
+                  </button>
+                )}
+              </p>
+
+              {resendRemaining === 0 && (
+                <TurnstileWidget
+                  onTokenChange={handleCaptchaToken}
+                  resetKey={captchaResetKey}
+                />
+              )}
+            </>
+          )}
+
+          {step === "password" && (
+            <>
+              <h1>Create your account</h1>
+              <p className="jumia-auth-subtitle">
+                Create a strong password for faster access next time.
+              </p>
+
+              <div className="verified-email-box">
+                <span>{cleanEmail}</span>
+                <button type="button" onClick={editIdentifier}>
+                  Edit
+                </button>
+              </div>
+
+              <form className="jumia-auth-form" onSubmit={completePasswordSetup}>
+                <label className="jumia-field-label">
+                  <span>Full Name</span>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    maxLength={120}
+                    disabled={loading}
+                  />
+                </label>
+
+                <label className="jumia-field-label">
+                  <span>Password</span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    disabled={loading}
+                    required
+                  />
+                </label>
+
+                <div className="password-strength-line">
+                  <span className={password.length >= 4 ? "active" : ""}></span>
+                  <span className={password.length >= 8 ? "active" : ""}></span>
+                  <span className={password.length >= 10 ? "active" : ""}></span>
+                  <small>{password.length >= 10 ? "Strong" : "Use 10+ characters"}</small>
+                </div>
+
+                <label className="jumia-field-label">
+                  <span>Confirm Password</span>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    disabled={loading}
+                    required
+                  />
+                </label>
+
+                <button type="submit" disabled={loading}>
+                  {loading ? "Saving..." : "Continue"}
+                </button>
+              </form>
+            </>
+          )}
 
           {message && (
             <div
@@ -467,127 +581,17 @@ function Account() {
             </div>
           )}
 
-          {mode === "signup" ? (
-            <form onSubmit={handleSignUp}>
-              <input
-                type="text"
-                placeholder="Full Name"
-                maxLength={120}
-                value={fullName}
-                onChange={(event) =>
-                  setFullName(event.target.value)
-                }
-                disabled={loading}
-                required
-              />
+          <p className="auth-terms">
+            By continuing you agree to StreetBois Fashion's
+            <br />
+            <a href="/faq">Terms and Conditions</a>
+          </p>
 
-              <input
-                type="email"
-                placeholder="Email Address"
-                maxLength={254}
-                value={email}
-                onChange={(event) =>
-                  setEmail(event.target.value)
-                }
-                disabled={loading}
-                required
-              />
+          <p className="auth-help">
+            Need help? Visit our Help Center or contact us on 0202430406
+          </p>
 
-              <input
-                type="password"
-                placeholder="Password"
-                minLength={10}
-                value={password}
-                onChange={(event) =>
-                  setPassword(event.target.value)
-                }
-                autoComplete="new-password"
-                disabled={loading}
-                required
-              />
-
-              <p className="password-requirements">
-                Use at least 10 characters including uppercase,
-                lowercase, number and a special character.
-              </p>
-
-              <TurnstileWidget
-                onTokenChange={handleCaptchaToken}
-                resetKey={captchaResetKey}
-              />
-
-              <button
-                type="submit"
-                disabled={
-                  loading ||
-                  cooldownRemaining > 0 ||
-                  !captchaToken
-                }
-              >
-                {loading
-                  ? "Creating..."
-                  : "Create Account"}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignIn}>
-              <input
-                type="email"
-                placeholder="Email Address"
-                maxLength={254}
-                value={email}
-                onChange={(event) =>
-                  setEmail(event.target.value)
-                }
-                autoComplete="email"
-                disabled={loading}
-                required
-              />
-
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(event) =>
-                  setPassword(event.target.value)
-                }
-                autoComplete="current-password"
-                disabled={loading}
-                required
-              />
-
-              <TurnstileWidget
-                onTokenChange={handleCaptchaToken}
-                resetKey={captchaResetKey}
-              />
-
-              <button
-                type="submit"
-                disabled={
-                  loading ||
-                  cooldownRemaining > 0 ||
-                  !captchaToken
-                }
-              >
-                {loading
-                  ? "Signing in..."
-                  : "Sign In"}
-              </button>
-
-              <button
-                type="button"
-                className="forgot-password-btn"
-                onClick={resetPassword}
-                disabled={
-                  loading ||
-                  cooldownRemaining > 0 ||
-                  !captchaToken
-                }
-              >
-                Forgot Password?
-              </button>
-            </form>
-          )}
+          <div className="auth-footer-brand">STREETBOIS FASHION</div>
         </div>
       </section>
 

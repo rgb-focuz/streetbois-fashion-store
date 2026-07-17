@@ -1,118 +1,136 @@
 .account-page {
-  min-height: 80vh;
+  min-height: 100vh;
+  background: #fff;
+  color: #111;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 60px 5%;
-  background: #000;
+  align-items: flex-start;
+  padding: 78px 20px 40px;
 }
 
-.account-card {
-  width: 100%;
-  max-width: 600px;
-  background: #111;
-  border: 1px solid #d4af37;
-  border-radius: 15px;
-  padding: 40px;
-}
-
-.account-card h1 {
-  color: #d4af37;
-  margin-bottom: 25px;
+.jumia-auth-shell {
+  width: min(100%, 540px);
   text-align: center;
 }
 
-.account-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 25px;
+.jumia-auth-mark {
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ff9900;
+  color: #fff;
+  font-size: 48px;
+  line-height: 1;
 }
 
-.account-tabs button {
-  flex: 1;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.jumia-auth-shell h1 {
+  margin: 0 0 14px;
+  color: #000;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.jumia-auth-subtitle {
+  margin: 0 0 42px;
+  color: #263241;
+  font-size: 20px;
+  line-height: 1.45;
+}
+
+.jumia-auth-form {
+  display: grid;
+  gap: 26px;
+}
+
+.jumia-field-label {
+  position: relative;
+  display: block;
+  text-align: left;
+}
+
+.jumia-field-label span {
+  position: absolute;
+  top: -9px;
+  left: 18px;
+  z-index: 1;
+  padding: 0 4px;
+  background: #fff;
+  color: #ff8a00;
+  font-size: 14px;
   font-weight: 600;
-  background: #222;
-  color: white;
 }
 
-.account-tabs button.active {
-  background: #d4af37;
-  color: black;
-}
-
-.account-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.account-card input {
+.jumia-field-label input,
+.verification-code-row input {
   width: 100%;
-  padding: 15px;
-  border: 1px solid #333;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: white;
-  font-size: 15px;
-  box-sizing: border-box;
-}
-
-.account-card input:focus {
-  outline: none;
-  border-color: #d4af37;
-}
-
-.account-card button[type="submit"] {
-  background: #d4af37;
-  color: black;
-  border: none;
-  padding: 15px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.account-card button[type="submit"]:hover {
-  opacity: 0.9;
-}
-
-.account-message {
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid #d4af37;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.google-auth-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #444;
+  height: 70px;
+  border: 2px solid #ff8a00;
+  border-radius: 5px;
   background: #fff;
   color: #111;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: .3s;
-  margin-top: 20px;
+  padding: 0 18px;
+  font-size: 20px;
+  outline: none;
 }
 
-.google-auth-btn:hover {
-  background: #f5f5f5;
+.jumia-field-label input:focus,
+.verification-code-row input:focus {
+  border-color: #ff8a00;
+  box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.14);
+}
+
+.jumia-auth-form button[type="submit"] {
+  width: 100%;
+  height: 66px;
+  border: 0;
+  border-radius: 5px;
+  background: #ff9900;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.24);
+}
+
+.jumia-auth-form button[type="submit"]:disabled,
+.social-auth-row button:disabled,
+.resend-code-text button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.turnstile-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 65px;
+}
+
+.captcha-loading {
+  color: #777;
+  font-size: 13px;
+}
+
+.captcha-configuration-error {
+  padding: 12px;
+  border: 1px solid #c8102e;
+  border-radius: 8px;
+  color: #c8102e;
+  background: #fff5f6;
+}
+
+.jumia-divider {
+  margin: 72px 0 28px;
+  color: #6b7280;
 }
 
 .auth-divider {
   display: flex;
   align-items: center;
-  margin: 20px 0;
-  color: #999;
-  font-size: 14px;
+  gap: 14px;
 }
 
 .auth-divider::before,
@@ -120,92 +138,217 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #333;
+  background: #dedede;
 }
 
 .auth-divider span {
-  margin: 0 15px;
+  white-space: nowrap;
 }
 
-.forgot-password-btn {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: #e0b93b;
-  margin-top: 15px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.forgot-password-btn:hover {
-  text-decoration: underline;
-}
-
-.password-security-note {
-  color: #aaa;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.password-requirements {
-  color: #999;
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 4px 0 18px;
-}
-
-.account-message-success {
-  border-color: #20c875;
-  color: #20c875;
-  background: rgba(32, 200, 117, 0.08);
-}
-
-.account-message-error {
-  border-color: #ff5b5b;
-  color: #ff7676;
-  background: rgba(255, 91, 91, 0.08);
-}
-
-.turnstile-wrapper {
+.social-auth-row {
   display: flex;
   justify-content: center;
-  width: 100%;
-  margin: 16px 0;
-  min-height: 65px;
+  gap: 26px;
+  margin-bottom: 58px;
 }
 
-.captcha-loading {
-  color: #999;
-  font-size: 13px;
+.social-auth-row button {
+  width: 52px;
+  height: 52px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
 }
 
-.captcha-configuration-error {
-  padding: 12px;
-  margin: 14px 0;
-  border: 1px solid #ff5b5b;
-  border-radius: 10px;
-  color: #ff7373;
-  background: rgba(255, 91, 91, 0.08);
+.facebook-auth-circle {
+  color: #1877f2;
+  font-family: Arial, sans-serif;
 }
 
-.login-cooldown-message {
-  margin: 12px 0;
-  padding: 12px;
-  border: 1px solid #d4af37;
-  border-radius: 10px;
-  color: #d4af37;
+.google-auth-circle {
+  color: #4285f4;
+  font-family: Arial, sans-serif;
+}
+
+.verification-code-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  margin-bottom: -6px;
+}
+
+.verification-code-row input {
+  height: 70px;
+  padding: 0;
   text-align: center;
 }
 
+.resend-code-text {
+  margin: 22px 0 70px;
+  color: #111;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.resend-code-text span,
+.resend-code-text button {
+  color: #ff8a00;
+}
+
+.resend-code-text button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.verified-email-box {
+  height: 64px;
+  margin-bottom: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 22px;
+  background: #eee;
+  color: #111;
+  font-size: 20px;
+}
+
+.verified-email-box span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verified-email-box button {
+  border: 0;
+  background: transparent;
+  color: #ff8a00;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.password-strength-line {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: -16px;
+  color: #63b80f;
+  font-size: 14px;
+  text-align: right;
+}
+
+.password-strength-line span {
+  height: 4px;
+  background: #ddd;
+}
+
+.password-strength-line span.active {
+  background: #63b80f;
+}
+
+.password-strength-line small {
+  grid-column: 1 / -1;
+}
+
+.account-message {
+  margin: 28px 0 0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
 .account-message-success {
-  border-color: #20c875;
-  color: #20c875;
-  background: rgba(32, 200, 117, 0.08);
+  border: 1px solid #22c55e;
+  color: #15803d;
+  background: #f0fdf4;
 }
 
 .account-message-error {
-  border-color: #ff5b5b;
-  color: #ff7676;
-  background: rgba(255, 91, 91, 0.08);
+  border: 1px solid #c8102e;
+  color: #c8102e;
+  background: #fff5f6;
+}
+
+.login-cooldown-message {
+  margin: 14px 0 0;
+  padding: 12px;
+  border: 1px solid #ff9900;
+  border-radius: 6px;
+  color: #c76a00;
+  background: #fff7ed;
+}
+
+.auth-terms {
+  margin: 58px 0 36px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.auth-terms a {
+  color: #ff8a00;
+}
+
+.auth-help {
+  margin: 0 0 44px;
+  color: #111;
+  font-size: 18px;
+}
+
+.auth-footer-brand {
+  color: #2f3136;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .account-page {
+    padding: 46px 16px 30px;
+  }
+
+  .jumia-auth-mark {
+    width: 70px;
+    height: 70px;
+    font-size: 40px;
+  }
+
+  .jumia-auth-subtitle {
+    font-size: 17px;
+    margin-bottom: 34px;
+  }
+
+  .jumia-field-label input {
+    height: 62px;
+    font-size: 17px;
+  }
+
+  .jumia-auth-form button[type="submit"] {
+    height: 58px;
+    font-size: 18px;
+  }
+
+  .verification-code-row {
+    gap: 8px;
+  }
+
+  .verification-code-row input {
+    height: 58px;
+    font-size: 18px;
+  }
+
+  .verified-email-box {
+    font-size: 16px;
+  }
+
+  .auth-help {
+    font-size: 15px;
+  }
 }
