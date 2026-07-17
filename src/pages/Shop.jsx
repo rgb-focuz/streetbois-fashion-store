@@ -9,13 +9,17 @@ import "../styles/shop.css";
 function Shop() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const pageSize = 48;
   const searchQuery = searchParams.get("search") || "";
   const categoryQuery = searchParams.get("category") || "All";
   const subcategoryQuery = searchParams.get("subcategory") || "All";
   const [activeCategory, setActiveCategory] = useState(categoryQuery);
   const [activeSubcategory, setActiveSubcategory] = useState(subcategoryQuery);
   const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const categories = [
     "All",
@@ -60,24 +64,72 @@ function Shop() {
     { label: "Top & Down", value: "Top & Down", keywords: ["top and down", "top & down", "set", "two piece", "2 piece"] },
   ];
 
+  const getSubcategoryKeywords = (subcategoryValue) => {
+    const selectedSubcategory = menSubcategories.find(
+      (subcategory) => subcategory.value === subcategoryValue
+    );
+
+    return selectedSubcategory?.keywords || [];
+  };
+
+  const buildProductQuery = () => {
+    let query = supabase
+      .from("products")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (activeCategory !== "All") {
+      query = query.eq("category", activeCategory);
+    }
+
+    if (searchQuery.trim()) {
+      const term = searchQuery.trim().replace(/[%_]/g, "");
+      query = query.or(
+        `name.ilike.%${term}%,category.ilike.%${term}%,description.ilike.%${term}%`
+      );
+    }
+
+    const subcategoryKeywords =
+      activeCategory === "Men Clothing" && activeSubcategory !== "All"
+        ? getSubcategoryKeywords(activeSubcategory)
+        : [];
+
+    if (subcategoryKeywords.length > 0) {
+      query = query.or(
+        subcategoryKeywords
+          .map((keyword) => {
+            const safeKeyword = keyword.replace(/[%_]/g, "");
+            return `name.ilike.%${safeKeyword}%,description.ilike.%${safeKeyword}%`;
+          })
+          .join(",")
+      );
+    }
+
+    return query;
+  };
+
+  const fetchProducts = async ({ page = 0, append = false } = {}) => {
+    append ? setLoadingMore(true) : setLoading(true);
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error, count } = await buildProductQuery().range(from, to);
+
+    if (error) {
+      console.log("Error fetching products:", error);
+    } else {
+      setProducts((previous) => (append ? [...previous, ...(data || [])] : data || []));
+      setTotalProducts(count || 0);
+      setCurrentPage(page);
+    }
+
+    setLoading(false);
+    setLoadingMore(false);
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.log("Error fetching products:", error);
-      } else {
-        setProducts(data || []);
-      }
-
-      setLoading(false);
-    };
-
-    fetchProducts();
-  }, []);
+    fetchProducts({ page: 0, append: false });
+  }, [activeCategory, activeSubcategory, searchQuery]);
 
   useEffect(() => {
     setActiveCategory(categoryQuery);
@@ -93,36 +145,7 @@ function Shop() {
     }
   }, [activeCategory]);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      activeCategory === "All" || product.category === activeCategory;
-
-    const selectedSubcategory = menSubcategories.find(
-      (subcategory) => subcategory.value === activeSubcategory
-    );
-
-    const productText = `${product.name || ""} ${product.description || ""} ${
-      product.category || ""
-    }`.toLowerCase();
-
-    const matchesMenSubcategory =
-      activeCategory !== "Men Clothing" ||
-      activeSubcategory === "All" ||
-      !selectedSubcategory ||
-      selectedSubcategory.keywords.some((keyword) =>
-        productText.includes(keyword.toLowerCase())
-      );
-
-    const matchesSearch =
-      searchQuery === "" ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesMenSubcategory && matchesSearch;
-  });
+  const hasMoreProducts = products.length < totalProducts;
 
   return (
     <>
@@ -191,16 +214,32 @@ function Shop() {
 
         {loading ? (
           <div className="shop-message">Loading products...</div>
-        ) : filteredProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="shop-message">
             No products found in this category.
           </div>
         ) : (
-          <div className="product-grid-universal">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="product-grid-universal">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {hasMoreProducts && (
+              <div className="shop-load-more">
+                <button
+                  type="button"
+                  onClick={() =>
+                    fetchProducts({ page: currentPage + 1, append: true })
+                  }
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "Loading..." : "Load More Products"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 

@@ -121,6 +121,28 @@
   margin-top: 50px;
 }
 
+.shop-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 34px 0 0;
+}
+
+.shop-load-more button {
+  min-height: 46px;
+  padding: 0 24px;
+  border: 1px solid #f6b800;
+  border-radius: 999px;
+  background: #f6b800;
+  color: #000;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.shop-load-more button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 /* Professional uniform product grid */
 .shop-product-grid {
   padding: 50px 8%;

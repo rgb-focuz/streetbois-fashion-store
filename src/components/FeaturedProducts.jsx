@@ -9,11 +9,14 @@ const getSupabase = async () => {
 
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageSize = 24;
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts({ page: 0, append: false });
   }, []);
 
   useEffect(() => {
@@ -21,30 +24,36 @@ function FeaturedProducts() {
       const nearBottom =
         window.innerHeight + window.scrollY >= document.body.offsetHeight - 500;
 
-      if (nearBottom) {
-        setVisibleCount((prev) => prev + 8);
+      if (nearBottom && products.length < totalProducts && !loadingMore) {
+        fetchProducts({ page: currentPage + 1, append: true });
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [currentPage, loadingMore, products.length, totalProducts]);
 
-  const fetchProducts = async () => {
-    setLoading(true);
+  const fetchProducts = async ({ page = 0, append = false } = {}) => {
+    append ? setLoadingMore(true) : setLoading(true);
     const supabase = await getSupabase();
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
 
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from("products")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("status", "Active")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (!error) {
-      setProducts(data || []);
+      setProducts((previous) => (append ? [...previous, ...(data || [])] : data || []));
+      setTotalProducts(count || 0);
+      setCurrentPage(page);
     }
 
     setLoading(false);
+    setLoadingMore(false);
   };
 
   return (
@@ -63,7 +72,7 @@ function FeaturedProducts() {
         <div className="home-feed-message">No products available.</div>
       ) : (
         <div className="product-grid-universal">
-          {products.slice(0, visibleCount).map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

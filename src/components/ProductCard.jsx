@@ -1,21 +1,8 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SalesRepModal from "./SalesRepModal";
-import {
-  buildSalesRepsForCategory,
-  defaultStoreSettings,
-  fetchStoreSettings,
-} from "../utils/storeSettings";
 import "../styles/productCard.css";
 
 function ProductCard({ product, showWhatsApp = true }) {
   const navigate = useNavigate();
-  const [showSalesModal, setShowSalesModal] = useState(false);
-  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
-
-  useEffect(() => {
-    fetchStoreSettings().then(setStoreSettings);
-  }, []);
 
   const productImage =
     product.image_url ||
@@ -44,34 +31,30 @@ function ProductCard({ product, showWhatsApp = true }) {
     navigate(`/product/${product.id}`);
   };
 
-  const addToCart = (e, { goToCheckout = false } = {}) => {
-    e.stopPropagation();
+  const addToCart = (event, { goToCheckout = false } = {}) => {
+    event.stopPropagation();
 
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
     const existingProduct = cart.find((item) => item.id === product.id);
 
-    let updatedCart;
-
-    if (existingProduct) {
-      updatedCart = cart.map((item) =>
-        item.id === product.id
-          ? {
-              ...item,
-              quantity: Number(item.quantity || 1) + 1,
-              image_url: item.image_url || productImage,
-            }
-          : item
-      );
-    } else {
-      updatedCart = [
-        ...cart,
-        {
-          ...product,
-          quantity: 1,
-          image_url: productImage,
-        },
-      ];
-    }
+    const updatedCart = existingProduct
+      ? cart.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                quantity: Number(item.quantity || 1) + 1,
+                image_url: item.image_url || productImage,
+              }
+            : item
+        )
+      : [
+          ...cart,
+          {
+            ...product,
+            quantity: 1,
+            image_url: productImage,
+          },
+        ];
 
     localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
     window.dispatchEvent(new Event("cartUpdated"));
@@ -84,18 +67,6 @@ function ProductCard({ product, showWhatsApp = true }) {
     alert("Product added to cart");
   };
 
-  const whatsappMessage = `Hello ${storeSettings.store_name || "StreetBois Fashion"},
-
-🛍 New Customer Enquiry
-
-Product: ${displayName}
-Price: GH₵ ${product.price}
-
-📷 Product Image:
-${productImage || "No image available"}
-
-Please assist me with this order.`;
-
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
@@ -105,7 +76,7 @@ Please assist me with this order.`;
       <div className="universal-product-info">
         <div className="product-title-row">
           <h3 title={displayName}>{displayName}</h3>
-          <span className="universal-price">GH₵ {product.price}</span>
+          <span className="universal-price">GHC {product.price}</span>
         </div>
 
         <div className="product-action-row">
@@ -114,15 +85,15 @@ Please assist me with this order.`;
             className="universal-cart-btn"
             onClick={addToCart}
           >
-            🛒 Cart
+            Cart
           </button>
 
           {showWhatsApp && (
             <button
               type="button"
               className="universal-whatsapp-btn"
-              onClick={(e) => {
-                addToCart(e, { goToCheckout: true });
+              onClick={(event) => {
+                addToCart(event, { goToCheckout: true });
               }}
             >
               Order
@@ -130,7 +101,6 @@ Please assist me with this order.`;
           )}
         </div>
       </div>
-
     </div>
   );
 }
