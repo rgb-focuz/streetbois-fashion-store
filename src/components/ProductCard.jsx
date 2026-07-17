@@ -44,7 +44,7 @@ function ProductCard({ product, showWhatsApp = true }) {
     navigate(`/product/${product.id}`);
   };
 
-  const addToCart = (e) => {
+  const addToCart = (e, { goToCheckout = false } = {}) => {
     e.stopPropagation();
 
     const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
@@ -75,6 +75,12 @@ function ProductCard({ product, showWhatsApp = true }) {
 
     localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
     window.dispatchEvent(new Event("cartUpdated"));
+
+    if (goToCheckout) {
+      navigate("/cart");
+      return;
+    }
+
     alert("Product added to cart");
   };
 
@@ -116,22 +122,15 @@ Please assist me with this order.`;
               type="button"
               className="universal-whatsapp-btn"
               onClick={(e) => {
-                e.stopPropagation();
-                setShowSalesModal(true);
+                addToCart(e, { goToCheckout: true });
               }}
             >
-              WhatsApp
+              Order
             </button>
           )}
         </div>
       </div>
 
-      <SalesRepModal
-        isOpen={showSalesModal}
-        onClose={() => setShowSalesModal(false)}
-        message={whatsappMessage}
-        salesReps={buildSalesRepsForCategory(product.category, storeSettings)}
-      />
     </div>
   );
 }

@@ -394,7 +394,87 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     }
   };
 
+  const getOrderItemProductGroupMembers = (item) => {
+    const itemProduct =
+      products.find((product) => product.id === item.id) || {
+        name: item.name,
+        category: item.category,
+        price: item.price,
+      };
+
+    return getProductGroupMembers(itemProduct);
+  };
+
+  const returnStockForCancelledOrder = async (order) => {
+    const groupedItems = {};
+
+    (order.items || []).forEach((item) => {
+      const itemProduct =
+        products.find((product) => product.id === item.id) || {
+          name: item.name,
+          category: item.category,
+          price: item.price,
+        };
+
+      const groupKey = getProductGroupKey(itemProduct);
+
+      if (!groupedItems[groupKey]) {
+        groupedItems[groupKey] = {
+          product: itemProduct,
+          quantity: 0,
+        };
+      }
+
+      groupedItems[groupKey].quantity += Number(item.quantity || 0);
+    });
+
+    for (const group of Object.values(groupedItems)) {
+      const groupMembers = getOrderItemProductGroupMembers(group.product);
+
+      if (groupMembers.length === 0 || group.quantity <= 0) continue;
+
+      const currentSharedStock = Math.max(
+        ...groupMembers.map((product) => Number(product.stock || 0))
+      );
+      const nextStock = currentSharedStock + group.quantity;
+      const groupIds = groupMembers.map((product) => product.id);
+
+      const { error } = await supabase
+        .from("products")
+        .update({
+          stock: nextStock,
+          in_stock: nextStock > 0,
+          status: nextStock > 0 ? "Active" : "Out of Stock",
+        })
+        .in("id", groupIds);
+
+      if (error) throw error;
+
+      await recordInventoryHistory({
+        productId: groupMembers[0].id,
+        productName: groupMembers[0].name,
+        oldStock: currentSharedStock,
+        newStock: nextStock,
+        actionType: "Order Cancelled",
+        reason: `Returned stock from cancelled order ${order.id}`,
+      });
+    }
+  };
+
   const updateOrderStatus = async (id, status) => {
+    const currentOrder = orders.find((order) => order.id === id);
+    const wasCancelled = currentOrder?.status === "Cancelled";
+    const shouldReturnStock = currentOrder && !wasCancelled && status === "Cancelled";
+
+    if (shouldReturnStock) {
+      try {
+        await returnStockForCancelledOrder(currentOrder);
+      } catch (error) {
+        setMessage(error.message);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from("orders")
       .update({ status })
@@ -405,7 +485,18 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       return;
     }
 
-    setMessage("Order status updated.");
+    setMessage(
+      shouldReturnStock
+        ? "Order cancelled and stock returned."
+        : "Order status updated."
+    );
+
+    if (selectedOrder?.id === id) {
+      setSelectedOrder({ ...selectedOrder, status });
+    }
+
+    fetchProducts();
+    fetchInventoryHistory();
     fetchOrders();
   };
 

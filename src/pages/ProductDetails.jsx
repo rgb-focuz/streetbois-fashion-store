@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
-import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
-import {
-  buildSalesRepsForCategory,
-  defaultStoreSettings,
-  fetchStoreSettings,
-} from "../utils/storeSettings";
 import "../styles/productDetails.css";
 
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -21,8 +16,6 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
-  const [showSalesModal, setShowSalesModal] = useState(false);
-  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
 
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -31,7 +24,6 @@ function ProductDetails() {
   useEffect(() => {
     fetchProduct();
     fetchReviews();
-    fetchStoreSettings().then(setStoreSettings);
   }, [id]);
 
   useEffect(() => {
@@ -122,6 +114,8 @@ function ProductDetails() {
   const displayName = product
     ? formatProductName(product.name, product.category)
     : "Product";
+
+  const storeSettings = { store_name: "StreetBois Fashion" };
 
   const whatsappMessage = product
     ? `Hello ${storeSettings.store_name || "StreetBois Fashion"},
@@ -226,8 +220,8 @@ Please assist me with this order.`
     return true;
   };
 
-  const handleAddToCart = () => {
-    if (!validateOrder()) return;
+  const addSelectedProductToCart = ({ showAlert = true } = {}) => {
+    if (!validateOrder()) return false;
 
     const cartItem = {
       id: product.id,
@@ -246,22 +240,40 @@ Please assist me with this order.`
       (item) => item.id === product.id && item.size === cartItem.size
     );
 
+    const existingQuantity = existingItem ? Number(existingItem.quantity || 1) : 0;
+    const nextQuantity = existingQuantity + quantity;
+
+    if (nextQuantity > availableStock) {
+      alert("Selected quantity is above available stock.");
+      return false;
+    }
+
     const updatedCart = existingItem
       ? existingCart.map((item) =>
           item.id === product.id && item.size === cartItem.size
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: nextQuantity }
             : item
         )
       : [...existingCart, cartItem];
 
     localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
     window.dispatchEvent(new Event("cartUpdated"));
-    alert("Product added to cart.");
+
+    if (showAlert) {
+      alert("Product added to cart.");
+    }
+
+    return true;
+  };
+
+  const handleAddToCart = () => {
+    addSelectedProductToCart();
   };
 
   const handlePlaceOrder = () => {
-    if (!validateOrder()) return;
-    setShowSalesModal(true);
+    if (addSelectedProductToCart({ showAlert: false })) {
+      navigate("/cart");
+    }
   };
 
   const fetchRelatedProducts = async (category, productId) => {
@@ -437,13 +449,6 @@ Please assist me with this order.`
           </div>
         </section>
       )}
-
-      <SalesRepModal
-        isOpen={showSalesModal}
-        onClose={() => setShowSalesModal(false)}
-        message={whatsappMessage}
-        salesReps={buildSalesRepsForCategory(product.category, storeSettings)}
-      />
 
       <Footer />
     </>
