@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SalesRepModal from "./SalesRepModal";
 import {
-  buildSalesRepsFromSettings,
+  buildSalesRepsForCategory,
   defaultStoreSettings,
   fetchStoreSettings,
 } from "../utils/storeSettings";
@@ -130,7 +130,7 @@ Please assist me with this order.`;
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={whatsappMessage}
-        salesReps={buildSalesRepsFromSettings(storeSettings)}
+        salesReps={buildSalesRepsForCategory(product.category, storeSettings)}
       />
     </div>
   );

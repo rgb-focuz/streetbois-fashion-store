@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
 import {
-  buildSalesRepsFromSettings,
+  buildSalesRepsForItems,
   defaultStoreSettings,
   fetchStoreSettings,
 } from "../utils/storeSettings";
@@ -16,6 +16,7 @@ function Cart() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [showSalesModal, setShowSalesModal] = useState(false);
   const [orderMessage, setOrderMessage] = useState("");
+  const [orderSalesReps, setOrderSalesReps] = useState([]);
   const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
 
   const [customer, setCustomer] = useState({
@@ -264,6 +265,7 @@ Please confirm my order.`;
 
       const trustedItems = Array.isArray(data.items) ? data.items : [];
       const trustedTotal = Number(data.total || 0);
+      const orderCartSnapshot = [...cart];
 
       const whatsappMessage = createWhatsAppMessage({
         trustedItems,
@@ -276,6 +278,7 @@ Please confirm my order.`;
       window.dispatchEvent(new Event("cartUpdated"));
 
       setOrderMessage(whatsappMessage);
+      setOrderSalesReps(buildSalesRepsForItems(orderCartSnapshot, storeSettings));
       setShowSalesModal(true);
 
       alert(
@@ -509,7 +512,11 @@ Please confirm my order.`;
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={orderMessage}
-        salesReps={buildSalesRepsFromSettings(storeSettings)}
+        salesReps={
+          orderSalesReps.length > 0
+            ? orderSalesReps
+            : buildSalesRepsForItems(cart, storeSettings)
+        }
       />
 
       <Footer />

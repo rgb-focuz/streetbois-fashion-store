@@ -11,6 +11,8 @@ export const defaultStoreSettings = {
   phone: "0202430406",
   whatsapp: "233202430406",
   sales_whatsapp: "233202430406",
+  mens_wear_sales_whatsapp: "233202430406",
+  sneakers_sales_whatsapp: "233202430406",
   email: "apodeijoshuaagudey1@gmail.com",
   location_name: "Tudu, Accra",
   address: "Tudu, Accra - Ghana",
@@ -98,3 +100,70 @@ export const buildSalesRepsFromSettings = (settings = defaultStoreSettings) => [
     status: "Online",
   },
 ];
+
+const getCategorySalesConfig = (category, settings = defaultStoreSettings) => {
+  const normalizedCategory = String(category || "").trim().toLowerCase();
+
+  if (normalizedCategory === "sneakers") {
+    return {
+      initials: "SN",
+      name: "StreetBois Sneakers Shop",
+      title: "Sneakers Sales Representative",
+      phone: settings.sneakers_sales_whatsapp,
+    };
+  }
+
+  if (normalizedCategory === "men clothing") {
+    return {
+      initials: "MW",
+      name: "StreetBois Menswear Shop",
+      title: "Menswear Sales Representative",
+      phone: settings.mens_wear_sales_whatsapp,
+    };
+  }
+
+  return {
+    initials: "SB",
+    name: `${settings.store_name || "StreetBois Fashion"} Sales`,
+    title: "General Sales Representative",
+    phone: getSalesWhatsApp(settings),
+  };
+};
+
+export const buildSalesRepsForCategory = (
+  category,
+  settings = defaultStoreSettings
+) => {
+  const rep = getCategorySalesConfig(category, settings);
+
+  return [
+    {
+      ...rep,
+      phone: normalizeWhatsAppNumber(rep.phone || getSalesWhatsApp(settings)),
+      status: "Online",
+    },
+  ];
+};
+
+export const buildSalesRepsForItems = (
+  items = [],
+  settings = defaultStoreSettings
+) => {
+  const categories = items.map((item) => item?.category).filter(Boolean);
+  const hasSneakers = categories.some(
+    (category) => String(category).trim().toLowerCase() === "sneakers"
+  );
+  const hasMenswear = categories.some(
+    (category) => String(category).trim().toLowerCase() === "men clothing"
+  );
+
+  if (hasSneakers && !hasMenswear) {
+    return buildSalesRepsForCategory("Sneakers", settings);
+  }
+
+  if (hasMenswear && !hasSneakers) {
+    return buildSalesRepsForCategory("Men Clothing", settings);
+  }
+
+  return buildSalesRepsFromSettings(settings);
+};

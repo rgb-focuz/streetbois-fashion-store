@@ -241,6 +241,8 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       phone: settings.phone,
       whatsapp: settings.whatsapp,
       sales_whatsapp: settings.sales_whatsapp,
+      mens_wear_sales_whatsapp: settings.mens_wear_sales_whatsapp,
+      sneakers_sales_whatsapp: settings.sneakers_sales_whatsapp,
       email: settings.email,
       location_name: settings.location_name,
       address: settings.address,
@@ -3649,7 +3651,35 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                           onChange={(e) =>
                             updateSettingsField("sales_whatsapp", e.target.value)
                           }
-                          placeholder="Used when customers place orders"
+                          placeholder="Fallback for other categories"
+                        />
+                      </label>
+
+                      <label>
+                        Menswear Shop WhatsApp
+                        <input
+                          value={settings.mens_wear_sales_whatsapp || ""}
+                          onChange={(e) =>
+                            updateSettingsField(
+                              "mens_wear_sales_whatsapp",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Receives Men Clothing orders"
+                        />
+                      </label>
+
+                      <label>
+                        Sneakers Shop WhatsApp
+                        <input
+                          value={settings.sneakers_sales_whatsapp || ""}
+                          onChange={(e) =>
+                            updateSettingsField(
+                              "sneakers_sales_whatsapp",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Receives Sneakers orders"
                         />
                       </label>
 

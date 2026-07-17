@@ -6,7 +6,7 @@ import ProductCard from "../components/ProductCard";
 import SalesRepModal from "../components/SalesRepModal";
 import { supabase } from "../supabaseClient";
 import {
-  buildSalesRepsFromSettings,
+  buildSalesRepsForCategory,
   defaultStoreSettings,
   fetchStoreSettings,
 } from "../utils/storeSettings";
@@ -379,7 +379,7 @@ Please assist me with this order.`
         isOpen={showSalesModal}
         onClose={() => setShowSalesModal(false)}
         message={whatsappMessage}
-        salesReps={buildSalesRepsFromSettings(storeSettings)}
+        salesReps={buildSalesRepsForCategory(product.category, storeSettings)}
       />
 
       <Footer />
