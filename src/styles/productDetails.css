@@ -59,6 +59,14 @@
   margin-bottom: 25px;
 }
 
+.stock-status.out {
+  color: #ff5a5f;
+}
+
+.stock-status.in {
+  color: #12c46b;
+}
+
 .details-rating-inline {
   width: fit-content;
   display: flex;
@@ -84,6 +92,75 @@
 .details-rating-inline small {
   color: #cbd5e1;
   font-weight: 700;
+}
+
+.details-review-form {
+  width: min(100%, 520px);
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid rgba(246, 184, 0, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 10px;
+}
+
+.details-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  font-weight: 900;
+}
+
+.details-review-head span {
+  color: #f6b800;
+  font-size: 13px;
+}
+
+.details-review-form input,
+.details-review-form textarea {
+  width: 100%;
+  border: 1px solid #2c2c2c;
+  background: #111;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.details-review-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.details-review-stars {
+  display: flex;
+  gap: 6px;
+}
+
+.details-review-stars button {
+  border: 0;
+  background: transparent;
+  color: #555;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.details-review-stars button.active-star {
+  color: #f6b800;
+}
+
+.details-review-form button[type="submit"] {
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: #f6b800;
+  color: #000;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .details-whatsapp-btn {

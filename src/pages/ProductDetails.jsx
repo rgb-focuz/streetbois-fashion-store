@@ -214,12 +214,12 @@ Please assist me with this order.`
     }
 
     if (hasSizeStock && quantity > selectedSizeStock) {
-      alert(`Only ${selectedSizeStock} item(s) available for size ${selectedSize}.`);
+      alert("Selected quantity is above available stock for this size.");
       return false;
     }
 
     if (!hasSizeStock && quantity > availableStock) {
-      alert(`Only ${availableStock} item(s) available.`);
+      alert("Selected quantity is above available stock.");
       return false;
     }
 
@@ -336,16 +336,16 @@ Please assist me with this order.`
             </div>
           )}
 
-          <p className="stock-status">
+          <p className={`stock-status ${isOutOfStock ? "out" : canBuy ? "in" : ""}`}>
             {hasSizeStock
               ? selectedSize
-                ? selectedSizeStock > 0
-                  ? `In stock: ${selectedSizeStock} for size ${selectedSize}`
-                  : `${selectedSize} is out of stock`
-                : "Select a size to see stock"
-              : product.stock > 0
-              ? `In stock: ${product.stock}`
-              : "Out of stock"}
+                ? availableStock > 0
+                  ? `In stock for size ${selectedSize}`
+                  : `Out of stock for size ${selectedSize}`
+                : "Select a size to check availability"
+              : isOutOfStock
+              ? "Out of stock"
+              : "In stock"}
           </p>
 
           <div className="quantity-box">
@@ -362,7 +362,7 @@ Please assist me with this order.`
               disabled={!canBuy || quantity >= availableStock}
               onClick={() => {
                 if (quantity >= availableStock) {
-                  alert(`Only ${availableStock} item(s) available.`);
+                  alert("You have reached the available stock limit.");
                   return;
                 }
 
@@ -372,6 +372,42 @@ Please assist me with this order.`
               +
             </button>
           </div>
+
+          <form className="details-review-form" onSubmit={submitReview}>
+            <div className="details-review-head">
+              <strong>Rate this product</strong>
+              <span>{reviewRating} / 5</span>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Your name"
+              value={reviewName}
+              onChange={(e) => setReviewName(e.target.value)}
+            />
+
+            <div className="details-review-stars" aria-label="Select rating">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={star <= reviewRating ? "active-star" : ""}
+                  onClick={() => setReviewRating(star)}
+                  aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              placeholder="Write a short review"
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+            />
+
+            <button type="submit">Submit Review</button>
+          </form>
 
           <div className="product-details-actions">
   <button className="add-cart-btn" onClick={handleAddToCart} disabled={!canBuy}>
