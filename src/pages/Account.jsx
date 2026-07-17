@@ -168,7 +168,7 @@ function Account() {
       if (!active || !user || step !== "identify") return;
 
       await saveCustomerProfile(user);
-      window.location.replace("/shop");
+      window.location.replace("/customer-dashboard");
     };
 
     handleAuthenticatedUser();

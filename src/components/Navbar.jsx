@@ -271,7 +271,7 @@ function Navbar() {
             {accountOpen && (
               <div className="desktop-popover account-popover">
                 <Link
-                  to="/account"
+                  to={user ? "/customer-dashboard" : "/account"}
                   className="desktop-popover-primary"
                   onClick={closeDesktopMenus}
                 >
@@ -283,7 +283,7 @@ function Navbar() {
                   <span>My Account</span>
                 </Link>
 
-                <Link to="/customer-dashboard" onClick={closeDesktopMenus}>
+                <Link to="/customer-dashboard?view=orders" onClick={closeDesktopMenus}>
                   <Icon name="order" />
                   <span>Orders</span>
                 </Link>
@@ -322,7 +322,7 @@ function Navbar() {
                 <Link to="/faq" onClick={closeDesktopMenus}>Help Center</Link>
                 <Link to="/shop" onClick={closeDesktopMenus}>Place an Order</Link>
                 <Link to="/cart" onClick={closeDesktopMenus}>Pay For Your Order</Link>
-                <Link to="/customer-dashboard" onClick={closeDesktopMenus}>Track Your Order</Link>
+                <Link to="/customer-dashboard?view=orders" onClick={closeDesktopMenus}>Track Your Order</Link>
                 <Link
                   to="/contact?subject=Cancel%20an%20Order"
                   onClick={closeDesktopMenus}
@@ -378,7 +378,7 @@ function Navbar() {
                   <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
                     My Account
                   </Link>
-                  <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard">
+                  <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard?view=orders">
                     My Orders
                   </Link>
                   <Link onClick={() => setAccountOpen(false)} to="/wishlist">
@@ -408,7 +408,7 @@ function Navbar() {
             aria-label="Sign in or create account"
             onClick={() => {
               setMenuOpen(false);
-              navigate("/account");
+              navigate(user ? "/customer-dashboard" : "/account");
             }}
           >
             <Icon name="user" />
@@ -463,12 +463,12 @@ function Navbar() {
           <Icon name="chevron" />
         </Link>
 
-        <Link onClick={closeMenu} to="/account" className="drawer-section-link">
+        <Link onClick={closeMenu} to={user ? "/customer-dashboard" : "/account"} className="drawer-section-link">
           <span>My StreetBois Account</span>
           <Icon name="chevron" />
         </Link>
 
-        <Link onClick={closeMenu} to="/customer-dashboard" className="drawer-row">
+        <Link onClick={closeMenu} to="/customer-dashboard?view=orders" className="drawer-row">
           <Icon name="order" />
           <span>Orders</span>
         </Link>
