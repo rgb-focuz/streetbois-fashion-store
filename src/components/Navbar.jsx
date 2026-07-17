@@ -100,6 +100,16 @@ function Navbar() {
   const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
   const navigate = useNavigate();
 
+  const updateCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
+    setCartCount(cart.reduce((total, item) => total + item.quantity, 0));
+  };
+
+  const updateWishlistCount = () => {
+    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    setWishlistCount(wishlist.length);
+  };
+
   useEffect(() => {
     let isMounted = true;
     let authSubscription = null;
@@ -149,16 +159,6 @@ function Navbar() {
       window.removeEventListener("wishlistUpdated", updateWishlistCount);
     };
   }, []);
-
-  const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
-    setCartCount(cart.reduce((total, item) => total + item.quantity, 0));
-  };
-
-  const updateWishlistCount = () => {
-    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-    setWishlistCount(wishlist.length);
-  };
 
   const customerName =
     user?.user_metadata?.full_name ||

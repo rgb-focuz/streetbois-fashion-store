@@ -185,11 +185,6 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     month: "long",
     year: "numeric",
   });
-  const formattedTime = currentDate.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   const rolePermissions = {
     super_admin: [
       "dashboard",
@@ -998,6 +993,15 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     }));
   };
 
+  void getSizeRowStockValue;
+  void isSizeRowSelected;
+  void toggleBulkPresetSize;
+  void updateBulkPresetSizeStock;
+  void toggleProductPresetSize;
+  void updateProductPresetSizeStock;
+  void toggleEditingPresetSize;
+  void updateEditingPresetSizeStock;
+
   const addRow = () => {
     setRows([...rows, { ...emptyRow }]);
   };
@@ -1550,6 +1554,8 @@ const handleMultipleImages = (files) => {
     .sort((a, b) => a.quantity - b.quantity)
     .slice(0, 5);
 
+  void worstSellers;
+
   const customerOrderCount = {};
 
   activeOrders.forEach((order) => {
@@ -1602,6 +1608,8 @@ const handleMultipleImages = (files) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+  void monthStart;
 
   const yesterdayRevenue = getRevenueBetween(yesterdayStart, todayStart);
   const weeklyRevenue = getRevenueBetween(weekStart, now);

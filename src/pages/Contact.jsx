@@ -27,6 +27,11 @@ function Contact() {
   const [formMessage, setFormMessage] = useState("");
   const [formStatus, setFormStatus] = useState("");
 
+  async function fetchStoreSettings() {
+    const settings = await loadStoreSettings();
+    setStoreSettings(settings);
+  }
+
   useEffect(() => {
     fetchStoreSettings();
   }, []);
@@ -43,11 +48,6 @@ function Contact() {
       message: message || current.message,
     }));
   }, [searchParams]);
-
-  const fetchStoreSettings = async () => {
-    const settings = await loadStoreSettings();
-    setStoreSettings(settings);
-  };
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });

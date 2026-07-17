@@ -42,6 +42,35 @@ function Account() {
     setCaptchaResetKey((current) => current + 1);
   };
 
+  const saveCustomerProfile = useCallback(
+    async (user) => {
+      if (!user?.id || !user?.email) return;
+
+      const profileName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        fullName.trim() ||
+        "Customer";
+
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          full_name: profileName,
+          email: user.email.toLowerCase(),
+        },
+        {
+          onConflict: "id",
+        }
+      );
+
+      if (error) {
+        console.error("Profile save failed:", error);
+        showMessage("You are signed in, but we could not update your profile.");
+      }
+    },
+    [fullName]
+  );
+
   const readLoginSecurity = () => {
     try {
       const saved = JSON.parse(localStorage.getItem(LOGIN_SECURITY_KEY));
@@ -147,33 +176,7 @@ function Account() {
     return () => {
       active = false;
     };
-  }, [step]);
-
-  const saveCustomerProfile = async (user) => {
-    if (!user?.id || !user?.email) return;
-
-    const profileName =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      fullName.trim() ||
-      "Customer";
-
-    const { error } = await supabase.from("profiles").upsert(
-      {
-        id: user.id,
-        full_name: profileName,
-        email: user.email.toLowerCase(),
-      },
-      {
-        onConflict: "id",
-      }
-    );
-
-    if (error) {
-      console.error("Profile save failed:", error);
-      showMessage("You are signed in, but we could not update your profile.");
-    }
-  };
+  }, [saveCustomerProfile, step]);
 
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 

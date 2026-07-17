@@ -7,6 +7,12 @@ import "../styles/wishlist.css";
 function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
 
+  const loadWishlist = () => {
+    const savedWishlist =
+      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
+    setWishlist(savedWishlist);
+  };
+
   useEffect(() => {
     loadWishlist();
 
@@ -18,12 +24,6 @@ function Wishlist() {
       window.removeEventListener("storage", loadWishlist);
     };
   }, []);
-
-  const loadWishlist = () => {
-    const savedWishlist =
-      JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-    setWishlist(savedWishlist);
-  };
 
   const clearWishlist = () => {
     if (!window.confirm("Clear all wishlist items?")) return;

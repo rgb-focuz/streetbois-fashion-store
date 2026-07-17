@@ -1,16 +1,10 @@
-import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 
 function RecentlyViewed() {
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const viewed =
-      JSON.parse(localStorage.getItem("streetbois-recently-viewed")) || [];
-    setProducts(viewed);
-  }, []);
+  const products =
+    JSON.parse(localStorage.getItem("streetbois-recently-viewed")) || [];
 
   return (
     <>

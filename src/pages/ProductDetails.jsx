@@ -134,6 +134,8 @@ ${product.image_url || "No image available"}
 Please assist me with this order.`
     : "";
 
+  void whatsappMessage;
+
   const submitReview = async (e) => {
     e.preventDefault();
 
@@ -190,6 +192,8 @@ Please assist me with this order.`
 
   const getRatingPercent = (star) =>
     reviews.length > 0 ? (getRatingCount(star) / reviews.length) * 100 : 0;
+
+  void getRatingPercent;
 
   const validateOrder = () => {
     if (!product || isOutOfStock) {
