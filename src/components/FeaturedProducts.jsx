@@ -15,25 +15,7 @@ function FeaturedProducts() {
   const [loadingMore, setLoadingMore] = useState(false);
   const pageSize = 24;
 
-  useEffect(() => {
-    fetchProducts({ page: 0, append: false });
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const nearBottom =
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 500;
-
-      if (nearBottom && products.length < totalProducts && !loadingMore) {
-        fetchProducts({ page: currentPage + 1, append: true });
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentPage, loadingMore, products.length, totalProducts]);
-
-  const fetchProducts = async ({ page = 0, append = false } = {}) => {
+  async function fetchProducts({ page = 0, append = false } = {}) {
     append ? setLoadingMore(true) : setLoading(true);
     const supabase = await getSupabase();
     const from = page * pageSize;
@@ -54,7 +36,25 @@ function FeaturedProducts() {
 
     setLoading(false);
     setLoadingMore(false);
-  };
+  }
+
+  useEffect(() => {
+    fetchProducts({ page: 0, append: false });
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 500;
+
+      if (nearBottom && products.length < totalProducts && !loadingMore) {
+        fetchProducts({ page: currentPage + 1, append: true });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [currentPage, loadingMore, products.length, totalProducts]);
 
   return (
     <section className="home-products-feed">
