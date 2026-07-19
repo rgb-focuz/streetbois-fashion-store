@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ProductCard from "./ProductCard";
 import "../styles/home.css";
 
@@ -7,19 +7,22 @@ const getSupabase = async () => {
   return module.supabase;
 };
 
+const PAGE_SIZE = 24;
+
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const pageSize = 24;
+  const [customerHasScrolled, setCustomerHasScrolled] = useState(false);
+  const loadMoreRef = useRef(null);
 
-  async function fetchProducts({ page = 0, append = false } = {}) {
+  const fetchProducts = useCallback(async ({ page = 0, append = false } = {}) => {
     append ? setLoadingMore(true) : setLoading(true);
     const supabase = await getSupabase();
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
     const { data, error, count } = await supabase
       .from("products")
@@ -36,25 +39,61 @@ function FeaturedProducts() {
 
     setLoading(false);
     setLoadingMore(false);
-  }
-
-  useEffect(() => {
-    fetchProducts({ page: 0, append: false });
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const nearBottom =
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 500;
+    fetchProducts({ page: 0, append: false });
+  }, [fetchProducts]);
 
-      if (nearBottom && products.length < totalProducts && !loadingMore) {
-        fetchProducts({ page: currentPage + 1, append: true });
-      }
+  useEffect(() => {
+    const markCustomerScroll = () => setCustomerHasScrolled(true);
+
+    window.addEventListener("wheel", markCustomerScroll, { passive: true });
+    window.addEventListener("touchmove", markCustomerScroll, { passive: true });
+    window.addEventListener("keydown", markCustomerScroll);
+
+    return () => {
+      window.removeEventListener("wheel", markCustomerScroll);
+      window.removeEventListener("touchmove", markCustomerScroll);
+      window.removeEventListener("keydown", markCustomerScroll);
     };
+  }, []);
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentPage, loadingMore, products.length, totalProducts]);
+  useEffect(() => {
+    if (!customerHasScrolled || loading || loadingMore || products.length >= totalProducts) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          fetchProducts({ page: currentPage + 1, append: true });
+        }
+      },
+      {
+        rootMargin: "240px",
+      }
+    );
+
+    const node = loadMoreRef.current;
+
+    if (node) observer.observe(node);
+
+    return () => {
+      if (node) observer.unobserve(node);
+      observer.disconnect();
+    };
+  }, [
+    currentPage,
+    customerHasScrolled,
+    fetchProducts,
+    loading,
+    loadingMore,
+    products.length,
+    totalProducts,
+  ]);
+
+  const hasMoreProducts = products.length < totalProducts;
 
   return (
     <section className="home-products-feed">
@@ -67,15 +106,36 @@ function FeaturedProducts() {
       </div>
 
       {loading ? (
-        <div className="home-feed-message">Loading products...</div>
+        <div className="home-feed-skeleton" aria-label="Loading products">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <div className="home-product-skeleton" key={index}></div>
+          ))}
+        </div>
       ) : products.length === 0 ? (
         <div className="home-feed-message">No products available.</div>
       ) : (
-        <div className="product-grid-universal">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="product-grid-universal">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {hasMoreProducts && (
+            <div className="home-load-more" ref={loadMoreRef}>
+              <button
+                type="button"
+                disabled={loadingMore}
+                onClick={() => {
+                  setCustomerHasScrolled(true);
+                  fetchProducts({ page: currentPage + 1, append: true });
+                }}
+              >
+                {loadingMore ? "Loading..." : "Load More Products"}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
