@@ -38,7 +38,7 @@ $$;
 
 revoke all on function public.is_active_admin() from public;
 revoke all on function public.is_active_super_admin() from public;
-grant execute on function public.is_active_admin() to authenticated;
+grant execute on function public.is_active_admin() to anon, authenticated;
 grant execute on function public.is_active_super_admin() to authenticated;
 
 alter table if exists public.products enable row level security;
