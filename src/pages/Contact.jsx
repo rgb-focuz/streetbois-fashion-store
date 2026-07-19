@@ -76,8 +76,9 @@ function Contact() {
     });
 
     if (error) {
+      console.error("Contact message failed:", error);
       setFormStatus("error");
-      setFormMessage(error.message || "Message could not be sent. Please try again.");
+      setFormMessage("Message could not be sent. Please try again.");
       setLoading(false);
       return;
     }

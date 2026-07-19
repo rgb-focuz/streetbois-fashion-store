@@ -80,7 +80,7 @@ function CustomerDashboard() {
 
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("*")
+        .select("full_name,email,phone,address")
         .eq("id", currentUser.id)
         .maybeSingle();
 
@@ -93,7 +93,7 @@ function CustomerDashboard() {
       if (email) {
         const { data: orderData } = await supabase
           .from("orders")
-          .select("*")
+          .select("id,items,total,status,created_at,customer_phone,delivery_address")
           .eq("customer_email", email)
           .order("created_at", { ascending: false });
 

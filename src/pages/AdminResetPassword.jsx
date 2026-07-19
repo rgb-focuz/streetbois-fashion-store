@@ -12,8 +12,20 @@ function AdminResetPassword() {
     e.preventDefault();
     setMessage("");
 
-    if (password.length < 6) {
-      setMessage("Password must be at least 6 characters.");
+    if (password.length < 10) {
+      setMessage("Password must be at least 10 characters.");
+      return;
+    }
+
+    if (
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[^A-Za-z0-9]/.test(password)
+    ) {
+      setMessage(
+        "Password must include uppercase, lowercase, number and special character."
+      );
       return;
     }
 
@@ -31,7 +43,8 @@ function AdminResetPassword() {
     setLoading(false);
 
     if (error) {
-      setMessage(error.message);
+      console.error("Admin password reset failed:", error);
+      setMessage("Password could not be updated. Please request a new reset link.");
       return;
     }
 

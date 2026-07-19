@@ -179,7 +179,8 @@ Please assist me with this order.`
     });
 
     if (error) {
-      alert(error.message);
+      console.error("Review submission failed:", error);
+      alert("We could not submit your review. Please try again.");
       return;
     }
 
