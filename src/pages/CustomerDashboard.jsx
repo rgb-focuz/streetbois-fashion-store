@@ -60,6 +60,19 @@ const formatOrderReference = (order) => {
   return `${productCode}-${numericCode}`;
 };
 
+const orderStatusSteps = ["Pending", "Processing", "Shipped", "Delivered"];
+
+const normalizeOrderStatus = (status) => {
+  const cleanStatus = String(status || "Pending").toLowerCase();
+
+  if (cleanStatus.includes("deliver")) return "Delivered";
+  if (cleanStatus.includes("ship") || cleanStatus.includes("transit")) return "Shipped";
+  if (cleanStatus.includes("process") || cleanStatus.includes("confirm")) return "Processing";
+  if (cleanStatus.includes("cancel")) return "Cancelled";
+
+  return "Pending";
+};
+
 function CustomerDashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -74,6 +87,10 @@ function CustomerDashboard() {
   const [addressForm, setAddressForm] = useState(createEmptyAddress);
   const [editingAddressId, setEditingAddressId] = useState("");
   const [addressMessage, setAddressMessage] = useState("");
+  const [trackingInput, setTrackingInput] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingMessage, setTrackingMessage] = useState("");
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -297,6 +314,113 @@ function CustomerDashboard() {
     setAddressMessage("Address removed.");
   };
 
+  const findOrderByReference = (value) => {
+    const cleanValue = String(value || "").trim().toLowerCase();
+
+    return orders.find((order) => {
+      const rawId = String(order.id || "").toLowerCase();
+      const reference = formatOrderReference(order).toLowerCase();
+
+      return rawId === cleanValue || reference === cleanValue || rawId.includes(cleanValue);
+    });
+  };
+
+  const handleTrackOrder = async (event) => {
+    event.preventDefault();
+    setTrackingMessage("");
+    setTrackedOrder(null);
+
+    const cleanInput = trackingInput.trim();
+
+    if (!cleanInput) {
+      setTrackingMessage("Enter your order ID to track your purchase.");
+      return;
+    }
+
+    const localMatch = findOrderByReference(cleanInput);
+
+    if (localMatch) {
+      setTrackedOrder(localMatch);
+      return;
+    }
+
+    setTrackingLoading(true);
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select("id,items,total,status,created_at,customer_phone,delivery_address,customer_email")
+      .eq("id", cleanInput)
+      .eq("customer_email", user.email?.toLowerCase())
+      .maybeSingle();
+
+    setTrackingLoading(false);
+
+    if (error || !data) {
+      setTrackingMessage(
+        "We could not find that order for your account. Check the order ID and try again."
+      );
+      return;
+    }
+
+    setTrackedOrder(data);
+  };
+
+  const renderTrackingResult = (order) => {
+    const status = normalizeOrderStatus(order.status);
+    const statusIndex =
+      status === "Cancelled" ? -1 : orderStatusSteps.indexOf(status);
+
+    return (
+      <article className={`tracking-result ${status.toLowerCase()}`}>
+        <div className="tracking-result-head">
+          <div>
+            <span>Order ID</span>
+            <strong>{formatOrderReference(order)}</strong>
+            <small>{order.id}</small>
+          </div>
+          <mark>{status}</mark>
+        </div>
+
+        {status === "Cancelled" ? (
+          <div className="tracking-cancelled">
+            This order has been cancelled. If payment was made, contact support
+            with your order ID.
+          </div>
+        ) : (
+          <div className="tracking-steps">
+            {orderStatusSteps.map((step, index) => (
+              <div
+                key={step}
+                className={index <= statusIndex ? "complete" : ""}
+              >
+                <span>{index + 1}</span>
+                <p>{step}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="tracking-detail-grid">
+          <p>
+            <strong>Date:</strong> {formatDate(order.created_at)}
+          </p>
+          <p>
+            <strong>Total:</strong> GH₵ {Number(order.total || 0).toFixed(2)}
+          </p>
+          <p>
+            <strong>Items:</strong> {(order.items || []).length}
+          </p>
+          <p>
+            <strong>Phone:</strong> {order.customer_phone || "Not provided"}
+          </p>
+          <p className="tracking-address">
+            <strong>Delivery:</strong> {order.delivery_address || "Not provided"}
+          </p>
+        </div>
+      </article>
+    );
+  };
+
   const renderOverview = () => (
     <div className="account-overview-grid">
       <article className="overview-card">
@@ -345,13 +469,46 @@ function CustomerDashboard() {
 
   const renderOrders = () => (
     <div className="dashboard-panel">
-      <h3>Orders</h3>
+      <div className="orders-panel-head">
+        <div>
+          <h3>Track Your Order</h3>
+          <p>Enter your order ID to see the latest purchase status.</p>
+        </div>
+      </div>
+
+      <form className="track-order-form" onSubmit={handleTrackOrder}>
+        <input
+          value={trackingInput}
+          onChange={(event) => setTrackingInput(event.target.value)}
+          placeholder="Enter order ID"
+        />
+        <button type="submit" disabled={trackingLoading}>
+          {trackingLoading ? "Checking..." : "Track Order"}
+        </button>
+      </form>
+
+      {trackingMessage && (
+        <div className="tracking-message">{trackingMessage}</div>
+      )}
+
+      {trackedOrder && renderTrackingResult(trackedOrder)}
+
+      <h3 className="order-history-title">Order History</h3>
       {orders.length === 0 ? (
         <p className="dashboard-empty">You have not placed an order yet.</p>
       ) : (
         <div className="order-list">
           {orders.map((order) => (
-            <article key={order.id} className="order-row">
+            <button
+              type="button"
+              key={order.id}
+              className="order-row"
+              onClick={() => {
+                setTrackingInput(formatOrderReference(order));
+                setTrackedOrder(order);
+                setTrackingMessage("");
+              }}
+            >
               <div>
                 <strong>{formatOrderReference(order)}</strong>
                 <p>{formatDate(order.created_at)} • {(order.items || []).length} item(s)</p>
@@ -360,7 +517,7 @@ function CustomerDashboard() {
                 <b>GH₵ {Number(order.total || 0).toFixed(2)}</b>
                 <span>{order.status || "Pending"}</span>
               </div>
-            </article>
+            </button>
           ))}
         </div>
       )}
