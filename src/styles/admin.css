@@ -820,6 +820,29 @@
   border-bottom: 1px solid #222;
 }
 
+.rider-tracking-link-box {
+  background: #060606;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 14px;
+}
+
+.rider-tracking-link-box strong {
+  color: #d4af37;
+}
+
+.rider-tracking-link-box input {
+  margin-top: 0;
+}
+
+.rider-tracking-link-box small {
+  color: #aaa;
+  line-height: 1.4;
+}
+
 .order-item img {
   width: 70px;
   height: 70px;

@@ -1,0 +1,160 @@
+.rider-tracking-page {
+  align-items: center;
+  background: #050505;
+  color: #f8fafc;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.rider-card {
+  background: #111;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 18px;
+  max-width: 520px;
+  padding: 24px;
+  width: 100%;
+}
+
+.rider-brand,
+.rider-customer {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.rider-brand span,
+.rider-customer span {
+  align-items: center;
+  background: #d4af37;
+  border-radius: 999px;
+  color: #050505;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-weight: 900;
+  height: 52px;
+  justify-content: center;
+  width: 52px;
+}
+
+.rider-brand strong {
+  display: block;
+  font-size: 20px;
+}
+
+.rider-brand p,
+.rider-customer p,
+.rider-detail p,
+.rider-live-box p {
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.rider-customer {
+  border-top: 1px solid #262626;
+  padding-top: 18px;
+}
+
+.rider-customer h1 {
+  font-size: 28px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.rider-detail,
+.rider-live-box,
+.rider-alert {
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.rider-detail,
+.rider-live-box {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+}
+
+.rider-detail strong,
+.rider-live-box strong {
+  color: #d4af37;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rider-live-box {
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.rider-live-box small {
+  color: #94a3b8;
+  display: block;
+  margin-top: 6px;
+}
+
+.rider-alert {
+  background: #fff7e8;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-weight: 800;
+}
+
+.rider-actions {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.rider-actions button,
+.rider-call {
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 52px;
+  padding: 0 16px;
+}
+
+.rider-actions button:first-child {
+  background: #16a34a;
+  color: #fff;
+}
+
+.rider-actions button:last-child {
+  background: #d4af37;
+  color: #050505;
+}
+
+.rider-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.rider-call {
+  align-items: center;
+  background: #fff;
+  color: #050505;
+  display: inline-flex;
+  justify-content: center;
+  text-decoration: none;
+}
+
+@media (max-width: 520px) {
+  .rider-tracking-page {
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .rider-card {
+    border-radius: 10px;
+    padding: 18px;
+  }
+
+  .rider-actions {
+    grid-template-columns: 1fr;
+  }
+}

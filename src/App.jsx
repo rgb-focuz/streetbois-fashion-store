@@ -17,6 +17,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
 const AdminResetPassword = lazy(() => import("./pages/AdminResetPassword"));
+const RiderTracking = lazy(() => import("./pages/RiderTracking"));
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/customer-dashboard" element={<CustomerDashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-reset-password" element={<AdminResetPassword />} />
+          <Route path="/rider-tracking/:orderId/:token" element={<RiderTracking />} />
 
           <Route
             path="/admin"

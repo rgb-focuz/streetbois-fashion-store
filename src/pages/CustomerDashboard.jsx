@@ -156,6 +156,30 @@ function CustomerDashboard() {
     };
   }, [navigate]);
 
+  useEffect(() => {
+    if (!trackedOrder?.id || activeView !== "orders" || !user?.email) return undefined;
+
+    const refreshTrackedOrder = async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", trackedOrder.id)
+        .eq("customer_email", user.email.toLowerCase())
+        .maybeSingle();
+
+      if (data) {
+        setTrackedOrder(data);
+        setOrders((currentOrders) =>
+          currentOrders.map((order) => (order.id === data.id ? data : order))
+        );
+      }
+    };
+
+    const intervalId = window.setInterval(refreshTrackedOrder, 15000);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeView, trackedOrder?.id, user?.email]);
+
   const customerName = useMemo(() => {
     const name =
       profile?.full_name ||
@@ -406,6 +430,13 @@ function CustomerDashboard() {
     const status = normalizeOrderStatus(order.status);
     const statusIndex =
       status === "Cancelled" ? -1 : orderStatusSteps.indexOf(status);
+    const hasLiveLocation = order.live_lat && order.live_lng;
+    const liveMapUrl = hasLiveLocation
+      ? `https://www.google.com/maps?q=${order.live_lat},${order.live_lng}&output=embed`
+      : "";
+    const liveMapLink = hasLiveLocation
+      ? `https://www.google.com/maps/search/?api=1&query=${order.live_lat},${order.live_lng}`
+      : "";
 
     return (
       <article className={`tracking-result ${status.toLowerCase()}`}>
@@ -458,10 +489,42 @@ function CustomerDashboard() {
             <strong>Delivery note:</strong>{" "}
             {order.tracking_note || "No delivery note yet"}
           </p>
+          <p>
+            <strong>Rider:</strong>{" "}
+            {order.rider_name || order.rider_phone
+              ? `${order.rider_name || "Assigned rider"}${
+                  order.rider_phone ? ` · ${order.rider_phone}` : ""
+                }`
+              : "Not assigned yet"}
+          </p>
+          <p>
+            <strong>Last GPS update:</strong>{" "}
+            {order.last_tracking_update_at
+              ? new Date(order.last_tracking_update_at).toLocaleString()
+              : "No GPS update yet"}
+          </p>
           <p className="tracking-address">
             <strong>Delivery:</strong> {order.delivery_address || "Not provided"}
           </p>
         </div>
+
+        {hasLiveLocation && (
+          <div className="live-map-panel">
+            <div>
+              <strong>Live Rider Location</strong>
+              <a href={liveMapLink} target="_blank" rel="noreferrer">
+                Open Map
+              </a>
+            </div>
+            <iframe
+              title="Live rider location"
+              src={liveMapUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        )}
 
         {status !== "Delivered" && status !== "Cancelled" && (
           <button

@@ -689,6 +689,8 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
       p_status: status,
       p_tracking_location: trackingDetails.tracking_location || "",
       p_tracking_note: trackingDetails.tracking_note || "",
+      p_rider_name: trackingDetails.rider_name || "",
+      p_rider_phone: trackingDetails.rider_phone || "",
     });
 
     setOrderTrackingSaving(false);
@@ -721,6 +723,8 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
         status,
         tracking_location: trackingDetails.tracking_location || "",
         tracking_note: trackingDetails.tracking_note || "",
+        rider_name: trackingDetails.rider_name || "",
+        rider_phone: trackingDetails.rider_phone || "",
       });
     }
 
@@ -4827,6 +4831,49 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           ></textarea>
         </label>
 
+        <label>
+          Rider Name
+          <input
+            value={selectedOrder.rider_name || ""}
+            onChange={(e) =>
+              setSelectedOrder({
+                ...selectedOrder,
+                rider_name: e.target.value,
+              })
+            }
+            placeholder="e.g. Kojo Mensah"
+          />
+        </label>
+
+        <label>
+          Rider Phone
+          <input
+            value={selectedOrder.rider_phone || ""}
+            onChange={(e) =>
+              setSelectedOrder({
+                ...selectedOrder,
+                rider_phone: e.target.value,
+              })
+            }
+            placeholder="e.g. 0200000000"
+          />
+        </label>
+
+        {selectedOrder.tracking_token && (
+          <div className="rider-tracking-link-box">
+            <strong>Rider Live GPS Link</strong>
+            <input
+              readOnly
+              value={`${window.location.origin}/rider-tracking/${selectedOrder.id}/${selectedOrder.tracking_token}`}
+              onFocus={(e) => e.target.select()}
+            />
+            <small>
+              Send this private link to the assigned rider. Anyone with this
+              link can update this order location.
+            </small>
+          </div>
+        )}
+
         <button
           type="button"
           className="upload-all-btn"
@@ -4835,6 +4882,8 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
             updateOrderStatus(selectedOrder.id, selectedOrder.status, {
               tracking_location: selectedOrder.tracking_location,
               tracking_note: selectedOrder.tracking_note,
+              rider_name: selectedOrder.rider_name,
+              rider_phone: selectedOrder.rider_phone,
             })
           }
         >
