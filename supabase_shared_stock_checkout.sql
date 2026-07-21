@@ -233,6 +233,31 @@ begin
     where lower(trim(name)) = group_row.group_name
       and lower(trim(category)) = group_row.group_category
       and price = group_row.group_price;
+
+    insert into inventory_history (
+      product_id,
+      product_name,
+      old_stock,
+      new_stock,
+      quantity_changed,
+      action_type,
+      reason,
+      changed_by
+    )
+    select
+      product_id,
+      name,
+      available_stock,
+      next_stock,
+      next_stock - available_stock,
+      'Online Order Reserved',
+      'Reserved stock for online order ' || new_order_id::text,
+      'Online Checkout'
+    from checkout_order_lines
+    where group_name = group_row.group_name
+      and group_category = group_row.group_category
+      and group_price = group_row.group_price
+    limit 1;
   end loop;
 
   return jsonb_build_object(
@@ -246,3 +271,108 @@ $$;
 
 grant execute on function public.create_secure_order(text, text, text, text, jsonb)
 to anon, authenticated;
+
+create or replace function public.record_physical_sale(
+  p_product_id uuid,
+  p_quantity integer,
+  p_reason text default 'Physical shop sale'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  product_row products%rowtype;
+  group_row record;
+  available_stock integer;
+  next_stock integer;
+begin
+  if not public.is_active_admin() then
+    raise exception 'Only active admins can record physical shop sales.';
+  end if;
+
+  if p_product_id is null then
+    raise exception 'Product is required.';
+  end if;
+
+  if p_quantity is null or p_quantity < 1 or p_quantity > 1000 then
+    raise exception 'Sale quantity must be between 1 and 1000.';
+  end if;
+
+  select *
+  into product_row
+  from products
+  where id = p_product_id
+  for update;
+
+  if not found then
+    raise exception 'Product not found.';
+  end if;
+
+  perform 1
+  from products
+  where lower(trim(name)) = lower(trim(product_row.name))
+    and lower(trim(category)) = lower(trim(product_row.category))
+    and price = product_row.price
+  for update;
+
+  select coalesce(max(stock), 0)
+  into available_stock
+  from products
+  where lower(trim(name)) = lower(trim(product_row.name))
+    and lower(trim(category)) = lower(trim(product_row.category))
+    and price = product_row.price;
+
+  if available_stock < p_quantity then
+    raise exception 'Only % item(s) are available for this product group.', available_stock;
+  end if;
+
+  next_stock := greatest(available_stock - p_quantity, 0);
+
+  update products
+  set
+    stock = next_stock,
+    in_stock = next_stock > 0,
+    status = case
+      when next_stock > 0 then 'Active'
+      else 'Out of Stock'
+    end
+  where lower(trim(name)) = lower(trim(product_row.name))
+    and lower(trim(category)) = lower(trim(product_row.category))
+    and price = product_row.price;
+
+  insert into inventory_history (
+    product_id,
+    product_name,
+    old_stock,
+    new_stock,
+    quantity_changed,
+    action_type,
+    reason,
+    changed_by
+  )
+  values (
+    product_row.id,
+    product_row.name,
+    available_stock,
+    next_stock,
+    next_stock - available_stock,
+    'Physical Shop Sale',
+    coalesce(nullif(trim(p_reason), ''), 'Physical shop sale'),
+    coalesce(auth.email(), 'Administrator')
+  );
+
+  return jsonb_build_object(
+    'success', true,
+    'product_id', product_row.id,
+    'product_name', product_row.name,
+    'old_stock', available_stock,
+    'new_stock', next_stock,
+    'quantity_changed', next_stock - available_stock
+  );
+end;
+$$;
+
+grant execute on function public.record_physical_sale(uuid, integer, text)
+to authenticated;

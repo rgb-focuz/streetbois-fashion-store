@@ -68,6 +68,8 @@ const [analyticsStartDate, setAnalyticsStartDate] = useState("");
 const [analyticsEndDate, setAnalyticsEndDate] = useState("");
 const [analyticsQuickRange, setAnalyticsQuickRange] = useState("All Time");
 const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
+const [physicalSaleForms, setPhysicalSaleForms] = useState({});
+const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -199,7 +201,7 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       "settings",
       "users",
     ],
-    sales_admin: ["orders", "products", "manage"],
+    sales_admin: ["orders", "products", "manage", "history"],
   };
 
   const hasPermission = (tab) => {
@@ -530,6 +532,62 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
         reason: `Returned stock from cancelled order ${order.id}`,
       });
     }
+  };
+
+  const updatePhysicalSaleForm = (productId, field, value) => {
+    setPhysicalSaleForms((currentForms) => ({
+      ...currentForms,
+      [productId]: {
+        quantity: "1",
+        reason: "",
+        ...(currentForms[productId] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const recordPhysicalSale = async (product) => {
+    const form = physicalSaleForms[product.id] || {};
+    const quantity = Math.max(1, Number(form.quantity || 1));
+    const currentStock = Number(product.shared_stock || product.stock || 0);
+
+    if (quantity > currentStock) {
+      setMessage(`Only ${currentStock} ${product.name} item(s) are currently in stock.`);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Record physical shop sale of ${quantity} ${product.name} item(s)?`
+    );
+
+    if (!confirmed) return;
+
+    setPhysicalSaleLoadingId(product.id);
+
+    const { data, error } = await supabase.rpc("record_physical_sale", {
+      p_product_id: product.id,
+      p_quantity: quantity,
+      p_reason: form.reason?.trim() || "Physical shop sale",
+    });
+
+    if (error) {
+      setMessage(error.message || "Unable to record physical shop sale.");
+      setPhysicalSaleLoadingId("");
+      return;
+    }
+
+    const nextStock = Number(data?.new_stock ?? currentStock - quantity);
+
+    setMessage(
+      `Physical shop sale recorded. ${product.name} stock is now ${nextStock}.`
+    );
+    setPhysicalSaleForms((currentForms) => ({
+      ...currentForms,
+      [product.id]: { quantity: "1", reason: "" },
+    }));
+    setPhysicalSaleLoadingId("");
+    fetchProducts();
+    fetchInventoryHistory();
   };
 
   const updateOrderStatus = async (id, status) => {
@@ -2962,6 +3020,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                     <th>Sizes</th>
                     <th>Stock</th>
                     <th>Status</th>
+                    <th>Shop Sale</th>
                     <th>Featured</th>
                     <th>Preview</th>
                     <th>Edit</th>
@@ -3001,6 +3060,52 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                         </div>
                       </td>
                       <td>{getStockBadge(product.shared_stock)}</td>
+                      <td>
+                        <div className="physical-sale-cell">
+                          <input
+                            type="number"
+                            min="1"
+                            max={Math.max(1, Number(product.shared_stock || 0))}
+                            value={physicalSaleForms[product.id]?.quantity || "1"}
+                            onChange={(e) =>
+                              updatePhysicalSaleForm(
+                                product.id,
+                                "quantity",
+                                e.target.value
+                              )
+                            }
+                            aria-label={`Physical sale quantity for ${product.name}`}
+                          />
+
+                          <input
+                            type="text"
+                            value={physicalSaleForms[product.id]?.reason || ""}
+                            onChange={(e) =>
+                              updatePhysicalSaleForm(
+                                product.id,
+                                "reason",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Note"
+                            aria-label={`Physical sale note for ${product.name}`}
+                          />
+
+                          <button
+                            type="button"
+                            className="physical-sale-btn"
+                            disabled={
+                              physicalSaleLoadingId === product.id ||
+                              Number(product.shared_stock || 0) <= 0
+                            }
+                            onClick={() => recordPhysicalSale(product)}
+                          >
+                            {physicalSaleLoadingId === product.id
+                              ? "Saving..."
+                              : "Record Sale"}
+                          </button>
+                        </div>
+                      </td>
 
                       <td>
                         <button
@@ -3046,7 +3151,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
 
                   {paginatedProducts.length === 0 && (
                     <tr>
-                      <td colSpan="12">No products found.</td>
+                      <td colSpan="13">No products found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -3710,6 +3815,9 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                   <option value="Stock Update">Stock Update</option>
                   <option value="New Product">New Product</option>
                   <option value="Bulk Update">Bulk Update</option>
+                  <option value="Physical Shop Sale">Physical Shop Sale</option>
+                  <option value="Online Order Reserved">Online Order Reserved</option>
+                  <option value="Order Cancelled">Order Cancelled</option>
                 </select>
 
                 <button className="preview-row-btn" onClick={fetchInventoryHistory}>

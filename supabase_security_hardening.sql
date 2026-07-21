@@ -212,6 +212,20 @@ revoke insert, update, delete on public.orders from anon, authenticated;
 grant execute on function public.create_secure_order(text, text, text, text, jsonb)
 to anon, authenticated;
 
+do $$
+begin
+  if exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname = 'record_physical_sale'
+  ) then
+    grant execute on function public.record_physical_sale(uuid, integer, text)
+    to authenticated;
+  end if;
+end $$;
+
 drop policy if exists "public can read streetbois storage images" on storage.objects;
 create policy "public can read streetbois storage images"
 on storage.objects
