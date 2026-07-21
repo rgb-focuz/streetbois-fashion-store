@@ -2958,6 +2958,83 @@
   cursor: not-allowed;
 }
 
+.shop-locations-card {
+  display: grid;
+  gap: 18px;
+}
+
+.shop-locations-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 14px;
+  background: rgba(212, 175, 55, 0.06);
+}
+
+.shop-locations-toolbar p {
+  margin: 0;
+  color: #f8fafc;
+  font-weight: 900;
+}
+
+.shop-locations-toolbar button,
+.shop-location-editor-head button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: #d4af37;
+  color: #050505;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.shop-location-empty {
+  border: 1px dashed rgba(212, 175, 55, 0.45);
+  border-radius: 14px;
+  padding: 22px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.28);
+  font-weight: 800;
+}
+
+.shop-location-list {
+  display: grid;
+  gap: 18px;
+}
+
+.shop-location-editor {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.shop-location-editor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.shop-location-editor-head h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.shop-location-editor-head button {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.shop-location-grid {
+  align-items: start;
+}
+
 @media (max-width: 1100px) {
   .settings-section-grid {
     grid-template-columns: 1fr;
@@ -2983,6 +3060,12 @@
   .settings-save-actions,
   .settings-save-actions button {
     width: 100%;
+  }
+
+  .shop-locations-toolbar,
+  .shop-location-editor-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .settings-section-title {

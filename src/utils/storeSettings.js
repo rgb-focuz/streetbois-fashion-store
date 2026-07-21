@@ -24,6 +24,7 @@ export const defaultStoreSettings = {
   tiktok: "",
   twitter: "",
   google_map: "",
+  shop_locations: [],
   delivery_note: "Delivery available within Ghana.",
   currency: "GH₵",
   delivery_fee: "",

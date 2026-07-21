@@ -104,6 +104,12 @@ function Contact() {
     },
   ];
 
+  const shopBranches = Array.isArray(storeSettings.shop_locations)
+    ? storeSettings.shop_locations.filter(
+        (shop) => shop?.name || shop?.area || shop?.address
+      )
+    : [];
+
   const mapQuery = encodeURIComponent(
     `${storeSettings.location_name || ""} ${
       storeSettings.address || defaultStoreSettings.address
@@ -146,6 +152,69 @@ function Contact() {
             </div>
           ))}
         </div>
+
+        {shopBranches.length > 0 && (
+          <div className="shop-branches-section">
+            <div className="shop-branches-header">
+              <span className="contact-small-title">Our Branches</span>
+              <h2>Visit any StreetBois shop near you</h2>
+            </div>
+
+            <div className="shop-branches-grid">
+              {shopBranches.map((shop, index) => (
+                <article className="shop-branch-card" key={shop.id || index}>
+                  <div>
+                    <h3>{shop.name || `Shop ${index + 1}`}</h3>
+                    {shop.category && <span>{shop.category}</span>}
+                  </div>
+
+                  {shop.area && (
+                    <p>
+                      <strong>Area:</strong> {shop.area}
+                    </p>
+                  )}
+                  {shop.address && (
+                    <p>
+                      <strong>Address:</strong> {shop.address}
+                    </p>
+                  )}
+                  {shop.phone && (
+                    <p>
+                      <strong>Phone:</strong> {shop.phone}
+                    </p>
+                  )}
+                  {shop.email && (
+                    <p>
+                      <strong>Email:</strong> {shop.email}
+                    </p>
+                  )}
+                  {shop.business_hours && (
+                    <p>
+                      <strong>Hours:</strong> {shop.business_hours}
+                    </p>
+                  )}
+
+                  <div className="shop-branch-actions">
+                    {shop.whatsapp && (
+                      <a
+                        href={getWhatsAppLink(shop.whatsapp)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        WhatsApp
+                      </a>
+                    )}
+                    {shop.google_map && (
+                      <a href={shop.google_map} target="_blank" rel="noreferrer">
+                        Google Maps
+                      </a>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="contact-main-section">

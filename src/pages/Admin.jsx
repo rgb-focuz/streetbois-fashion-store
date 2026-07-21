@@ -21,6 +21,19 @@ function Admin() {
     stock: "",
   });
 
+  const createEmptyShopLocation = () => ({
+    id: `shop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: "",
+    area: "",
+    address: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    business_hours: "",
+    category: "",
+    google_map: "",
+  });
+
   const emptyRow = {
     name: "",
     price: "",
@@ -261,6 +274,66 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
     setSettings((current) => ({ ...current, [field]: value }));
   };
 
+  const getShopLocations = () =>
+    Array.isArray(settings.shop_locations) ? settings.shop_locations : [];
+
+  const addShopLocation = () => {
+    const currentLocations = getShopLocations();
+
+    if (currentLocations.length >= 10) {
+      setMessage("You can add up to 10 shop locations.");
+      return;
+    }
+
+    updateSettingsField("shop_locations", [
+      ...currentLocations,
+      createEmptyShopLocation(),
+    ]);
+  };
+
+  const updateShopLocation = (index, field, value) => {
+    updateSettingsField(
+      "shop_locations",
+      getShopLocations().map((location, currentIndex) =>
+        currentIndex === index ? { ...location, [field]: value } : location
+      )
+    );
+  };
+
+  const removeShopLocation = (index) => {
+    if (!window.confirm("Remove this shop location?")) return;
+
+    updateSettingsField(
+      "shop_locations",
+      getShopLocations().filter((_, currentIndex) => currentIndex !== index)
+    );
+  };
+
+  const sanitizeShopLocations = () =>
+    getShopLocations()
+      .map((location) => ({
+        id: location.id || `shop-${Date.now()}`,
+        name: String(location.name || "").trim(),
+        area: String(location.area || "").trim(),
+        address: String(location.address || "").trim(),
+        phone: String(location.phone || "").trim(),
+        whatsapp: String(location.whatsapp || "").trim(),
+        email: String(location.email || "").trim(),
+        business_hours: String(location.business_hours || "").trim(),
+        category: String(location.category || "").trim(),
+        google_map: String(location.google_map || "").trim(),
+      }))
+      .filter(
+        (location) =>
+          location.name ||
+          location.area ||
+          location.address ||
+          location.phone ||
+          location.whatsapp ||
+          location.google_map
+      )
+      .slice(0, 10);
+
   const getWhatsAppNumbers = (value) =>
     String(value || "")
       .split(/[\n,;]+/)
@@ -291,6 +364,18 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
 
       if (numbers.length > 3) {
         return `${label} can only contain up to 3 numbers.`;
+      }
+    }
+
+    const shopLocations = sanitizeShopLocations();
+
+    if (shopLocations.length > 10) {
+      return "Only 10 shop locations are allowed.";
+    }
+
+    for (const location of shopLocations) {
+      if (location.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(location.email)) {
+        return `Enter a valid email for ${location.name || "shop location"}.`;
       }
     }
 
@@ -350,6 +435,7 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
       tiktok: String(settings.tiktok || "").trim(),
       twitter: String(settings.twitter || "").trim(),
       google_map: String(settings.google_map || "").trim(),
+      shop_locations: sanitizeShopLocations(),
       delivery_note: String(settings.delivery_note || "").trim(),
       currency: String(settings.currency || "").trim(),
       delivery_fee: settings.delivery_fee === "" ? null : Number(settings.delivery_fee),
@@ -4220,6 +4306,159 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                       ></textarea>
                     </label>
                   </div>
+                </div>
+
+                <div className="admin-card settings-card shop-locations-card">
+                  <div className="settings-section-title">
+                    <span>BR</span>
+                    <div>
+                      <h2>Shop Branches</h2>
+                      <p>
+                        Add up to 10 physical shops with contact details,
+                        business hours, category focus and Google Maps links.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shop-locations-toolbar">
+                    <p>{getShopLocations().length} of 10 shops added</p>
+                    <button type="button" onClick={addShopLocation}>
+                      Add Shop
+                    </button>
+                  </div>
+
+                  {getShopLocations().length === 0 ? (
+                    <div className="shop-location-empty">
+                      No shop branches added yet. Click Add Shop to create the
+                      first branch.
+                    </div>
+                  ) : (
+                    <div className="shop-location-list">
+                      {getShopLocations().map((location, index) => (
+                        <div className="shop-location-editor" key={location.id || index}>
+                          <div className="shop-location-editor-head">
+                            <h3>Shop {index + 1}</h3>
+                            <button
+                              type="button"
+                              onClick={() => removeShopLocation(index)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+
+                          <div className="settings-grid shop-location-grid">
+                            <label>
+                              Shop Name
+                              <input
+                                value={location.name || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "name", e.target.value)
+                                }
+                                placeholder="e.g. StreetBois Menswear"
+                              />
+                            </label>
+
+                            <label>
+                              Location / Area
+                              <input
+                                value={location.area || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "area", e.target.value)
+                                }
+                                placeholder="e.g. Tudu, Accra"
+                              />
+                            </label>
+
+                            <label>
+                              Phone
+                              <input
+                                value={location.phone || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "phone", e.target.value)
+                                }
+                                placeholder="0200000000"
+                              />
+                            </label>
+
+                            <label>
+                              WhatsApp
+                              <input
+                                value={location.whatsapp || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "whatsapp", e.target.value)
+                                }
+                                placeholder="233200000000"
+                              />
+                            </label>
+
+                            <label>
+                              Email
+                              <input
+                                type="email"
+                                value={location.email || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "email", e.target.value)
+                                }
+                                placeholder="shop@example.com"
+                              />
+                            </label>
+
+                            <label>
+                              Main Category
+                              <input
+                                value={location.category || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "category", e.target.value)
+                                }
+                                placeholder="Men Wear / Sneakers / Bags"
+                              />
+                            </label>
+
+                            <label className="settings-full-label">
+                              Business Hours
+                              <input
+                                value={location.business_hours || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(
+                                    index,
+                                    "business_hours",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Monday - Saturday, 8:30am - 6:00pm"
+                              />
+                            </label>
+
+                            <label className="settings-full-label">
+                              Full Address
+                              <textarea
+                                value={location.address || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(index, "address", e.target.value)
+                                }
+                                placeholder="Full shop address"
+                              ></textarea>
+                            </label>
+
+                            <label className="settings-full-label">
+                              Google Maps Link
+                              <textarea
+                                value={location.google_map || ""}
+                                onChange={(e) =>
+                                  updateShopLocation(
+                                    index,
+                                    "google_map",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Paste Google Maps link"
+                              ></textarea>
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="admin-card settings-save-panel">

@@ -83,6 +83,85 @@
   line-height: 1.6;
 }
 
+.shop-branches-section {
+  margin-top: 70px;
+}
+
+.shop-branches-header {
+  max-width: 920px;
+  margin-bottom: 28px;
+}
+
+.shop-branches-header h2 {
+  color: #071f2e;
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: 1.05;
+  margin: 16px 0 0;
+}
+
+.shop-branches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.shop-branch-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+}
+
+.shop-branch-card h3 {
+  color: #111827;
+  font-size: 22px;
+  margin: 0;
+}
+
+.shop-branch-card div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.shop-branch-card div:first-child span {
+  background: #fff7e8;
+  border-radius: 999px;
+  color: #b85b00;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 9px;
+}
+
+.shop-branch-card p {
+  color: #374151;
+  line-height: 1.45;
+  margin: 9px 0;
+}
+
+.shop-branch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.shop-branch-actions a {
+  background: #111827;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 900;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
+.shop-branch-actions a:first-child {
+  background: #00c853;
+}
+
 .contact-main-section {
   background: #000;
   color: #fff;
@@ -309,6 +388,14 @@
 
   .locations-grid {
     grid-template-columns: 1fr;
+  }
+
+  .shop-branches-section {
+    margin-top: 46px;
+  }
+
+  .shop-branch-card div:first-child {
+    flex-direction: column;
   }
 
   .location-item h3 {
