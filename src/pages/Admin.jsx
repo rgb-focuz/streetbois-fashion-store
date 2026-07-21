@@ -69,6 +69,7 @@ const [bulkSettings, setBulkSettings] = useState({
   const [orders, setOrders] = useState([]);
 const [selectedOrder, setSelectedOrder] = useState(null);
 const [orderTrackingSaving, setOrderTrackingSaving] = useState(false);
+const [orderTrackingPrompt, setOrderTrackingPrompt] = useState("");
 const [orderFilter, setOrderFilter] = useState("All");
 const [contactMessages, setContactMessages] = useState([]);
 const [selectedMessage, setSelectedMessage] = useState(null);
@@ -682,6 +683,7 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
     const wasCancelled = currentOrder?.status === "Cancelled";
     const shouldReturnStock = currentOrder && !wasCancelled && status === "Cancelled";
 
+    setOrderTrackingPrompt("");
     setOrderTrackingSaving(true);
 
     const { error } = await supabase.rpc("update_order_tracking_admin", {
@@ -697,6 +699,7 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
 
     if (error) {
       setMessage(error.message);
+      setOrderTrackingPrompt(`Tracking update failed: ${error.message}`);
       return;
     }
 
@@ -707,15 +710,20 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
         setMessage(
           `Order was cancelled, but stock return failed: ${stockError.message}`
         );
+        setOrderTrackingPrompt(
+          `Order was cancelled, but stock return failed: ${stockError.message}`
+        );
         return;
       }
     }
 
-    setMessage(
+    const successMessage =
       shouldReturnStock
         ? "Order cancelled and stock returned."
-        : "Order status updated."
-    );
+        : "Tracking update saved successfully.";
+
+    setMessage(successMessage);
+    setOrderTrackingPrompt(successMessage);
 
     if (selectedOrder?.id === id) {
       setSelectedOrder({
@@ -3680,8 +3688,14 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
         )}
 
          {activeTab === "orders" && hasPermission("orders") && (
-  <div className="admin-card">
-    <h2>Orders</h2>
+  <div className="admin-card orders-admin-card">
+    <div className="orders-admin-heading">
+      <div>
+        <h2>Orders</h2>
+        <p>Review purchases, assign riders and manage delivery tracking.</p>
+      </div>
+      <strong>{orders.length} total orders</strong>
+    </div>
 
     <div className="admin-filter-row">
       <select
@@ -3732,7 +3746,10 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                 <td>
                   <button
                     className="preview-row-btn"
-                    onClick={() => setSelectedOrder(order)}
+                    onClick={() => {
+                      setOrderTrackingPrompt("");
+                      setSelectedOrder(order);
+                    }}
                   >
                     View
                   </button>
@@ -4758,14 +4775,26 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           </div>
         )}
         {selectedOrder && (
-  <div className="modal-overlay">
-    <div className="product-modal">
+  <div className="modal-overlay order-modal-overlay">
+    <div className="product-modal order-management-modal">
       <button className="close-modal" onClick={() => setSelectedOrder(null)}>
         ×
       </button>
 
       <div className="modal-details">
         <h2>Order Details</h2>
+
+        {orderTrackingPrompt && (
+          <div
+            className={
+              orderTrackingPrompt.toLowerCase().includes("failed")
+                ? "order-save-prompt error"
+                : "order-save-prompt"
+            }
+          >
+            {orderTrackingPrompt}
+          </div>
+        )}
 
         <p><strong>Order ID:</strong> {formatOrderReference(selectedOrder)}</p>
         <p><strong>Name:</strong> {selectedOrder.customer_name}</p>

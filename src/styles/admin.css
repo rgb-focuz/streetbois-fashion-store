@@ -843,6 +843,204 @@
   line-height: 1.4;
 }
 
+.orders-admin-card {
+  display: grid;
+  gap: 18px;
+}
+
+.orders-admin-heading {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.orders-admin-heading h2 {
+  margin-bottom: 6px;
+}
+
+.orders-admin-heading p {
+  color: var(--admin-muted, #64748b);
+  margin: 0;
+}
+
+.orders-admin-heading strong {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #0f172a;
+  flex: 0 0 auto;
+  padding: 10px 14px;
+}
+
+.order-modal-overlay {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(5px);
+}
+
+.order-management-modal {
+  background: #f8fafc !important;
+  border: 1px solid #dbe3ef !important;
+  border-radius: 18px !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.35) !important;
+  color: #0f172a !important;
+  display: block !important;
+  max-height: 88vh;
+  max-width: 980px !important;
+  overflow-y: auto;
+  width: min(980px, calc(100vw - 32px)) !important;
+}
+
+.order-management-modal .close-modal {
+  background: #d4af37 !important;
+  color: #050505 !important;
+}
+
+.order-management-modal .modal-details {
+  display: grid;
+  gap: 16px;
+  padding: 34px 38px 28px !important;
+}
+
+.order-management-modal .modal-details h2 {
+  color: #0f172a !important;
+  font-size: 34px !important;
+  margin: 0 0 4px !important;
+}
+
+.order-management-modal .modal-details h3 {
+  color: #0f172a !important;
+  font-size: 22px !important;
+  margin: 12px 0 0 !important;
+}
+
+.order-management-modal .modal-details > p {
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #334155 !important;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 120px 1fr;
+  margin: 0 !important;
+  padding: 12px 14px;
+}
+
+.order-management-modal .modal-details > p strong {
+  color: #0f172a;
+}
+
+.order-management-modal .modal-details label {
+  color: #334155 !important;
+  font-weight: 900 !important;
+  margin-top: 4px !important;
+}
+
+.order-management-modal .modal-details input,
+.order-management-modal .modal-details textarea,
+.order-management-modal .modal-details select {
+  background: #fff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  margin-top: 8px !important;
+}
+
+.order-management-modal .modal-details input:focus,
+.order-management-modal .modal-details textarea:focus,
+.order-management-modal .modal-details select:focus {
+  border-color: #d4af37 !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18) !important;
+  outline: none !important;
+}
+
+.order-management-modal .order-item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 74px minmax(0, 1fr);
+  margin: 0 !important;
+  padding: 12px !important;
+}
+
+.order-management-modal .order-item img {
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  object-fit: cover;
+  width: 74px;
+}
+
+.order-management-modal .order-item h4 {
+  color: #0f172a;
+  font-size: 17px;
+  margin: 0 0 4px;
+}
+
+.order-management-modal .order-item p {
+  color: #475569 !important;
+  margin: 3px 0 !important;
+}
+
+.order-management-modal .rider-tracking-link-box {
+  background: #0f172a;
+  border-color: rgba(212, 175, 55, 0.55);
+}
+
+.order-management-modal .rider-tracking-link-box input {
+  color: #0f172a !important;
+}
+
+.order-management-modal .upload-all-btn {
+  background: #2563eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+  color: #fff !important;
+  justify-self: start;
+  min-width: 240px;
+}
+
+.order-management-modal .upload-all-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.order-save-prompt {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  color: #047857;
+  font-weight: 900;
+  padding: 13px 15px;
+}
+
+.order-save-prompt.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+@media (max-width: 760px) {
+  .orders-admin-heading {
+    flex-direction: column;
+  }
+
+  .order-management-modal .modal-details {
+    padding: 26px 18px 22px !important;
+  }
+
+  .order-management-modal .modal-details > p {
+    grid-template-columns: 1fr;
+  }
+
+  .order-management-modal .upload-all-btn {
+    width: 100%;
+  }
+}
+
 .order-item img {
   width: 70px;
   height: 70px;
