@@ -368,6 +368,11 @@
   width: 100%;
 }
 
+.live-map-panel small {
+  color: #6b7280;
+  line-height: 1.45;
+}
+
 .confirm-received-btn {
   background: #16a34a;
   border: 0;

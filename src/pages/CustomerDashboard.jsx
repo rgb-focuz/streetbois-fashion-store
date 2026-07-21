@@ -430,12 +430,15 @@ function CustomerDashboard() {
     const status = normalizeOrderStatus(order.status);
     const statusIndex =
       status === "Cancelled" ? -1 : orderStatusSteps.indexOf(status);
-    const hasLiveLocation = order.live_lat && order.live_lng;
+    const liveLat = Number(order.live_lat);
+    const liveLng = Number(order.live_lng);
+    const hasLiveLocation = Number.isFinite(liveLat) && Number.isFinite(liveLng);
+    const mapZoomOffset = 0.01;
     const liveMapUrl = hasLiveLocation
-      ? `https://www.google.com/maps?q=${order.live_lat},${order.live_lng}&output=embed`
+      ? `https://www.openstreetmap.org/export/embed.html?bbox=${liveLng - mapZoomOffset}%2C${liveLat - mapZoomOffset}%2C${liveLng + mapZoomOffset}%2C${liveLat + mapZoomOffset}&layer=mapnik&marker=${liveLat}%2C${liveLng}`
       : "";
     const liveMapLink = hasLiveLocation
-      ? `https://www.google.com/maps/search/?api=1&query=${order.live_lat},${order.live_lng}`
+      ? `https://www.google.com/maps/search/?api=1&query=${liveLat},${liveLng}`
       : "";
 
     return (
@@ -520,9 +523,12 @@ function CustomerDashboard() {
               title="Live rider location"
               src={liveMapUrl}
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
+              referrerPolicy="no-referrer"
               allowFullScreen
             />
+            <small>
+              Showing the rider's last shared GPS point. Use Open Map for directions.
+            </small>
           </div>
         )}
 
