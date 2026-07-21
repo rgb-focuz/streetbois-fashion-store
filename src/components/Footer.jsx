@@ -51,7 +51,6 @@ function Footer() {
 
           <Link to="/">Home</Link>
           <Link to="/shop">Shop</Link>
-          <Link to="/wishlist">Wishlist</Link>
           <Link to="/cart">Cart</Link>
           <Link to="/contact">Contact</Link>
         </div>

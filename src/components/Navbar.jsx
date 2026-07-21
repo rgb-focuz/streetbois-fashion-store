@@ -95,7 +95,6 @@ function Navbar() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [cartCount, setCartCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
   const [mobileSearch, setMobileSearch] = useState("");
   const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
   const navigate = useNavigate();
@@ -105,17 +104,11 @@ function Navbar() {
     setCartCount(cart.reduce((total, item) => total + item.quantity, 0));
   };
 
-  const updateWishlistCount = () => {
-    const wishlist = JSON.parse(localStorage.getItem("streetbois-wishlist")) || [];
-    setWishlistCount(wishlist.length);
-  };
-
   useEffect(() => {
     let isMounted = true;
     let authSubscription = null;
 
     updateCartCount();
-    updateWishlistCount();
 
     fetchStoreSettings().then((settings) => {
       if (isMounted) setStoreSettings(settings);
@@ -146,17 +139,13 @@ function Navbar() {
     loadAuthState();
 
     window.addEventListener("storage", updateCartCount);
-    window.addEventListener("storage", updateWishlistCount);
     window.addEventListener("cartUpdated", updateCartCount);
-    window.addEventListener("wishlistUpdated", updateWishlistCount);
 
     return () => {
       isMounted = false;
       authSubscription?.unsubscribe();
       window.removeEventListener("storage", updateCartCount);
-      window.removeEventListener("storage", updateWishlistCount);
       window.removeEventListener("cartUpdated", updateCartCount);
-      window.removeEventListener("wishlistUpdated", updateWishlistCount);
     };
   }, []);
 
@@ -288,11 +277,6 @@ function Navbar() {
                   <span>Orders</span>
                 </Link>
 
-                <Link to="/wishlist" onClick={closeDesktopMenus}>
-                  <Icon name="heart" />
-                  <span>Wishlist</span>
-                </Link>
-
                 {user && (
                   <button type="button" onClick={handleLogout}>
                     <Icon name="user" />
@@ -380,9 +364,6 @@ function Navbar() {
                   </Link>
                   <Link onClick={() => setAccountOpen(false)} to="/customer-dashboard?view=orders">
                     My Orders
-                  </Link>
-                  <Link onClick={() => setAccountOpen(false)} to="/wishlist">
-                    Wishlist
                   </Link>
                   <button type="button" onClick={handleLogout}>
                     Logout
@@ -476,12 +457,6 @@ function Navbar() {
         <Link onClick={closeMenu} to="/faq" className="drawer-row">
           <Icon name="help" />
           <span>Help & FAQ</span>
-        </Link>
-
-        <Link onClick={closeMenu} to="/wishlist" className="drawer-row">
-          <Icon name="heart" />
-          <span>Wishlist</span>
-          {wishlistCount > 0 && <em>{wishlistCount}</em>}
         </Link>
 
         <Link onClick={closeMenu} to="/cart" className="drawer-row">
