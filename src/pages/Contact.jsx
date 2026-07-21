@@ -104,6 +104,16 @@ function Contact() {
     },
   ];
 
+  const mapQuery = encodeURIComponent(
+    `${storeSettings.location_name || ""} ${
+      storeSettings.address || defaultStoreSettings.address
+    }`.trim()
+  );
+  const mapEmbedUrl = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
+  const mapLink =
+    storeSettings.google_map ||
+    `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
   return (
     <>
       <Navbar />
@@ -220,17 +230,26 @@ function Contact() {
       </section>
 
       <section className="contact-map-section">
-        {storeSettings.google_map ? (
-          <a href={storeSettings.google_map} target="_blank" rel="noreferrer">
-            Open Google Map Location
-          </a>
-        ) : (
-          <div>
-            <h2>StreetBois Fashion</h2>
-            <p>Tudu, Accra - Ghana</p>
-            <span>Google Map Location Coming Soon</span>
+        <div className="contact-map-shell">
+          <div className="contact-map-copy">
+            <span>Store Location</span>
+            <h2>{storeSettings.store_name || "StreetBois Fashion"}</h2>
+            <p>{storeSettings.address || defaultStoreSettings.address}</p>
+            <a href={mapLink} target="_blank" rel="noreferrer">
+              Open in Google Maps
+            </a>
           </div>
-        )}
+
+          <div className="contact-map-frame" aria-label="StreetBois Fashion map">
+            <iframe
+              title="StreetBois Fashion Google Map"
+              src={mapEmbedUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        </div>
       </section>
 
       <Footer />

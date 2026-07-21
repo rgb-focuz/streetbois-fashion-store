@@ -193,36 +193,75 @@
 }
 
 .contact-map-section {
-  background: #fff;
+  background: #f6f7f9;
   color: #111;
   padding: 80px 8%;
-  text-align: center;
 }
 
-.contact-map-section div,
-.contact-map-section a {
-  min-height: 260px;
-  border: 1px solid #d4af37;
+.contact-map-shell {
+  border: 1px solid rgba(212, 175, 55, 0.55);
   border-radius: 18px;
+  overflow: hidden;
   display: grid;
-  place-items: center;
-  color: #111;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(420px, 1fr);
+  min-height: 420px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.1);
+}
+
+.contact-map-copy {
+  background: #0f0f0f;
+  color: #fff;
+  padding: 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.contact-map-copy span {
+  color: #d4af37;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.contact-map-copy h2 {
+  color: #fff;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.contact-map-copy p {
+  color: #d7d7d7;
+  font-size: 19px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.contact-map-copy a {
+  width: fit-content;
+  background: #d4af37;
+  color: #000;
   text-decoration: none;
   font-weight: 900;
-  padding: 30px;
+  border-radius: 10px;
+  padding: 15px 22px;
+  margin-top: 8px;
 }
 
-.contact-map-section h2 {
-  color: #d4af37;
-  font-size: 42px;
+.contact-map-frame {
+  min-height: 420px;
+  background: #e5e7eb;
 }
 
-.contact-map-section p {
-  font-size: 20px;
-}
-
-.contact-map-section span {
-  color: #555;
+.contact-map-frame iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border: 0;
+  display: block;
 }
 
 @media (max-width: 1024px) {
@@ -232,6 +271,10 @@
 
   .locations-grid {
     gap: 0 35px;
+  }
+
+  .contact-map-shell {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -284,5 +327,14 @@
   .contact-whatsapp {
     width: 100%;
     text-align: center;
+  }
+
+  .contact-map-copy {
+    padding: 28px;
+  }
+
+  .contact-map-frame,
+  .contact-map-frame iframe {
+    min-height: 320px;
   }
 }
