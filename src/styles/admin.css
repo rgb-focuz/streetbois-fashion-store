@@ -994,6 +994,32 @@
   color: #0f172a !important;
 }
 
+.order-notification-actions {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.order-notification-actions button {
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 48px;
+  padding: 0 18px;
+}
+
+.order-notification-actions button:first-child {
+  background: #16a34a;
+  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.2);
+}
+
+.order-notification-actions button:last-child {
+  background: #111827;
+  box-shadow: 0 14px 30px rgba(17, 24, 39, 0.18);
+}
+
 .order-management-modal .upload-all-btn {
   background: #2563eb !important;
   border-radius: 10px !important;
@@ -1038,6 +1064,10 @@
 
   .order-management-modal .upload-all-btn {
     width: 100%;
+  }
+
+  .order-notification-actions {
+    grid-template-columns: 1fr;
   }
 }
 

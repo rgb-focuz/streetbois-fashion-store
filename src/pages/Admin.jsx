@@ -184,6 +184,83 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
     return `${productCode}-${numericCode}`;
   };
 
+  const formatWhatsAppNumber = (phone) => {
+    const digits = String(phone || "").replace(/\D/g, "");
+
+    if (!digits) return "";
+    if (digits.startsWith("0")) return `233${digits.slice(1)}`;
+    if (digits.startsWith("233")) return digits;
+
+    return digits;
+  };
+
+  const getOrderItemsSummary = (order) =>
+    (order?.items || [])
+      .map((item) => `${item.name} x ${item.quantity || 1}`)
+      .join(", ") || "Order items";
+
+  const getRiderTrackingUrl = (order) =>
+    order?.tracking_token
+      ? `${window.location.origin}/rider-tracking/${order.id}/${order.tracking_token}`
+      : "";
+
+  const getCustomerTrackingUrl = () =>
+    `${window.location.origin}/customer-dashboard?view=orders`;
+
+  const openWhatsAppMessage = (phone, text, successMessage) => {
+    const formattedPhone = formatWhatsAppNumber(phone);
+
+    if (!formattedPhone) {
+      setOrderTrackingPrompt("WhatsApp number is missing or invalid.");
+      return;
+    }
+
+    window.open(
+      `https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+    setOrderTrackingPrompt(successMessage);
+  };
+
+  const sendRiderAssignment = (order) => {
+    if (!order?.rider_phone) {
+      setOrderTrackingPrompt("Add the rider phone number before sending.");
+      return;
+    }
+
+    const trackingUrl = getRiderTrackingUrl(order);
+
+    if (!trackingUrl) {
+      setOrderTrackingPrompt("Save the order first so a rider tracking link is available.");
+      return;
+    }
+
+    openWhatsAppMessage(
+      order.rider_phone,
+      `StreetBois Fashion delivery assignment\n\nOrder ID: ${formatOrderReference(order)}\nCustomer: ${order.customer_name || "Customer"}\nCustomer phone: ${order.customer_phone || "Not provided"}\nDelivery address: ${order.delivery_address || "Not provided"}\nItems: ${getOrderItemsSummary(order)}\nTotal: GHc ${Number(order.total || 0).toFixed(2)}\n\nOpen this private link to update live GPS and delivery status:\n${trackingUrl}`,
+      "Rider WhatsApp message opened. Send it to share the delivery job."
+    );
+  };
+
+  const notifyCustomerAboutRider = (order) => {
+    if (!order?.customer_phone) {
+      setOrderTrackingPrompt("Customer phone number is missing.");
+      return;
+    }
+
+    if (!order?.rider_phone) {
+      setOrderTrackingPrompt("Add the rider phone number before notifying customer.");
+      return;
+    }
+
+    openWhatsAppMessage(
+      order.customer_phone,
+      `Hello ${order.customer_name || "customer"}, your StreetBois Fashion order ${formatOrderReference(order)} has been assigned for delivery.\n\nRider: ${order.rider_name || "Assigned rider"}\nRider phone: ${order.rider_phone}\nCurrent status: ${order.status || "Processing"}\nTracking page: ${getCustomerTrackingUrl()}\n\nPlease contact the rider only to confirm delivery details.`,
+      "Customer WhatsApp message opened with rider contact details."
+    );
+  };
+
   const getSizeTypeFromSize = (size) => {
     if (!size) return "";
 
@@ -4893,7 +4970,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
             <strong>Rider Live GPS Link</strong>
             <input
               readOnly
-              value={`${window.location.origin}/rider-tracking/${selectedOrder.id}/${selectedOrder.tracking_token}`}
+              value={getRiderTrackingUrl(selectedOrder)}
               onFocus={(e) => e.target.select()}
             />
             <small>
@@ -4902,6 +4979,21 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
             </small>
           </div>
         )}
+
+        <div className="order-notification-actions">
+          <button
+            type="button"
+            onClick={() => sendRiderAssignment(selectedOrder)}
+          >
+            Send Rider WhatsApp
+          </button>
+          <button
+            type="button"
+            onClick={() => notifyCustomerAboutRider(selectedOrder)}
+          >
+            Notify Customer
+          </button>
+        </div>
 
         <button
           type="button"
