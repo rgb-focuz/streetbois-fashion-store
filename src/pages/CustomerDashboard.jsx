@@ -91,6 +91,7 @@ function CustomerDashboard() {
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [trackingMessage, setTrackingMessage] = useState("");
   const [trackingLoading, setTrackingLoading] = useState(false);
+  const [confirmingOrderId, setConfirmingOrderId] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -124,7 +125,7 @@ function CustomerDashboard() {
       if (email) {
         const { data: orderData } = await supabase
           .from("orders")
-          .select("id,items,total,status,created_at,customer_phone,delivery_address")
+          .select("*")
           .eq("customer_email", email)
           .order("created_at", { ascending: false });
 
@@ -348,7 +349,7 @@ function CustomerDashboard() {
 
     const { data, error } = await supabase
       .from("orders")
-      .select("id,items,total,status,created_at,customer_phone,delivery_address,customer_email")
+      .select("*")
       .eq("id", cleanInput)
       .eq("customer_email", user.email?.toLowerCase())
       .maybeSingle();
@@ -363,6 +364,42 @@ function CustomerDashboard() {
     }
 
     setTrackedOrder(data);
+  };
+
+  const confirmOrderReceived = async (orderId) => {
+    if (!window.confirm("Confirm that you have received this order?")) return;
+
+    setConfirmingOrderId(orderId);
+    setTrackingMessage("");
+
+    const { data, error } = await supabase.rpc("confirm_order_received", {
+      p_order_id: orderId,
+    });
+
+    setConfirmingOrderId("");
+
+    if (error || !data?.success) {
+      setTrackingMessage(
+        error?.message || "We could not confirm this order. Please try again."
+      );
+      return;
+    }
+
+    const deliveredUpdate = {
+      status: "Delivered",
+      delivered_at: new Date().toISOString(),
+      customer_confirmed_at: new Date().toISOString(),
+    };
+
+    setTrackedOrder((current) =>
+      current?.id === orderId ? { ...current, ...deliveredUpdate } : current
+    );
+    setOrders((currentOrders) =>
+      currentOrders.map((order) =>
+        order.id === orderId ? { ...order, ...deliveredUpdate } : order
+      )
+    );
+    setTrackingMessage("Thanks. Your order has been confirmed as delivered.");
   };
 
   const renderTrackingResult = (order) => {
@@ -413,10 +450,37 @@ function CustomerDashboard() {
           <p>
             <strong>Phone:</strong> {order.customer_phone || "Not provided"}
           </p>
+          <p>
+            <strong>Current location:</strong>{" "}
+            {order.tracking_location || "Waiting for delivery update"}
+          </p>
+          <p>
+            <strong>Delivery note:</strong>{" "}
+            {order.tracking_note || "No delivery note yet"}
+          </p>
           <p className="tracking-address">
             <strong>Delivery:</strong> {order.delivery_address || "Not provided"}
           </p>
         </div>
+
+        {status !== "Delivered" && status !== "Cancelled" && (
+          <button
+            type="button"
+            className="confirm-received-btn"
+            disabled={confirmingOrderId === order.id}
+            onClick={() => confirmOrderReceived(order.id)}
+          >
+            {confirmingOrderId === order.id
+              ? "Confirming..."
+              : "I Have Received My Order"}
+          </button>
+        )}
+
+        {order.customer_confirmed_at && (
+          <div className="tracking-confirmed">
+            Customer confirmed receipt on {formatDate(order.customer_confirmed_at)}.
+          </div>
+        )}
       </article>
     );
   };

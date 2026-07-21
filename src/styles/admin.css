@@ -794,6 +794,12 @@
   border: 1px solid #4da3ff;
 }
 
+.order-status.shipped {
+  background: #2f1f45;
+  color: #c084fc;
+  border: 1px solid #c084fc;
+}
+
 .order-status.delivered {
   background: #0d3b22;
   color: #00d26a;
@@ -4569,6 +4575,12 @@
   border-color: #bfdbfe !important;
 }
 
+.order-status.shipped {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
+}
+
 .order-status.delivered,
 .stock-badge.in,
 .featured-badge.active {
@@ -5300,6 +5312,12 @@
   background: #eff6ff !important;
   color: #1d4ed8 !important;
   border-color: #bfdbfe !important;
+}
+
+.order-status.shipped {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
 }
 
 .order-status.delivered,

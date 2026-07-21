@@ -68,6 +68,7 @@ const [bulkSettings, setBulkSettings] = useState({
   const [adminUsers, setAdminUsers] = useState([]);
   const [orders, setOrders] = useState([]);
 const [selectedOrder, setSelectedOrder] = useState(null);
+const [orderTrackingSaving, setOrderTrackingSaving] = useState(false);
 const [orderFilter, setOrderFilter] = useState("All");
 const [contactMessages, setContactMessages] = useState([]);
 const [selectedMessage, setSelectedMessage] = useState(null);
@@ -676,28 +677,36 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
     fetchInventoryHistory();
   };
 
-  const updateOrderStatus = async (id, status) => {
+  const updateOrderStatus = async (id, status, trackingDetails = {}) => {
     const currentOrder = orders.find((order) => order.id === id);
     const wasCancelled = currentOrder?.status === "Cancelled";
     const shouldReturnStock = currentOrder && !wasCancelled && status === "Cancelled";
 
-    if (shouldReturnStock) {
-      try {
-        await returnStockForCancelledOrder(currentOrder);
-      } catch (error) {
-        setMessage(error.message);
-        return;
-      }
-    }
+    setOrderTrackingSaving(true);
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id);
+    const { error } = await supabase.rpc("update_order_tracking_admin", {
+      p_order_id: id,
+      p_status: status,
+      p_tracking_location: trackingDetails.tracking_location || "",
+      p_tracking_note: trackingDetails.tracking_note || "",
+    });
+
+    setOrderTrackingSaving(false);
 
     if (error) {
       setMessage(error.message);
       return;
+    }
+
+    if (shouldReturnStock) {
+      try {
+        await returnStockForCancelledOrder(currentOrder);
+      } catch (stockError) {
+        setMessage(
+          `Order was cancelled, but stock return failed: ${stockError.message}`
+        );
+        return;
+      }
     }
 
     setMessage(
@@ -707,7 +716,12 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
     );
 
     if (selectedOrder?.id === id) {
-      setSelectedOrder({ ...selectedOrder, status });
+      setSelectedOrder({
+        ...selectedOrder,
+        status,
+        tracking_location: trackingDetails.tracking_location || "",
+        tracking_note: trackingDetails.tracking_note || "",
+      });
     }
 
     fetchProducts();
@@ -3674,6 +3688,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
         <option value="All">All Orders</option>
         <option value="Pending">Pending</option>
         <option value="Processing">Processing</option>
+        <option value="Shipped">Shipped</option>
         <option value="Delivered">Delivered</option>
         <option value="Cancelled">Cancelled</option>
       </select>
@@ -4768,17 +4783,63 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
           </div>
         ))}
 
-        <select
-          value={selectedOrder.status}
-          onChange={(e) =>
-            updateOrderStatus(selectedOrder.id, e.target.value)
+        <label>
+          Order Status
+          <select
+            value={selectedOrder.status || "Pending"}
+            onChange={(e) =>
+              setSelectedOrder({ ...selectedOrder, status: e.target.value })
+            }
+          >
+            <option>Pending</option>
+            <option>Processing</option>
+            <option>Shipped</option>
+            <option>Delivered</option>
+            <option>Cancelled</option>
+          </select>
+        </label>
+
+        <label>
+          Current Delivery Location
+          <input
+            value={selectedOrder.tracking_location || ""}
+            onChange={(e) =>
+              setSelectedOrder({
+                ...selectedOrder,
+                tracking_location: e.target.value,
+              })
+            }
+            placeholder="e.g. Dispatched from Tudu shop"
+          />
+        </label>
+
+        <label>
+          Delivery Note
+          <textarea
+            value={selectedOrder.tracking_note || ""}
+            onChange={(e) =>
+              setSelectedOrder({
+                ...selectedOrder,
+                tracking_note: e.target.value,
+              })
+            }
+            placeholder="e.g. Rider is on the way. Customer will be called before arrival."
+          ></textarea>
+        </label>
+
+        <button
+          type="button"
+          className="upload-all-btn"
+          disabled={orderTrackingSaving}
+          onClick={() =>
+            updateOrderStatus(selectedOrder.id, selectedOrder.status, {
+              tracking_location: selectedOrder.tracking_location,
+              tracking_note: selectedOrder.tracking_note,
+            })
           }
         >
-          <option>Pending</option>
-          <option>Processing</option>
-          <option>Delivered</option>
-          <option>Cancelled</option>
-        </select>
+          {orderTrackingSaving ? "Saving Tracking..." : "Save Tracking Update"}
+        </button>
       </div>
     </div>
   </div>

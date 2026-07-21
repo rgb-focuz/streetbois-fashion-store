@@ -333,6 +333,31 @@
   grid-column: 1 / -1;
 }
 
+.confirm-received-btn {
+  background: #16a34a;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  margin: 0 18px 18px;
+  min-height: 48px;
+  padding: 0 18px;
+}
+
+.confirm-received-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.tracking-confirmed {
+  background: #ecfdf5;
+  border-top: 1px solid #bbf7d0;
+  color: #047857;
+  font-weight: 900;
+  padding: 14px 18px;
+}
+
 .order-history-title {
   border-top: 1px solid #e2e5ea;
   padding-top: 20px;
