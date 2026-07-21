@@ -12,17 +12,27 @@ const accountLinks = [
   { view: "inbox", label: "Inbox", icon: "I" },
   { view: "reviews", label: "Pending Reviews", icon: "R" },
   { view: "vouchers", label: "Vouchers", icon: "V" },
-  { view: "wishlist", label: "Wishlist", icon: "W" },
   { view: "recently-viewed", label: "Recently Viewed", icon: "H" },
 ];
 
 const managementLinks = [
   { view: "profile", label: "Account Management" },
-  { view: "payment", label: "Payment Settings" },
   { view: "address", label: "Address Book" },
-  { view: "newsletter", label: "Newsletter Preferences" },
   { view: "close", label: "Close Account" },
 ];
+
+const createEmptyAddress = () => ({
+  id: "",
+  region: "Greater Accra",
+  city: "Tudu",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  additionalPhone: "",
+  address: "",
+  note: "",
+  isDefault: false,
+});
 
 const formatDate = (value) =>
   value
@@ -58,9 +68,12 @@ function CustomerDashboard() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [addressBook, setAddressBook] = useState([]);
+  const [addressForm, setAddressForm] = useState(createEmptyAddress);
+  const [editingAddressId, setEditingAddressId] = useState("");
+  const [addressMessage, setAddressMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -102,13 +115,17 @@ function CustomerDashboard() {
       }
 
       try {
-        setWishlist(JSON.parse(localStorage.getItem("streetbois-wishlist")) || []);
         setRecentlyViewed(
           JSON.parse(localStorage.getItem("streetbois-recently-viewed")) || []
         );
+        setAddressBook(
+          JSON.parse(
+            localStorage.getItem(`streetbois-address-book-${currentUser.id}`)
+          ) || []
+        );
       } catch {
-        setWishlist([]);
         setRecentlyViewed([]);
+        setAddressBook([]);
       }
 
       if (active) setLoading(false);
@@ -136,9 +153,148 @@ function CustomerDashboard() {
   const customerPhone = defaultOrder?.customer_phone || profile?.phone || "Not set";
   const deliveryAddress = defaultOrder?.delivery_address || profile?.address || "No default address yet.";
   const pendingOrders = orders.filter((order) => order.status === "Pending").length;
+  const nameParts = customerName.split(" ").filter(Boolean);
+  const defaultAddress =
+    addressBook.find((address) => address.isDefault) || addressBook[0] || null;
 
   const changeView = (view) => {
     navigate(`/customer-dashboard?view=${view}`);
+  };
+
+  const saveAddressBook = (nextAddressBook) => {
+    setAddressBook(nextAddressBook);
+
+    if (user?.id) {
+      localStorage.setItem(
+        `streetbois-address-book-${user.id}`,
+        JSON.stringify(nextAddressBook)
+      );
+    }
+  };
+
+  const updateProfileDefaultAddress = async (address) => {
+    const fullName = `${address.firstName} ${address.lastName}`.trim();
+    const fullAddress = `${address.address}, ${address.city}, ${address.region}`;
+
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        email: user.email?.toLowerCase(),
+        full_name: fullName || customerName,
+        phone: address.phone,
+        address: fullAddress,
+      },
+      { onConflict: "id" }
+    );
+
+    if (!error) {
+      setProfile((current) => ({
+        ...(current || {}),
+        full_name: fullName || customerName,
+        phone: address.phone,
+        address: fullAddress,
+      }));
+    }
+
+    return error;
+  };
+
+  const startAddAddress = () => {
+    setAddressMessage("");
+    setEditingAddressId("new");
+    setAddressForm({
+      ...createEmptyAddress(),
+      id: `addr-${Date.now()}`,
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" ") || "",
+      phone: profile?.phone || defaultOrder?.customer_phone || "",
+      address: profile?.address || defaultOrder?.delivery_address || "",
+      isDefault: addressBook.length === 0,
+    });
+  };
+
+  const startEditAddress = (address) => {
+    setAddressMessage("");
+    setEditingAddressId(address.id);
+    setAddressForm({ ...address });
+  };
+
+  const cancelAddressForm = () => {
+    setEditingAddressId("");
+    setAddressForm(createEmptyAddress());
+    setAddressMessage("");
+  };
+
+  const updateAddressField = (field, value) => {
+    setAddressForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const saveAddress = async (event) => {
+    event.preventDefault();
+    setAddressMessage("");
+
+    if (
+      !addressForm.firstName.trim() ||
+      !addressForm.phone.trim() ||
+      !addressForm.address.trim()
+    ) {
+      setAddressMessage("Please add first name, phone number and address.");
+      return;
+    }
+
+    const cleanAddress = {
+      ...addressForm,
+      id: addressForm.id || `addr-${Date.now()}`,
+      firstName: addressForm.firstName.trim(),
+      lastName: addressForm.lastName.trim(),
+      phone: addressForm.phone.trim(),
+      additionalPhone: addressForm.additionalPhone.trim(),
+      address: addressForm.address.trim(),
+      note: addressForm.note.trim(),
+      isDefault: addressForm.isDefault || addressBook.length === 0,
+    };
+
+    let nextAddressBook = addressBook.some((address) => address.id === cleanAddress.id)
+      ? addressBook.map((address) =>
+          address.id === cleanAddress.id ? cleanAddress : address
+        )
+      : [...addressBook, cleanAddress];
+
+    if (cleanAddress.isDefault) {
+      nextAddressBook = nextAddressBook.map((address) => ({
+        ...address,
+        isDefault: address.id === cleanAddress.id,
+      }));
+
+      const error = await updateProfileDefaultAddress(cleanAddress);
+
+      if (error) {
+        setAddressMessage("Address saved, but profile update failed.");
+      }
+    }
+
+    saveAddressBook(nextAddressBook);
+    setEditingAddressId("");
+    setAddressForm(createEmptyAddress());
+    setAddressMessage("Address saved successfully.");
+  };
+
+  const makeDefaultAddress = async (address) => {
+    const nextAddressBook = addressBook.map((item) => ({
+      ...item,
+      isDefault: item.id === address.id,
+    }));
+
+    saveAddressBook(nextAddressBook);
+    await updateProfileDefaultAddress(address);
+    setAddressMessage("Default address updated.");
+  };
+
+  const removeAddress = (addressId) => {
+    if (!window.confirm("Remove this address?")) return;
+
+    saveAddressBook(addressBook.filter((address) => address.id !== addressId));
+    setAddressMessage("Address removed.");
   };
 
   const renderOverview = () => (
@@ -160,9 +316,17 @@ function CustomerDashboard() {
         </header>
         <div>
           <strong>Your default shipping address:</strong>
-          <p>{customerName}</p>
-          <p>{deliveryAddress}</p>
-          <p>{customerPhone}</p>
+          <p>
+            {defaultAddress
+              ? `${defaultAddress.firstName} ${defaultAddress.lastName}`.trim()
+              : customerName}
+          </p>
+          <p>
+            {defaultAddress
+              ? `${defaultAddress.address}, ${defaultAddress.city}, ${defaultAddress.region}`
+              : deliveryAddress}
+          </p>
+          <p>{defaultAddress?.phone || customerPhone}</p>
         </div>
       </article>
 
@@ -176,17 +340,6 @@ function CustomerDashboard() {
         </div>
       </article>
 
-      <article className="overview-card">
-        <header>
-          <h3>Newsletter Preferences</h3>
-        </header>
-        <div>
-          <p>Manage your email communications and product updates.</p>
-          <button type="button" onClick={() => changeView("newsletter")}>
-            Edit Newsletter Preferences
-          </button>
-        </div>
-      </article>
     </div>
   );
 
@@ -208,35 +361,6 @@ function CustomerDashboard() {
                 <span>{order.status || "Pending"}</span>
               </div>
             </article>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderWishlist = () => (
-    <div className="dashboard-panel">
-      <h3>Wishlist</h3>
-      {wishlist.length === 0 ? (
-        <p className="dashboard-empty">Your wishlist is empty.</p>
-      ) : (
-        <div className="compact-product-list">
-          {wishlist.map((item) => (
-            <Link to={`/product/${item.id}`} key={item.id}>
-              <img
-                src={optimizeSupabaseImage(item.thumbnail_url || item.image_url, {
-                  width: 260,
-                  height: 260,
-                  quality: 70,
-                })}
-                alt={item.name}
-                loading="lazy"
-                decoding="async"
-                width="260"
-                height="260"
-              />
-              <span>{item.name}</span>
-            </Link>
           ))}
         </div>
       )}
@@ -272,6 +396,148 @@ function CustomerDashboard() {
     </div>
   );
 
+  const renderAddressBook = () => (
+    <div className="dashboard-panel address-book-panel">
+      <div className="address-book-header">
+        <div>
+          <h3>Address Book</h3>
+          <p>Manage delivery addresses for future orders.</p>
+        </div>
+        <button type="button" onClick={startAddAddress}>
+          Add Address
+        </button>
+      </div>
+
+      {addressMessage && <div className="address-alert">{addressMessage}</div>}
+
+      {addressBook.length === 0 && !editingAddressId ? (
+        <div className="address-empty-card">
+          <p>No saved address yet.</p>
+          <button type="button" onClick={startAddAddress}>
+            Add Your First Address
+          </button>
+        </div>
+      ) : (
+        <div className="address-card-grid">
+          {addressBook.map((address) => (
+            <article className="saved-address-card" key={address.id}>
+              <div>
+                <strong>
+                  {`${address.firstName} ${address.lastName}`.trim()}
+                  {address.isDefault && <span>Default</span>}
+                </strong>
+                <p>{address.phone}</p>
+                {address.additionalPhone && <p>{address.additionalPhone}</p>}
+                <p>{address.address}</p>
+                <p>
+                  {address.city}, {address.region}
+                </p>
+                {address.note && <small>{address.note}</small>}
+              </div>
+
+              <div className="address-card-actions">
+                {!address.isDefault && (
+                  <button type="button" onClick={() => makeDefaultAddress(address)}>
+                    Make Default
+                  </button>
+                )}
+                <button type="button" onClick={() => startEditAddress(address)}>
+                  Edit
+                </button>
+                <button type="button" onClick={() => removeAddress(address.id)}>
+                  Remove
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {editingAddressId && (
+        <form className="address-form" onSubmit={saveAddress}>
+          <h4>{editingAddressId === "new" ? "Add Address" : "Edit Address"}</h4>
+
+          <div className="address-form-grid">
+            <label>
+              Region
+              <input
+                value={addressForm.region}
+                onChange={(e) => updateAddressField("region", e.target.value)}
+              />
+            </label>
+            <label>
+              City
+              <input
+                value={addressForm.city}
+                onChange={(e) => updateAddressField("city", e.target.value)}
+              />
+            </label>
+            <label>
+              First Name
+              <input
+                value={addressForm.firstName}
+                onChange={(e) => updateAddressField("firstName", e.target.value)}
+              />
+            </label>
+            <label>
+              Last Name
+              <input
+                value={addressForm.lastName}
+                onChange={(e) => updateAddressField("lastName", e.target.value)}
+              />
+            </label>
+            <label>
+              Phone Number
+              <input
+                value={addressForm.phone}
+                onChange={(e) => updateAddressField("phone", e.target.value)}
+              />
+            </label>
+            <label>
+              Additional Phone
+              <input
+                value={addressForm.additionalPhone}
+                onChange={(e) =>
+                  updateAddressField("additionalPhone", e.target.value)
+                }
+              />
+            </label>
+            <label className="address-wide">
+              Address
+              <input
+                value={addressForm.address}
+                onChange={(e) => updateAddressField("address", e.target.value)}
+              />
+            </label>
+            <label className="address-wide">
+              Additional Information
+              <input
+                value={addressForm.note}
+                onChange={(e) => updateAddressField("note", e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label className="default-address-check">
+            <input
+              type="checkbox"
+              checked={addressForm.isDefault}
+              onChange={(e) => updateAddressField("isDefault", e.target.checked)}
+            />
+            Use as default shipping address
+          </label>
+
+          <div className="address-form-actions">
+            <button type="button" onClick={cancelAddressForm}>
+              Cancel
+            </button>
+            <button type="submit">Save Address</button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+
   const renderSimplePanel = (title, body) => (
     <div className="dashboard-panel">
       <h3>{title}</h3>
@@ -281,24 +547,12 @@ function CustomerDashboard() {
 
   const renderActiveContent = () => {
     if (activeView === "orders") return renderOrders();
-    if (activeView === "wishlist") return renderWishlist();
     if (activeView === "recently-viewed") return renderRecent();
     if (activeView === "address") {
-      return renderSimplePanel(
-        "Address Book",
-        deliveryAddress === "No default address yet."
-          ? "Your delivery address will appear here after your first successful order."
-          : deliveryAddress
-      );
+      return renderAddressBook();
     }
     if (activeView === "profile") {
       return renderSimplePanel("Account Management", `${customerName} • ${user?.email}`);
-    }
-    if (activeView === "payment") {
-      return renderSimplePanel("Payment Settings", "Online payment setup is not enabled yet.");
-    }
-    if (activeView === "newsletter") {
-      return renderSimplePanel("Newsletter Preferences", "You are subscribed to store updates.");
     }
     if (activeView === "close") {
       return renderSimplePanel("Close Account", "Contact support if you want to close your account.");
@@ -336,7 +590,6 @@ function CustomerDashboard() {
               <span>{item.icon}</span>
               {item.label}
               {item.view === "orders" && pendingOrders > 0 && <em>{pendingOrders}</em>}
-              {item.view === "wishlist" && wishlist.length > 0 && <em>{wishlist.length}</em>}
             </button>
           ))}
 
