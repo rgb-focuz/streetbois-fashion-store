@@ -9,6 +9,7 @@ import {
   defaultStoreSettings,
   fetchStoreSettings,
 } from "../utils/storeSettings";
+import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/cart.css";
 
 function Cart() {
@@ -60,11 +61,19 @@ function Cart() {
   );
 
   const getProductImage = (item) =>
-    item?.image_url ||
-    item?.image ||
-    item?.product_image ||
-    item?.main_image ||
-    "";
+    optimizeSupabaseImage(
+      item?.thumbnail_url ||
+        item?.image_url ||
+        item?.image ||
+        item?.product_image ||
+        item?.main_image ||
+        "",
+      {
+        width: 240,
+        height: 240,
+        quality: 70,
+      }
+    );
 
   const saveCart = (updatedCart) => {
     setCart(updatedCart);
@@ -374,6 +383,8 @@ Please confirm my order.`;
                       alt={item.name || "Product"}
                       loading="lazy"
                       decoding="async"
+                      width="240"
+                      height="240"
                     />
 
                     <div className="cart-details">

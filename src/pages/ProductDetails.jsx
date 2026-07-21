@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 import { supabase } from "../supabaseClient";
+import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/productDetails.css";
 
 function ProductDetails() {
@@ -126,6 +127,12 @@ function ProductDetails() {
   const displayName = product
     ? formatProductName(product.name, product.category)
     : "Product";
+  const productDetailImage = optimizeSupabaseImage(product?.image_url, {
+    width: 1100,
+    height: 825,
+    quality: 78,
+    resize: "contain",
+  });
 
   const storeSettings = { store_name: "StreetBois Fashion" };
 
@@ -307,7 +314,15 @@ Please assist me with this order.`
 
       <section className="product-details-page">
         <div className="product-details-image">
-          <img src={product.image_url} alt={displayName} decoding="async" />
+          <img
+            src={productDetailImage || product.image_url}
+            alt={displayName}
+            decoding="async"
+            fetchPriority="high"
+            width="1100"
+            height="825"
+            sizes="(max-width: 900px) 100vw, 50vw"
+          />
         </div>
 
         <div className="product-details-info">

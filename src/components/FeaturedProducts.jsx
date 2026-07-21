@@ -7,7 +7,9 @@ const getSupabase = async () => {
   return module.supabase;
 };
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 12;
+const PRODUCT_CARD_FIELDS =
+  "id,name,category,price,image_url,stock,in_stock,status,featured,created_at";
 
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
@@ -26,7 +28,7 @@ function FeaturedProducts() {
 
     const { data, error, count } = await supabase
       .from("products")
-      .select("*", { count: "exact" })
+      .select(PRODUCT_CARD_FIELDS, { count: "exact" })
       .eq("status", "Active")
       .order("created_at", { ascending: false })
       .range(from, to);

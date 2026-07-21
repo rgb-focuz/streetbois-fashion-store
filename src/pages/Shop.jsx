@@ -6,7 +6,9 @@ import ProductCard from "../components/ProductCard";
 import { supabase } from "../supabaseClient";
 import "../styles/shop.css";
 
-const PAGE_SIZE = 48;
+const PAGE_SIZE = 24;
+const PRODUCT_CARD_FIELDS =
+  "id,name,category,price,image_url,stock,in_stock,status,featured,created_at";
 
 const CATEGORIES = [
   "All",
@@ -76,7 +78,7 @@ function Shop() {
   const buildProductQuery = useCallback(() => {
     let query = supabase
       .from("products")
-      .select("*", { count: "exact" })
+      .select(PRODUCT_CARD_FIELDS, { count: "exact" })
       .order("created_at", { ascending: false });
 
     if (activeCategory !== "All") {

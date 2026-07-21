@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { supabase } from "../supabaseClient";
+import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/customerDashboard.css";
 
 const accountLinks = [
@@ -222,7 +223,18 @@ function CustomerDashboard() {
         <div className="compact-product-list">
           {wishlist.map((item) => (
             <Link to={`/product/${item.id}`} key={item.id}>
-              <img src={item.image_url} alt={item.name} />
+              <img
+                src={optimizeSupabaseImage(item.thumbnail_url || item.image_url, {
+                  width: 260,
+                  height: 260,
+                  quality: 70,
+                })}
+                alt={item.name}
+                loading="lazy"
+                decoding="async"
+                width="260"
+                height="260"
+              />
               <span>{item.name}</span>
             </Link>
           ))}
@@ -240,7 +252,18 @@ function CustomerDashboard() {
         <div className="compact-product-list">
           {recentlyViewed.map((item) => (
             <Link to={`/product/${item.id}`} key={item.id}>
-              <img src={item.image_url} alt={item.name} />
+              <img
+                src={optimizeSupabaseImage(item.thumbnail_url || item.image_url, {
+                  width: 260,
+                  height: 260,
+                  quality: 70,
+                })}
+                alt={item.name}
+                loading="lazy"
+                decoding="async"
+                width="260"
+                height="260"
+              />
               <span>{item.name}</span>
             </Link>
           ))}

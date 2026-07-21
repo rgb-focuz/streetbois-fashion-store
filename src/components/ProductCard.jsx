@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/productCard.css";
 
 function ProductCard({ product, showWhatsApp = true }) {
@@ -10,6 +11,11 @@ function ProductCard({ product, showWhatsApp = true }) {
     product.product_image ||
     product.main_image ||
     "";
+  const productThumbnail = optimizeSupabaseImage(productImage, {
+    width: 420,
+    height: 420,
+    quality: 70,
+  });
 
   const formatProductName = (name, category) => {
     const normalizedName = String(name || "").trim();
@@ -44,6 +50,7 @@ function ProductCard({ product, showWhatsApp = true }) {
                 ...item,
                 quantity: Number(item.quantity || 1) + 1,
                 image_url: item.image_url || productImage,
+                thumbnail_url: item.thumbnail_url || productThumbnail,
               }
             : item
         )
@@ -53,6 +60,7 @@ function ProductCard({ product, showWhatsApp = true }) {
             ...product,
             quantity: 1,
             image_url: productImage,
+            thumbnail_url: productThumbnail,
           },
         ];
 
@@ -70,7 +78,15 @@ function ProductCard({ product, showWhatsApp = true }) {
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
-        <img src={productImage} alt={displayName} loading="lazy" decoding="async" />
+        <img
+          src={productThumbnail || productImage}
+          alt={displayName}
+          loading="lazy"
+          decoding="async"
+          width="420"
+          height="420"
+          sizes="(max-width: 768px) 50vw, 220px"
+        />
       </div>
 
       <div className="universal-product-info">

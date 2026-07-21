@@ -43,9 +43,19 @@ function Hero() {
         <div
           className="hero-stage"
           style={{
-            backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.52), rgba(0,0,0,.1)), url(${banners[current]})`,
+            backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.52), rgba(0,0,0,.1))",
           }}
         >
+          <img
+            className="hero-banner-image"
+            src={banners[current]}
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            width="1200"
+            height="720"
+          />
+
           <div className="hero-content">
             <span>Premium Ghanaian Fashion Store</span>
             <h1>Crazy Fashion Deals</h1>

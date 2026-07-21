@@ -1015,8 +1015,40 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     setRows(rows.filter((_, i) => i !== index));
   };
 
+  const optimizeUploadImage = async (file, { maxSize = 1600, quality = 0.82 } = {}) => {
+    if (!file?.type?.startsWith("image/") || file.type === "image/svg+xml") {
+      return file;
+    }
+
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+
+    context.drawImage(bitmap, 0, 0, width, height);
+
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/webp", quality);
+    });
+
+    bitmap.close?.();
+
+    if (!blob || blob.size >= file.size) return file;
+
+    return new File(
+      [blob],
+      `${file.name.replace(/\.[^.]+$/, "")}.webp`,
+      { type: "image/webp" }
+    );
+  };
+
   const uploadImage = async (file, category) => {
-    const fileExt = file.name.split(".").pop();
+    const optimizedFile = await optimizeUploadImage(file);
+    const fileExt = optimizedFile.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     const folder = category.toLowerCase().replaceAll(" ", "-");
@@ -1024,7 +1056,9 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
     const { error } = await supabase.storage
       .from("product-images")
-      .upload(filePath, file);
+      .upload(filePath, optimizedFile, {
+        contentType: optimizedFile.type || "image/webp",
+      });
 
     if (error) throw error;
 
@@ -1036,14 +1070,17 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
   };
 
   const uploadCollectionImage = async (file) => {
-    const fileExt = file.name.split(".").pop();
+    const optimizedFile = await optimizeUploadImage(file, { maxSize: 1200, quality: 0.8 });
+    const fileExt = optimizedFile.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     const filePath = `collections/${fileName}`;
 
     const { error } = await supabase.storage
       .from("category-images")
-      .upload(filePath, file);
+      .upload(filePath, optimizedFile, {
+        contentType: optimizedFile.type || "image/webp",
+      });
 
     if (error) throw error;
 
