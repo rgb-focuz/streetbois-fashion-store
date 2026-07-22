@@ -168,6 +168,8 @@ const [physicalSaleLoadingId, setPhysicalSaleLoadingId] = useState("");
   };
 
   const formatOrderReference = (order) => {
+    if (order?.order_reference) return order.order_reference;
+
     const firstItemName = order?.items?.[0]?.name || "ORDER";
     const productCode =
       String(firstItemName)

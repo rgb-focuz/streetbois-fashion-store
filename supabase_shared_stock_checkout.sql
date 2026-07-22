@@ -4,6 +4,87 @@
 -- Products with the same name + category + price are treated as one inventory
 -- group. Example: four JOGGERS rows at GH₵250 share one stock number.
 
+alter table public.orders
+add column if not exists order_reference text;
+
+create unique index if not exists orders_order_reference_unique
+on public.orders (order_reference)
+where order_reference is not null;
+
+create table if not exists public.order_reference_counters (
+  product_prefix text primary key,
+  next_number integer not null default 1,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.order_reference_counters enable row level security;
+
+with numbered_orders as (
+  select
+    id,
+    coalesce(
+      nullif(
+        trim(
+          both '-' from left(
+            regexp_replace(
+              upper(coalesce(items->0->>'name', 'ORDER')),
+              '[^A-Z0-9]+',
+              '-',
+              'g'
+            ),
+            16
+          )
+        ),
+        ''
+      ),
+      'ORDER'
+    ) as product_prefix,
+    row_number() over (
+      partition by coalesce(
+        nullif(
+          trim(
+            both '-' from left(
+              regexp_replace(
+                upper(coalesce(items->0->>'name', 'ORDER')),
+                '[^A-Z0-9]+',
+                '-',
+                'g'
+              ),
+              16
+            )
+          ),
+          ''
+        ),
+        'ORDER'
+      )
+      order by created_at, id
+    ) as reference_number
+  from public.orders
+  where order_reference is null
+)
+update public.orders as existing_order
+set order_reference =
+  numbered_orders.product_prefix ||
+  '-' ||
+  lpad(numbered_orders.reference_number::text, 5, '0')
+from numbered_orders
+where existing_order.id = numbered_orders.id;
+
+insert into public.order_reference_counters (product_prefix, next_number)
+select
+  regexp_replace(order_reference, '-[0-9]+$', '') as product_prefix,
+  coalesce(max((substring(order_reference from '-([0-9]+)$'))::integer), 0) + 1 as next_number
+from public.orders
+where order_reference is not null
+group by regexp_replace(order_reference, '-[0-9]+$', '')
+on conflict (product_prefix) do update
+set
+  next_number = greatest(
+    public.order_reference_counters.next_number,
+    excluded.next_number
+  ),
+  updated_at = now();
+
 create or replace function public.create_secure_order(
   p_customer_name text,
   p_customer_phone text,
@@ -27,6 +108,9 @@ declare
   order_items jsonb;
   order_total numeric;
   new_order_id uuid;
+  order_prefix text;
+  next_reference_number integer;
+  new_order_reference text;
 begin
   if length(trim(coalesce(p_customer_name, ''))) < 2 then
     raise exception 'Invalid customer name.';
@@ -177,6 +261,36 @@ begin
   into order_items
   from checkout_order_lines;
 
+  order_prefix :=
+    coalesce(
+      nullif(
+        trim(
+          both '-' from left(
+            regexp_replace(
+              upper(coalesce(order_items->0->>'name', 'ORDER')),
+              '[^A-Z0-9]+',
+              '-',
+              'g'
+            ),
+            16
+          )
+        ),
+        ''
+      ),
+      'ORDER'
+    );
+
+  insert into public.order_reference_counters (product_prefix, next_number)
+  values (order_prefix, 2)
+  on conflict (product_prefix) do update
+  set
+    next_number = public.order_reference_counters.next_number + 1,
+    updated_at = now()
+  returning next_number - 1 into next_reference_number;
+
+  new_order_reference :=
+    order_prefix || '-' || lpad(next_reference_number::text, 5, '0');
+
   insert into orders (
     customer_name,
     customer_phone,
@@ -184,7 +298,8 @@ begin
     delivery_address,
     items,
     total,
-    status
+    status,
+    order_reference
   )
   values (
     trim(p_customer_name),
@@ -193,7 +308,8 @@ begin
     trim(p_delivery_address),
     order_items,
     order_total,
-    'Pending'
+    'Pending',
+    new_order_reference
   )
   returning id into new_order_id;
 
@@ -263,6 +379,7 @@ begin
   return jsonb_build_object(
     'success', true,
     'order_id', new_order_id,
+    'order_reference', new_order_reference,
     'items', order_items,
     'total', order_total
   );

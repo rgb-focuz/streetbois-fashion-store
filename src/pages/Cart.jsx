@@ -154,6 +154,10 @@ function Cart() {
   };
 
   const formatOrderReference = (orderId, items = []) => {
+    if (typeof orderId === "object" && orderId?.order_reference) {
+      return orderId.order_reference;
+    }
+
     const firstItemName = items[0]?.name || "ORDER";
     const productCode =
       String(firstItemName)
@@ -174,8 +178,10 @@ function Cart() {
     trustedItems,
     trustedTotal,
     orderId,
+    orderReference,
   }) => {
-    const orderReference = formatOrderReference(orderId, trustedItems);
+    const finalOrderReference =
+      orderReference || formatOrderReference(orderId, trustedItems);
     const itemMessage = trustedItems
       .map(
         (item, index) =>
@@ -191,7 +197,7 @@ Product Image: ${item.image_url || "No image available"}`
 
 I have placed an order.
 
-Order ID: ${orderReference}
+Order ID: ${finalOrderReference}
 
 Customer Details:
 Name: ${customer.name.trim()}
@@ -298,6 +304,7 @@ Please confirm my order.`;
         trustedItems,
         trustedTotal,
         orderId: data.order_id,
+        orderReference: data.order_reference,
       });
 
       localStorage.removeItem("streetbois-cart");
