@@ -6,6 +6,7 @@ import "../styles/riderTracking.css";
 function RiderTracking() {
   const { orderId, token } = useParams();
   const watchIdRef = useRef(null);
+  const savingLocationRef = useRef(false);
   const [order, setOrder] = useState(null);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("Loading delivery...");
@@ -56,10 +57,13 @@ function RiderTracking() {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
+      savingLocationRef.current = false;
     };
   }, [orderId, token]);
 
   const sendLocation = async (position) => {
+    if (savingLocationRef.current) return;
+
     const coords = position.coords;
     const lat = Number(coords.latitude);
     const lng = Number(coords.longitude);
@@ -79,33 +83,52 @@ function RiderTracking() {
       return;
     }
 
+    savingLocationRef.current = true;
     setSaving(true);
-
-    const { error } = await supabase.rpc("update_delivery_live_location", {
-      p_order_id: orderId,
-      p_tracking_token: token,
-      p_lat: lat,
-      p_lng: lng,
-      p_accuracy: coords.accuracy,
-    });
-
-    setSaving(false);
-
-    if (error) {
-      setMessage(error.message || "Could not update live location.");
-      setStatus("Location update failed");
-      return;
-    }
 
     setLastLocation({
       lat,
       lng,
       accuracy: coords.accuracy,
       time: new Date().toLocaleTimeString(),
+      saved: false,
     });
-    setMessage("");
-    setStatus("Live GPS is active");
-    setSharing(true);
+
+    try {
+      const { error } = await supabase.rpc("update_delivery_live_location", {
+        p_order_id: orderId,
+        p_tracking_token: token,
+        p_lat: lat,
+        p_lng: lng,
+        p_accuracy: coords.accuracy,
+      });
+
+      if (error) {
+        setMessage(error.message || "Could not update live location.");
+        setStatus("Location update failed");
+        return;
+      }
+
+      setLastLocation({
+        lat,
+        lng,
+        accuracy: coords.accuracy,
+        time: new Date().toLocaleTimeString(),
+        saved: true,
+      });
+      setMessage("");
+      setStatus("Live GPS is active");
+      setSharing(true);
+    } catch {
+      setMessage(
+        "Network problem while saving GPS. Keep this page open; the next location update will retry automatically."
+      );
+      setStatus("Retrying GPS save");
+      setSharing(true);
+    } finally {
+      savingLocationRef.current = false;
+      setSaving(false);
+    }
   };
 
   const startSharing = () => {
@@ -214,6 +237,11 @@ function RiderTracking() {
                   Accuracy: {Math.round(lastLocation.accuracy || 0)}m ·{" "}
                   {lastLocation.time}
                 </small>
+                <em>
+                  {lastLocation.saved
+                    ? "Saved to customer tracking page"
+                    : "Phone location received, waiting to save online"}
+                </em>
               </div>
             )}
 

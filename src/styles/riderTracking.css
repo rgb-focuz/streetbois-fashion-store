@@ -96,6 +96,14 @@
   margin-top: 6px;
 }
 
+.rider-live-box em {
+  color: #22c55e;
+  display: block;
+  font-style: normal;
+  font-weight: 900;
+  margin-top: 8px;
+}
+
 .rider-alert {
   background: #fff7e8;
   border: 1px solid #fed7aa;
