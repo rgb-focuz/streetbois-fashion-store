@@ -79,6 +79,7 @@ function Shop() {
     let query = supabase
       .from("products")
       .select(PRODUCT_CARD_FIELDS, { count: "exact" })
+      .eq("status", "Active")
       .order("created_at", { ascending: false });
 
     if (activeCategory !== "All") {

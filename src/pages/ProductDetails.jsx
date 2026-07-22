@@ -61,6 +61,7 @@ function ProductDetails() {
       .from("products")
       .select("*")
       .eq("id", id)
+      .eq("status", "Active")
       .single();
 
     if (!error && data) {
