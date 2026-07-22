@@ -314,16 +314,22 @@ Please assist me with this order.`
       <Navbar />
 
       <section className="product-details-page">
-        <div className="product-details-image">
-          <img
-            src={productDetailImage || product.image_url}
-            alt={displayName}
-            decoding="async"
-            fetchPriority="high"
-            width="1100"
-            height="825"
-            sizes="(max-width: 900px) 100vw, 50vw"
-          />
+        <div className="product-gallery-panel">
+          <div className="product-details-image">
+            <img
+              src={productDetailImage || product.image_url}
+              alt={displayName}
+              decoding="async"
+              fetchPriority="high"
+              width="1100"
+              height="825"
+              sizes="(max-width: 900px) 100vw, 50vw"
+            />
+          </div>
+          <div className="product-gallery-note">
+            <span>StreetBois Fashion</span>
+            <strong>{product.category || "Product"}</strong>
+          </div>
         </div>
 
         <div className="product-details-info">
@@ -339,6 +345,10 @@ Please assist me with this order.`
             <span>★★★★★</span>
             <small>{reviews.length} reviews</small>
           </div>
+
+          {product.description && (
+            <p className="product-description">{product.description}</p>
+          )}
 
           {hasSizeStock && (
             <div className="details-size-box">
