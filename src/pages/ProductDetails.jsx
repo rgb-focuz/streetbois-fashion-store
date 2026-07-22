@@ -326,25 +326,41 @@ Please assist me with this order.`
               sizes="(max-width: 900px) 100vw, 50vw"
             />
           </div>
-          <div className="product-gallery-note">
-            <span>StreetBois Fashion</span>
-            <strong>{product.category || "Product"}</strong>
+          <div className="product-thumbnail-row">
+            <button type="button" className="active-thumb">
+              <img src={productDetailImage || product.image_url} alt={displayName} />
+            </button>
+          </div>
+          <div className="product-share-strip">
+            <strong>Share this product</strong>
+            <div>
+              <button type="button" aria-label="Share on Facebook">f</button>
+              <button type="button" aria-label="Share on X">x</button>
+              <button type="button" aria-label="Share on WhatsApp">w</button>
+            </div>
           </div>
         </div>
 
         <div className="product-details-info">
         
-          <h1>{displayName}</h1>
+          <div className="product-title-row">
+            <h1>{displayName}</h1>
+            <button type="button" aria-label="Save product">♡</button>
+          </div>
 
 
           <h2>GH₵ {product.price}</h2>
-          <p className="product-category">{product.category}</p>
+          <p className="product-order-help">
+            Need advice or assistance to place an order? Contact us at 0202430406
+          </p>
 
           <div className="details-rating-inline">
             <strong>{averageRating}</strong>
             <span>★★★★★</span>
-            <small>{reviews.length} reviews</small>
+            <small>{reviews.length} verified ratings</small>
           </div>
+
+          <p className="product-category">{product.category}</p>
 
           {product.description && (
             <p className="product-description">{product.description}</p>
@@ -467,6 +483,59 @@ Please assist me with this order.`
   </button>
 </div>
         </div>
+
+        <aside className="product-service-panel">
+          <section>
+            <h3>Delivery & Returns</h3>
+
+            <div className="service-choice">
+              <strong>Choose your location</strong>
+              <select defaultValue="Greater Accra" aria-label="Region">
+                <option>Greater Accra</option>
+                <option>Ashanti Region</option>
+                <option>Central Region</option>
+              </select>
+              <select defaultValue="Tudu" aria-label="Area">
+                <option>Tudu</option>
+                <option>Accra Central</option>
+                <option>Kumasi</option>
+              </select>
+            </div>
+
+            <div className="service-row">
+              <span>P</span>
+              <div>
+                <strong>Pickup Station</strong>
+                <p>Pickup available from our shop after confirmation.</p>
+              </div>
+            </div>
+
+            <div className="service-row">
+              <span>D</span>
+              <div>
+                <strong>Door Delivery</strong>
+                <p>Delivery fee is confirmed after the order address is reviewed.</p>
+              </div>
+            </div>
+
+            <div className="service-row">
+              <span>R</span>
+              <div>
+                <strong>Return Policy</strong>
+                <p>Return requests are reviewed by the sales team.</p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h3>Seller Information</h3>
+            <div className="seller-card">
+              <strong>StreetBois Fashion</strong>
+              <p>{product.category || "Fashion"} specialist</p>
+              <p>0202430406</p>
+            </div>
+          </section>
+        </aside>
       </section>
 
       {relatedProducts.length > 0 && (
