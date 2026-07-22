@@ -434,7 +434,14 @@ function CustomerDashboard() {
       status === "Cancelled" ? -1 : orderStatusSteps.indexOf(status);
     const liveLat = Number(order.live_lat);
     const liveLng = Number(order.live_lng);
-    const hasLiveLocation = Number.isFinite(liveLat) && Number.isFinite(liveLng);
+    const hasLiveLocation =
+      Number.isFinite(liveLat) &&
+      Number.isFinite(liveLng) &&
+      liveLat >= -90 &&
+      liveLat <= 90 &&
+      liveLng >= -180 &&
+      liveLng <= 180 &&
+      !(liveLat === 0 && liveLng === 0);
     const mapZoomOffset = 0.01;
     const liveMapUrl = hasLiveLocation
       ? `https://www.openstreetmap.org/export/embed.html?bbox=${liveLng - mapZoomOffset}%2C${liveLat - mapZoomOffset}%2C${liveLng + mapZoomOffset}%2C${liveLat + mapZoomOffset}&layer=mapnik&marker=${liveLat}%2C${liveLng}`
@@ -513,7 +520,7 @@ function CustomerDashboard() {
           </p>
         </div>
 
-        {hasLiveLocation && (
+        {hasLiveLocation ? (
           <div className="live-map-panel">
             <div>
               <strong>Live Rider Location</strong>
@@ -531,6 +538,10 @@ function CustomerDashboard() {
             <small>
               Showing the rider's last shared GPS point. Use Open Map for directions.
             </small>
+          </div>
+        ) : (
+          <div className="tracking-location-waiting">
+            Live map will appear after the rider shares a valid GPS location.
           </div>
         )}
 

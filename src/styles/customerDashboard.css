@@ -373,6 +373,14 @@
   line-height: 1.45;
 }
 
+.tracking-location-waiting {
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  color: #92400e;
+  font-weight: 900;
+  padding: 16px 18px;
+}
+
 .confirm-received-btn {
   background: #16a34a;
   border: 0;

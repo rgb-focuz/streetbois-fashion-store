@@ -61,13 +61,31 @@ function RiderTracking() {
 
   const sendLocation = async (position) => {
     const coords = position.coords;
+    const lat = Number(coords.latitude);
+    const lng = Number(coords.longitude);
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180 ||
+      (lat === 0 && lng === 0)
+    ) {
+      setMessage("The phone returned an invalid GPS point. Please turn on location services and try again.");
+      setStatus("Waiting for valid GPS");
+      setSharing(false);
+      return;
+    }
+
     setSaving(true);
 
     const { error } = await supabase.rpc("update_delivery_live_location", {
       p_order_id: orderId,
       p_tracking_token: token,
-      p_lat: coords.latitude,
-      p_lng: coords.longitude,
+      p_lat: lat,
+      p_lng: lng,
       p_accuracy: coords.accuracy,
     });
 
@@ -80,8 +98,8 @@ function RiderTracking() {
     }
 
     setLastLocation({
-      lat: coords.latitude,
-      lng: coords.longitude,
+      lat,
+      lng,
       accuracy: coords.accuracy,
       time: new Date().toLocaleTimeString(),
     });
