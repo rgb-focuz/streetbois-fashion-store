@@ -19,6 +19,7 @@ function Cart() {
   const [orderMessage, setOrderMessage] = useState("");
   const [orderSalesReps, setOrderSalesReps] = useState([]);
   const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
+  const [paymentMethod, setPaymentMethod] = useState("pay-on-delivery");
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -26,6 +27,43 @@ function Cart() {
     email: "",
     address: "",
   });
+
+  const paymentMethods = [
+    {
+      id: "pay-on-delivery",
+      label: "Pay on Delivery",
+      note: "Pay after the shop confirms your order and delivery.",
+      badge: "Cash / MoMo",
+    },
+    {
+      id: "card",
+      label: "Pay with Card",
+      note: "Card payment will be confirmed by our sales team before dispatch.",
+      badge: "Visa / Mastercard",
+    },
+    {
+      id: "mtn-momo",
+      label: "MTN Mobile Money",
+      note: "Use your MTN MoMo number for payment confirmation.",
+      badge: "MTN",
+    },
+    {
+      id: "airteltigo-money",
+      label: "AirtelTigo Money",
+      note: "Use your AirtelTigo Money number for payment confirmation.",
+      badge: "AT",
+    },
+    {
+      id: "telecel-cash",
+      label: "Telecel Cash",
+      note: "Use your Telecel Cash number for payment confirmation.",
+      badge: "Telecel",
+    },
+  ];
+
+  const selectedPaymentMethod =
+    paymentMethods.find((method) => method.id === paymentMethod) ||
+    paymentMethods[0];
 
   useEffect(() => {
     const loadCart = () => {
@@ -210,6 +248,8 @@ Order Items:
 ${itemMessage}
 
 Verified Total: GH₵ ${Number(trustedTotal).toFixed(2)}
+
+Payment Method: ${selectedPaymentMethod.label}
 
 Please confirm my order.`;
   };
@@ -510,6 +550,43 @@ Please confirm my order.`;
               }
               required
             />
+
+            <div className="payment-methods">
+              <div className="payment-methods-head">
+                <span>3. Payment Method</span>
+                <small>Choose how you want to pay</small>
+              </div>
+
+              <div className="payment-method-list">
+                {paymentMethods.map((method) => (
+                  <label
+                    className={`payment-method-card ${
+                      paymentMethod === method.id ? "selected" : ""
+                    }`}
+                    key={method.id}
+                  >
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value={method.id}
+                      checked={paymentMethod === method.id}
+                      onChange={() => setPaymentMethod(method.id)}
+                    />
+                    <span>
+                      <strong>{method.label}</strong>
+                      <small>{method.note}</small>
+                    </span>
+                    <em>{method.badge}</em>
+                  </label>
+                ))}
+              </div>
+
+              <p>
+                Online card and mobile money charging will be activated after a
+                payment provider is connected. For now, your selected method is
+                sent with the order for confirmation.
+              </p>
+            </div>
 
             <div className="cart-total">
               <span>Estimated total</span>
