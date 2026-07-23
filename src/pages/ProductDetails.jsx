@@ -7,6 +7,25 @@ import { supabase } from "../supabaseClient";
 import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/productDetails.css";
 
+const GHANA_LOCATIONS = {
+  Ahafo: ["Goaso", "Kenyasi", "Hwidiem", "Bechem", "Mim", "Kukuom"],
+  Ashanti: ["Kumasi", "Obuasi", "Ejisu", "Mampong", "Konongo", "Bekwai", "Agogo", "Offinso"],
+  Bono: ["Sunyani", "Berekum", "Dormaa Ahenkro", "Wenchi", "Drobo", "Sampa"],
+  "Bono East": ["Techiman", "Kintampo", "Atebubu", "Nkoranza", "Yeji", "Prang"],
+  Central: ["Cape Coast", "Kasoa", "Winneba", "Mankessim", "Swedru", "Elmina", "Dunkwa-On-Offin"],
+  Eastern: ["Koforidua", "Akosombo", "Nkawkaw", "Suhum", "Nsawam", "Akim Oda", "Somanya"],
+  "Greater Accra": ["Tudu", "Accra Central", "Osu", "Madina", "Tema", "Ashaiman", "Adenta", "East Legon", "Kasoa"],
+  "North East": ["Nalerigu", "Walewale", "Gambaga", "Bunkpurugu", "Chereponi", "Yagaba"],
+  Northern: ["Tamale", "Yendi", "Savelugu", "Gushegu", "Bimbilla", "Karaga"],
+  Oti: ["Dambai", "Kete Krachi", "Nkwanta", "Jasikan", "Kadjebi", "Chinderi"],
+  Savannah: ["Damongo", "Bole", "Salaga", "Buipe", "Sawla", "Daboya"],
+  "Upper East": ["Bolgatanga", "Navrongo", "Bawku", "Zebilla", "Paga", "Sandema"],
+  "Upper West": ["Wa", "Tumu", "Nandom", "Lawra", "Jirapa", "Gwollu"],
+  Volta: ["Ho", "Hohoe", "Keta", "Aflao", "Sogakope", "Kpando", "Anloga"],
+  Western: ["Takoradi", "Sekondi", "Tarkwa", "Axim", "Prestea", "Agona Nkwanta"],
+  "Western North": ["Sefwi Wiawso", "Bibiani", "Juaboso", "Enchi", "Awaso", "Sefwi Bekwai"],
+};
+
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -21,6 +40,8 @@ function ProductDetails() {
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("Greater Accra");
+  const [selectedTown, setSelectedTown] = useState("Tudu");
 
   useEffect(() => {
     if (product) {
@@ -86,6 +107,14 @@ function ProductDetails() {
     fetchProduct();
     fetchReviews();
   }, [fetchProduct, fetchReviews]);
+
+  useEffect(() => {
+    const towns = GHANA_LOCATIONS[selectedRegion] || [];
+
+    if (!towns.includes(selectedTown)) {
+      setSelectedTown(towns[0] || "");
+    }
+  }, [selectedRegion, selectedTown]);
 
   const sizeStock = product?.size_stock || {};
   const availableSizes = Object.keys(sizeStock);
@@ -490,15 +519,27 @@ Please assist me with this order.`
 
             <div className="service-choice">
               <strong>Choose your location</strong>
-              <select defaultValue="Greater Accra" aria-label="Region">
-                <option>Greater Accra</option>
-                <option>Ashanti Region</option>
-                <option>Central Region</option>
+              <select
+                aria-label="Region"
+                value={selectedRegion}
+                onChange={(event) => setSelectedRegion(event.target.value)}
+              >
+                {Object.keys(GHANA_LOCATIONS).map((region) => (
+                  <option key={region} value={region}>
+                    {region}
+                  </option>
+                ))}
               </select>
-              <select defaultValue="Tudu" aria-label="Area">
-                <option>Tudu</option>
-                <option>Accra Central</option>
-                <option>Kumasi</option>
+              <select
+                aria-label="Town or area"
+                value={selectedTown}
+                onChange={(event) => setSelectedTown(event.target.value)}
+              >
+                {(GHANA_LOCATIONS[selectedRegion] || []).map((town) => (
+                  <option key={town} value={town}>
+                    {town}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -506,7 +547,7 @@ Please assist me with this order.`
               <span>P</span>
               <div>
                 <strong>Pickup Station</strong>
-                <p>Pickup available from our shop after confirmation.</p>
+                <p>Pickup options will be confirmed for {selectedTown}, {selectedRegion}.</p>
               </div>
             </div>
 
@@ -514,7 +555,7 @@ Please assist me with this order.`
               <span>D</span>
               <div>
                 <strong>Door Delivery</strong>
-                <p>Delivery fee is confirmed after the order address is reviewed.</p>
+                <p>Delivery fee to {selectedTown}, {selectedRegion} is confirmed after checkout.</p>
               </div>
             </div>
 
