@@ -271,6 +271,38 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     return group ? group.label : "";
   };
 
+  const parseSizeList = (value) => {
+    const seenSizes = new Set();
+
+    return String(value || "")
+      .split(/[\n,;|]+/)
+      .map((size) => size.trim())
+      .filter(Boolean)
+      .filter((size) => {
+        const normalizedSize = size.toLowerCase();
+        if (seenSizes.has(normalizedSize)) return false;
+        seenSizes.add(normalizedSize);
+        return true;
+      });
+  };
+
+  const buildSizeRowsFromList = (value, currentRows = []) => {
+    const existingRows = Array.isArray(currentRows) ? currentRows : [];
+    const existingStockBySize = existingRows.reduce((stockMap, row) => {
+      const size = String(row.size || "").trim();
+      if (size) stockMap[size.toLowerCase()] = row.stock || "";
+      return stockMap;
+    }, {});
+
+    const rows = parseSizeList(value).map((size) => ({
+      size,
+      size_type: getSizeTypeFromSize(size),
+      stock: existingStockBySize[size.toLowerCase()] || "",
+    }));
+
+    return rows.length > 0 ? rows : [createEmptySizeRow()];
+  };
+
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-GB", {
@@ -1171,6 +1203,37 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
           ? { ...row, size_stock: updateStockForSize(row.size_stock, size, stock) }
           : row
       )
+    );
+  };
+
+  const replaceProductSizeRows = (productIndex, value) => {
+    setRows((currentRows) =>
+      currentRows.map((row, rowIndex) =>
+        rowIndex === productIndex
+          ? {
+              ...row,
+              size_stock: buildSizeRowsFromList(value, row.size_stock),
+            }
+          : row
+      )
+    );
+  };
+
+  const replaceBulkSizeRows = (value) => {
+    setBulkSettings((currentSettings) => ({
+      ...currentSettings,
+      size_stock: buildSizeRowsFromList(value, currentSettings.size_stock),
+    }));
+  };
+
+  const replaceEditingSizeRows = (value) => {
+    setEditingProduct((currentProduct) =>
+      currentProduct
+        ? {
+            ...currentProduct,
+            size_stock: buildSizeRowsFromList(value, currentProduct.size_stock),
+          }
+        : currentProduct
     );
   };
 
@@ -2457,16 +2520,36 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
     onChangeRow,
     onAddRow,
     onRemoveRow,
+    onReplaceRows,
     compact = false,
   }) => {
     const currentSizeRows =
       Array.isArray(sizeRows) && sizeRows.length > 0
         ? sizeRows
         : [createEmptySizeRow()];
+    const availableSizesValue = currentSizeRows
+      .map((row) => String(row.size || "").trim())
+      .filter(Boolean)
+      .join(", ");
+    const safeTitle = title.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
 
     return (
       <div className={`admin-size-stock-box dropdown ${compact ? "compact" : ""}`}>
         <p>{title}</p>
+
+        <label className="admin-size-list-field">
+          <span>Available sizes</span>
+          <input
+            type="text"
+            value={availableSizesValue}
+            onChange={(e) => onReplaceRows(e.target.value)}
+            placeholder="Type sizes e.g. 39, 43, 45, 46"
+          />
+        </label>
+
+        <small className="admin-size-list-help">
+          Enter the exact sizes for this product. Use commas to separate sizes.
+        </small>
 
         {currentSizeRows.map((sizeRow, sizeIndex) => {
           const selectedType =
@@ -2481,7 +2564,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                   onChangeRow(sizeIndex, "size_type", e.target.value)
                 }
               >
-                <option value="">Product Type</option>
+                <option value="">Optional preset</option>
                 {sizePresetGroups.map((group) => (
                   <option key={group.label} value={group.label}>
                     {group.label}
@@ -2489,20 +2572,25 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                 ))}
               </select>
 
-              <select
+              <input
+                type="text"
                 value={sizeRow.size || ""}
-                disabled={!selectedType}
                 onChange={(e) =>
                   onChangeRow(sizeIndex, "size", e.target.value)
                 }
-              >
-                <option value="">Size</option>
+                placeholder={
+                  sizeOptions.length > 0
+                    ? `Size e.g. ${sizeOptions.slice(0, 3).join(", ")}`
+                    : "Size e.g. 39"
+                }
+                list={`admin-size-options-${safeTitle}-${sizeIndex}`}
+              />
+
+              <datalist id={`admin-size-options-${safeTitle}-${sizeIndex}`}>
                 {sizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
+                  <option key={size} value={size} />
                 ))}
-              </select>
+              </datalist>
 
               <input
                 type="number"
@@ -2841,6 +2929,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
       onChangeRow: handleBulkSizeStockChange,
       onAddRow: addBulkSizeStockRow,
       onRemoveRow: removeBulkSizeStockRow,
+      onReplaceRows: replaceBulkSizeRows,
     })}
 
     <label className="bulk-checkbox">
@@ -3014,6 +3103,8 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                           onAddRow: () => addSizeStockRow(index),
                           onRemoveRow: (sizeIndex) =>
                             removeSizeStockRow(index, sizeIndex),
+                          onReplaceRows: (value) =>
+                            replaceProductSizeRows(index, value),
                           compact: true,
                         })}
                       </td>
@@ -4694,6 +4785,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                   onChangeRow: handleEditingSizeStockChange,
                   onAddRow: addEditingSizeStockRow,
                   onRemoveRow: removeEditingSizeStockRow,
+                  onReplaceRows: replaceEditingSizeRows,
                 })}
 
                 <input

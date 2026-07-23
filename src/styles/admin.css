@@ -3999,6 +3999,35 @@
   gap: 8px;
 }
 
+.admin-size-list-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-size-list-field span {
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-size-list-field input {
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  color: var(--admin-text);
+  font-weight: 800;
+  min-height: 48px;
+  padding: 0 14px;
+  width: 100%;
+}
+
+.admin-size-list-help {
+  color: var(--admin-muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .admin-size-stock-row {
   display: flex;
   gap: 8px;
