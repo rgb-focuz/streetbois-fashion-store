@@ -71,6 +71,7 @@ const [selectedOrder, setSelectedOrder] = useState(null);
 const [orderTrackingSaving, setOrderTrackingSaving] = useState(false);
 const [orderTrackingPrompt, setOrderTrackingPrompt] = useState("");
 const [orderFilter, setOrderFilter] = useState("All");
+const [orderCleanupLoading, setOrderCleanupLoading] = useState(false);
 const [contactMessages, setContactMessages] = useState([]);
 const [selectedMessage, setSelectedMessage] = useState(null);
 const [messageFilter, setMessageFilter] = useState("All");
@@ -662,6 +663,45 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     if (!error) {
       setOrders(data || []);
     }
+  };
+
+  const clearAllOrders = async () => {
+    if (orders.length === 0) {
+      setMessage("There are no order records to clear.");
+      return;
+    }
+
+    const firstConfirm = window.confirm(
+      `This will permanently delete all ${orders.length} order record(s) and reset order analytics. Continue?`
+    );
+
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm(
+      "Final confirmation: this is only for clearing test/pre-launch order records. Delete all orders now?"
+    );
+
+    if (!secondConfirm) return;
+
+    setOrderCleanupLoading(true);
+
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .gte("created_at", "1900-01-01");
+
+    setOrderCleanupLoading(false);
+
+    if (error) {
+      setMessage(error.message || "Unable to clear order records.");
+      return;
+    }
+
+    setOrders([]);
+    setSelectedOrder(null);
+    setOrderTrackingPrompt("");
+    setMessage("All order records have been cleared.");
+    fetchOrders();
   };
 
   const getOrderItemProductGroupMembers = (item) => {
@@ -3855,6 +3895,15 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
         <option value="Delivered">Delivered</option>
         <option value="Cancelled">Cancelled</option>
       </select>
+
+      <button
+        type="button"
+        className="danger-admin-btn"
+        onClick={clearAllOrders}
+        disabled={orderCleanupLoading || orders.length === 0}
+      >
+        {orderCleanupLoading ? "Clearing..." : "Clear All Orders"}
+      </button>
     </div>
 
     <div className="admin-table-scroll">
