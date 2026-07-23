@@ -1,6 +1,9 @@
 -- StreetBois checkout order fix.
 -- Paste this whole file into Supabase SQL Editor and click Run.
 -- It lets the website create orders through a secure function and records the selected size.
+--
+-- This uses a unique function name so Supabase cannot confuse old checkout
+-- functions with new ones.
 
 alter table public.orders
 add column if not exists order_reference text;
@@ -17,7 +20,15 @@ create table if not exists public.order_reference_counters (
 
 alter table public.order_reference_counters enable row level security;
 
-create or replace function public.create_secure_order(
+drop function if exists public.create_whatsapp_order(
+  text,
+  text,
+  text,
+  text,
+  jsonb
+);
+
+create or replace function public.create_whatsapp_order(
   p_customer_name text,
   p_customer_phone text,
   p_customer_email text,
@@ -176,5 +187,5 @@ begin
 end;
 $$;
 
-grant execute on function public.create_secure_order(text, text, text, text, jsonb)
+grant execute on function public.create_whatsapp_order(text, text, text, text, jsonb)
 to anon, authenticated;

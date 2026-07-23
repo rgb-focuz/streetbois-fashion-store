@@ -236,7 +236,7 @@ Please confirm my order.`;
       }));
 
       const { data, error } = await supabase.rpc(
-        "create_secure_order",
+        "create_whatsapp_order",
         {
           p_customer_name: customer.name.trim(),
           p_customer_phone: customer.phone.trim(),
@@ -287,7 +287,8 @@ Please confirm my order.`;
           error.message?.includes("permission denied") ||
           error.message?.includes("Could not find the function") ||
           error.message?.includes("schema cache") ||
-          error.message?.includes("create_secure_order")
+          error.message?.includes("create_secure_order") ||
+          error.message?.includes("create_whatsapp_order")
         ) {
           throw new Error(
             "Checkout setup is not complete. Please run the Supabase checkout SQL fix, then try again."
