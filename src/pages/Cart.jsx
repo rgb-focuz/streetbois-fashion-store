@@ -211,80 +211,6 @@ Verified Total: GH₵ ${Number(trustedTotal).toFixed(2)}
 Please confirm my order.`;
   };
 
-  const createOrderFromLiveProducts = async (secureItems) => {
-    const productIds = [...new Set(secureItems.map((item) => item.id))];
-    const { data: liveProducts, error: productError } = await supabase
-      .from("products")
-      .select("id,name,category,price,image_url")
-      .in("id", productIds);
-
-    if (productError) throw productError;
-
-    const productById = new Map(
-      (liveProducts || []).map((product) => [product.id, product])
-    );
-
-    if (productById.size !== productIds.length) {
-      throw new Error(
-        "One item in your cart is no longer on the website. Please remove it and add the product again."
-      );
-    }
-
-    const orderItems = secureItems.map((item) => {
-      const liveProduct = productById.get(item.id);
-      const quantity = Math.max(1, Number(item.quantity || 1));
-      const price = Number(liveProduct.price || 0);
-
-      if (price <= 0) {
-        throw new Error("A selected product has an invalid price.");
-      }
-
-      return {
-        id: liveProduct.id,
-        name: liveProduct.name,
-        category: liveProduct.category,
-        size: item.size || null,
-        price,
-        quantity,
-        subtotal: price * quantity,
-        image_url: liveProduct.image_url,
-      };
-    });
-
-    const trustedTotal = orderItems.reduce(
-      (sum, item) => sum + Number(item.subtotal || 0),
-      0
-    );
-    const orderReference = formatOrderReference(Date.now(), orderItems);
-
-    const { data: orderData, error: orderError } = await supabase
-      .from("orders")
-      .insert([
-        {
-          customer_name: customer.name.trim(),
-          customer_phone: customer.phone.trim(),
-          customer_email: customer.email.trim() || null,
-          delivery_address: customer.address.trim(),
-          items: orderItems,
-          total: trustedTotal,
-          status: "Pending",
-          order_reference: orderReference,
-        },
-      ])
-      .select("id, order_reference")
-      .single();
-
-    if (orderError) throw orderError;
-
-    return {
-      success: true,
-      order_id: orderData.id,
-      order_reference: orderData.order_reference || orderReference,
-      items: orderItems,
-      total: trustedTotal,
-    };
-  };
-
   const placeOrder = async (event) => {
     event.preventDefault();
 
@@ -309,7 +235,7 @@ Please confirm my order.`;
         quantity: Math.max(1, Number(item.quantity || 1)),
       }));
 
-      let { data, error } = await supabase.rpc(
+      const { data, error } = await supabase.rpc(
         "create_secure_order",
         {
           p_customer_name: customer.name.trim(),
@@ -322,17 +248,6 @@ Please confirm my order.`;
 
       if (error) {
         console.error("Secure order creation failed:", error);
-
-        try {
-          data = await createOrderFromLiveProducts(secureItems);
-          error = null;
-        } catch (fallbackError) {
-          console.error("Fallback order creation failed:", fallbackError);
-          error = fallbackError;
-        }
-      }
-
-      if (error) {
         /*
          * Do not display raw database, table or policy details.
          */
@@ -366,6 +281,17 @@ Please confirm my order.`;
           error.message?.includes("are available")
         ) {
           throw new Error(error.message);
+        }
+
+        if (
+          error.message?.includes("permission denied") ||
+          error.message?.includes("Could not find the function") ||
+          error.message?.includes("schema cache") ||
+          error.message?.includes("create_secure_order")
+        ) {
+          throw new Error(
+            "Checkout setup is not complete. Please run the Supabase checkout SQL fix, then try again."
+          );
         }
 
         throw new Error(

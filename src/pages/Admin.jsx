@@ -276,12 +276,16 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
     const seenSizes = new Set();
 
     return String(value || "")
-      .split(/[\n,;|]+/)
+      .split(/[\n,;|\s]+/)
       .flatMap((size) => {
         const trimmedSize = size.trim();
 
         if (/^\d{1,3}(?:\.\d{2,3})+$/.test(trimmedSize)) {
           return trimmedSize.split(".");
+        }
+
+        if (/^\d{4,}$/.test(trimmedSize) && trimmedSize.length % 2 === 0) {
+          return trimmedSize.match(/.{1,2}/g) || [];
         }
 
         return [trimmedSize];

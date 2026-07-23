@@ -147,8 +147,10 @@ function ProductDetails() {
     sizeStock && typeof sizeStock === "object" && !Array.isArray(sizeStock)
       ? normalizeProductSizes(Object.keys(sizeStock))
       : [];
-  const adminListedSizes = Array.isArray(product?.sizes)
-    ? normalizeProductSizes(product.sizes)
+  const adminListedSizes = product?.sizes
+    ? normalizeProductSizes(
+        Array.isArray(product.sizes) ? product.sizes : [product.sizes]
+      )
     : [];
   const availableSizes =
     adminSizeStockSizes.length > 0
