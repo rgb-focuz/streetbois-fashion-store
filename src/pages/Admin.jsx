@@ -4367,7 +4367,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                     <div className="settings-section-title">
                       <span>🚚</span>
                       <div>
-                        <h2>Delivery & Payments</h2>
+                        <h2>Delivery Rules</h2>
                         <p>Configure delivery fee, free delivery and VAT.</p>
                       </div>
                     </div>

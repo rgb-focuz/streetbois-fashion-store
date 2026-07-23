@@ -35,11 +35,6 @@ function FAQ() {
           </div>
 
           <div className="faq-item">
-            <h3>What payment methods do you accept?</h3>
-            <p>We accept Mobile Money, Bank Transfer and other approved payment methods.</p>
-          </div>
-
-          <div className="faq-item">
             <h3>How do I place an order?</h3>
             <p>Go to the Shop page, choose your product, add it to cart and complete your order details.</p>
           </div>

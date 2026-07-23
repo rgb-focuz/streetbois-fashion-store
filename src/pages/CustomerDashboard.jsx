@@ -463,8 +463,8 @@ function CustomerDashboard() {
 
         {status === "Cancelled" ? (
           <div className="tracking-cancelled">
-            This order has been cancelled. If payment was made, contact support
-            with your order ID.
+            This order has been cancelled. Contact support with your order ID
+            if you need help.
           </div>
         ) : (
           <div className="tracking-steps">
