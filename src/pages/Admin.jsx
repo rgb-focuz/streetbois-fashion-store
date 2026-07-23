@@ -668,14 +668,27 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
   };
 
   const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.rpc("get_admin_orders");
 
-    if (!error) {
-      setOrders(data || []);
+    if (error) {
+      const setupMissing =
+        error.message?.includes("get_admin_orders") ||
+        error.message?.includes("Could not find the function") ||
+        error.message?.includes("schema cache");
+
+      if (setupMissing) {
+        setMessage(
+          "Admin order reader setup is missing. Run supabase_admin_order_read_fix.sql in Supabase, then refresh."
+        );
+      } else {
+        setMessage(error.message || "Unable to load orders.");
+      }
+
+      setOrders([]);
+      return;
     }
+
+    setOrders(data || []);
   };
 
   const clearAllOrders = async () => {
