@@ -38,6 +38,10 @@ const normalizeProductSizes = (values) => {
         return sizeText.split(".");
       }
 
+      if (/^\d{4,}$/.test(sizeText) && sizeText.length % 2 === 0) {
+        return sizeText.match(/.{1,2}/g) || [];
+      }
+
       return sizeText.split(/[\n,;|]+/);
     })
     .map((size) => size.trim())
