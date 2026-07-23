@@ -5213,6 +5213,42 @@
   line-height: 1.3;
 }
 
+.product-sales-record-cell {
+  display: grid;
+  gap: 8px;
+  min-width: 260px;
+}
+
+.product-sales-record-cell div {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 70px repeat(5, minmax(36px, 1fr));
+  padding: 8px;
+}
+
+.product-sales-record-cell strong {
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.product-sales-record-cell span {
+  color: var(--admin-muted);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.product-sales-record-cell b {
+  color: #047857;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .physical-sale-cell {
   display: grid;
   grid-template-columns: 70px minmax(120px, 1fr);

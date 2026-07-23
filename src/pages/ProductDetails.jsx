@@ -391,11 +391,11 @@ Please assist me with this order.`
           <p className={`stock-status ${isOutOfStock ? "out" : canBuy ? "in" : ""}`}>
             {hasSizeStock
               ? selectedSize
-                ? `Sales team will confirm availability for size ${selectedSize}`
-                : "Select a size for the sales team to confirm availability"
+                ? `Selected size: ${selectedSize}`
+                : "Select your preferred size"
               : isOutOfStock
               ? "Out of stock"
-              : "Sales team will confirm availability before delivery"}
+              : "Available for order"}
           </p>
 
           <div className="quantity-box">

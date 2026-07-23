@@ -1898,6 +1898,7 @@ const handleMultipleImages = (files) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  const yearStart = new Date(now.getFullYear(), 0, 1);
 
   void monthStart;
 
@@ -1926,6 +1927,84 @@ const handleMultipleImages = (files) => {
       previous: lastMonthRevenue,
     },
   ];
+
+  const createEmptyProductSalesStats = () => ({
+    today: 0,
+    week: 0,
+    month: 0,
+    year: 0,
+    all: 0,
+    revenue: 0,
+  });
+
+  const addProductSalesStat = (map, key, orderDate, quantity, revenue = 0) => {
+    if (!key) return;
+
+    const normalizedKey = String(key).trim().toLowerCase();
+    if (!normalizedKey) return;
+
+    if (!map[normalizedKey]) {
+      map[normalizedKey] = createEmptyProductSalesStats();
+    }
+
+    const stats = map[normalizedKey];
+    stats.all += quantity;
+    stats.revenue += revenue;
+
+    if (orderDate >= todayStart) stats.today += quantity;
+    if (orderDate >= weekStart) stats.week += quantity;
+    if (orderDate >= monthStart) stats.month += quantity;
+    if (orderDate >= yearStart) stats.year += quantity;
+  };
+
+  const websiteProductSalesMap = {};
+
+  baseActiveOrders.forEach((order) => {
+    const orderDate = new Date(order.created_at);
+
+    (order.items || []).forEach((item) => {
+      const quantity = Number(item.quantity || 0);
+      if (quantity <= 0) return;
+
+      const revenue =
+        Number(item.subtotal || 0) || Number(item.price || 0) * quantity;
+
+      addProductSalesStat(websiteProductSalesMap, item.id, orderDate, quantity, revenue);
+      addProductSalesStat(
+        websiteProductSalesMap,
+        `name:${item.name || ""}`,
+        orderDate,
+        quantity,
+        revenue
+      );
+    });
+  });
+
+  const shopProductSalesMap = {};
+
+  inventoryHistory.forEach((item) => {
+    const action = String(item.action_type || item.reason || "").toLowerCase();
+    const quantityChanged = Number(item.quantity_changed || 0);
+    const isShopSale = action.includes("sale") && quantityChanged < 0;
+
+    if (!isShopSale) return;
+
+    const quantity = Math.abs(quantityChanged);
+    const saleDate = new Date(item.created_at);
+
+    addProductSalesStat(shopProductSalesMap, item.product_id, saleDate, quantity);
+    addProductSalesStat(
+      shopProductSalesMap,
+      `name:${item.product_name || ""}`,
+      saleDate,
+      quantity
+    );
+  });
+
+  const getProductSalesStats = (product, salesMap) =>
+    salesMap[String(product.id || "").trim().toLowerCase()] ||
+    salesMap[`name:${String(product.name || "").trim().toLowerCase()}`] ||
+    createEmptyProductSalesStats();
 
   const monthlyRevenueChart = Array.from({ length: 6 }).map((_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
@@ -3211,6 +3290,7 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                     <th>Sizes</th>
                     <th>Stock</th>
                     <th>Status</th>
+                    <th>Sales Record</th>
                     <th>Shop Sale</th>
                     <th>Featured</th>
                     <th>Preview</th>
@@ -3220,7 +3300,21 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                 </thead>
 
                 <tbody>
-                  {paginatedProducts.map((product) => (
+                  {paginatedProducts.map((product) => {
+                    const websiteSales = getProductSalesStats(
+                      product,
+                      websiteProductSalesMap
+                    );
+                    const shopSales = getProductSalesStats(product, shopProductSalesMap);
+                    const totalSales = {
+                      today: websiteSales.today + shopSales.today,
+                      week: websiteSales.week + shopSales.week,
+                      month: websiteSales.month + shopSales.month,
+                      year: websiteSales.year + shopSales.year,
+                      all: websiteSales.all + shopSales.all,
+                    };
+
+                    return (
                     <tr key={product.id}>
                       <td>
                         <input
@@ -3251,6 +3345,29 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                         </div>
                       </td>
                       <td>{getStockBadge(product.shared_stock)}</td>
+                      <td>
+                        <div className="product-sales-record-cell">
+                          <div>
+                            <strong>Website</strong>
+                            <span>D {websiteSales.today}</span>
+                            <span>W {websiteSales.week}</span>
+                            <span>M {websiteSales.month}</span>
+                            <span>Y {websiteSales.year}</span>
+                            <span>All {websiteSales.all}</span>
+                          </div>
+
+                          <div>
+                            <strong>Shop</strong>
+                            <span>D {shopSales.today}</span>
+                            <span>W {shopSales.week}</span>
+                            <span>M {shopSales.month}</span>
+                            <span>Y {shopSales.year}</span>
+                            <span>All {shopSales.all}</span>
+                          </div>
+
+                          <b>Total sold: {totalSales.all}</b>
+                        </div>
+                      </td>
                       <td>
                         <div className="physical-sale-cell">
                           <input
@@ -3338,11 +3455,12 @@ const totalInventoryUnits = inventoryBreakdown.reduce(
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
 
                   {paginatedProducts.length === 0 && (
                     <tr>
-                      <td colSpan="13">No products found.</td>
+                      <td colSpan="14">No products found.</td>
                     </tr>
                   )}
                 </tbody>
