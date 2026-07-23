@@ -15,7 +15,8 @@ begin
     raise exception 'Only active admins can clear order records.';
   end if;
 
-  delete from public.orders;
+  delete from public.orders
+  where id is not null;
   get diagnostics deleted_count = row_count;
 
   return deleted_count;
