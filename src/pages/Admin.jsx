@@ -685,22 +685,29 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
     setOrderCleanupLoading(true);
 
-    const { error } = await supabase
-      .from("orders")
-      .delete()
-      .gte("created_at", "1900-01-01");
+    const { data, error } = await supabase.rpc("clear_all_orders_admin");
 
     setOrderCleanupLoading(false);
 
     if (error) {
-      setMessage(error.message || "Unable to clear order records.");
+      const setupMissing =
+        error.message?.includes("clear_all_orders_admin") ||
+        error.message?.includes("Could not find the function");
+
+      setMessage(
+        setupMissing
+          ? "Order cleanup setup is missing. Run supabase_admin_order_cleanup.sql in Supabase, then try again."
+          : error.message || "Unable to clear order records."
+      );
       return;
     }
+
+    const clearedCount = Number(data || orders.length);
 
     setOrders([]);
     setSelectedOrder(null);
     setOrderTrackingPrompt("");
-    setMessage("All order records have been cleared.");
+    setMessage(`${clearedCount} order record(s) have been cleared.`);
     fetchOrders();
   };
 
