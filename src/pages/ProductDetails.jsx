@@ -26,8 +26,6 @@ const GHANA_LOCATIONS = {
   "Western North": ["Sefwi Wiawso", "Bibiani", "Juaboso", "Enchi", "Awaso", "Sefwi Bekwai"],
 };
 
-const DEFAULT_SNEAKER_SIZES = ["39", "40", "41", "42", "43", "44", "45"];
-
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -126,16 +124,11 @@ function ProductDetails() {
   const adminListedSizes = Array.isArray(product?.sizes)
     ? product.sizes.map(String).filter(Boolean)
     : [];
-  const isSneakerProduct = String(product?.category || "")
-    .toLowerCase()
-    .includes("sneaker");
   const availableSizes =
     adminSizeStockSizes.length > 0
       ? adminSizeStockSizes
       : adminListedSizes.length > 0
       ? adminListedSizes
-      : isSneakerProduct
-      ? DEFAULT_SNEAKER_SIZES
       : [];
   const hasSizeStock = availableSizes.length > 0;
 
