@@ -1478,9 +1478,9 @@ const handleMultipleImages = (files) => {
           stock: totalStock,
           sizes: getSizesFromSizeStock(sizeStock),
           size_stock: sizeStock,
-          in_stock: totalStock > 0,
+          in_stock: true,
           featured: item.featured,
-          status: totalStock > 0 ? "Active" : "Out of Stock",
+          status: "Active",
         });
       }
 

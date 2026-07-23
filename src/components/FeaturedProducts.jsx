@@ -29,7 +29,6 @@ function FeaturedProducts() {
     const { data, error, count } = await supabase
       .from("products")
       .select(PRODUCT_CARD_FIELDS, { count: "exact" })
-      .eq("status", "Active")
       .order("created_at", { ascending: false })
       .range(from, to);
 

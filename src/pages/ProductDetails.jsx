@@ -69,7 +69,6 @@ function ProductDetails() {
       .select("*")
       .eq("category", category)
       .neq("id", productId)
-      .eq("status", "Active")
       .limit(12);
 
     if (!error) setRelatedProducts(data || []);
@@ -82,7 +81,6 @@ function ProductDetails() {
       .from("products")
       .select("*")
       .eq("id", id)
-      .eq("status", "Active")
       .single();
 
     if (!error && data) {
@@ -132,8 +130,7 @@ function ProductDetails() {
       : [];
   const hasSizeStock = availableSizes.length > 0;
 
-  const isOutOfStock =
-    product?.in_stock === false || product?.status === "Out of Stock";
+  const isOutOfStock = false;
 
   const canBuy = hasSizeStock ? Boolean(selectedSize) && !isOutOfStock : !isOutOfStock;
 
@@ -243,8 +240,8 @@ Please assist me with this order.`
   void getRatingPercent;
 
   const validateOrder = () => {
-    if (!product || isOutOfStock) {
-      alert("This product is currently out of stock.");
+    if (!product) {
+      alert("This product is not available.");
       return false;
     }
 

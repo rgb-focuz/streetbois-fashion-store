@@ -179,12 +179,6 @@ begin
       raise exception 'Invalid product identifier.';
     end if;
 
-    if coalesce(product_row.status, 'Active') = 'Out of Stock'
-      or coalesce(product_row.in_stock, true) = false
-      or coalesce(product_row.stock, 0) <= 0 then
-      raise exception 'A selected product is no longer available.';
-    end if;
-
     if coalesce(product_row.price, 0) <= 0 then
       raise exception 'A selected product has an invalid price.';
     end if;
@@ -213,34 +207,6 @@ begin
       lower(trim(product_row.category)),
       product_row.price
     );
-  end loop;
-
-  for group_row in
-    select
-      group_name,
-      group_category,
-      group_price,
-      sum(quantity)::integer as requested_quantity
-    from checkout_order_lines
-    group by group_name, group_category, group_price
-  loop
-    perform 1
-    from products
-    where lower(trim(name)) = group_row.group_name
-      and lower(trim(category)) = group_row.group_category
-      and price = group_row.group_price
-    for update;
-
-    select coalesce(max(stock), 0)
-    into available_stock
-    from products
-    where lower(trim(name)) = group_row.group_name
-      and lower(trim(category)) = group_row.group_category
-      and price = group_row.group_price;
-
-    if available_stock < group_row.requested_quantity then
-      raise exception '% are available for this product group.', available_stock;
-    end if;
   end loop;
 
   select coalesce(sum(subtotal), 0)
@@ -312,69 +278,6 @@ begin
     new_order_reference
   )
   returning id into new_order_id;
-
-  for group_row in
-    select
-      group_name,
-      group_category,
-      group_price,
-      sum(quantity)::integer as requested_quantity
-    from checkout_order_lines
-    group by group_name, group_category, group_price
-  loop
-    perform 1
-    from products
-    where lower(trim(name)) = group_row.group_name
-      and lower(trim(category)) = group_row.group_category
-      and price = group_row.group_price
-    for update;
-
-    select coalesce(max(stock), 0)
-    into available_stock
-    from products
-    where lower(trim(name)) = group_row.group_name
-      and lower(trim(category)) = group_row.group_category
-      and price = group_row.group_price;
-
-    next_stock := greatest(available_stock - group_row.requested_quantity, 0);
-
-    update products
-    set
-      stock = next_stock,
-      in_stock = next_stock > 0,
-      status = case
-        when next_stock > 0 then 'Active'
-        else 'Out of Stock'
-      end
-    where lower(trim(name)) = group_row.group_name
-      and lower(trim(category)) = group_row.group_category
-      and price = group_row.group_price;
-
-    insert into inventory_history (
-      product_id,
-      product_name,
-      old_stock,
-      new_stock,
-      quantity_changed,
-      action_type,
-      reason,
-      changed_by
-    )
-    select
-      product_id,
-      name,
-      available_stock,
-      next_stock,
-      next_stock - available_stock,
-      'Online Order Reserved',
-      'Reserved stock for online order ' || new_order_id::text,
-      'Online Checkout'
-    from checkout_order_lines
-    where group_name = group_row.group_name
-      and group_category = group_row.group_category
-      and group_price = group_row.group_price
-    limit 1;
-  end loop;
 
   return jsonb_build_object(
     'success', true,
