@@ -26,6 +26,8 @@ const GHANA_LOCATIONS = {
   "Western North": ["Sefwi Wiawso", "Bibiani", "Juaboso", "Enchi", "Awaso", "Sefwi Bekwai"],
 };
 
+const DEFAULT_SNEAKER_SIZES = ["39", "40", "41", "42", "43", "44", "45"];
+
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -117,28 +119,18 @@ function ProductDetails() {
   }, [selectedRegion, selectedTown]);
 
   const sizeStock = product?.size_stock || {};
-  const availableSizes = Object.keys(sizeStock);
+  const isSneakerProduct = String(product?.category || "")
+    .toLowerCase()
+    .includes("sneaker");
+  const availableSizes = isSneakerProduct
+    ? DEFAULT_SNEAKER_SIZES
+    : Object.keys(sizeStock);
   const hasSizeStock = availableSizes.length > 0;
 
-  const selectedSizeStock = selectedSize
-    ? Number(sizeStock[selectedSize] || 0)
-    : Number(product?.stock || 0);
+  const isOutOfStock =
+    product?.in_stock === false || product?.status === "Out of Stock";
 
-  const availableStock = hasSizeStock
-    ? selectedSize
-      ? selectedSizeStock
-      : 0
-    : Number(product?.stock || 0);
-
-  const isOutOfStock = hasSizeStock
-    ? selectedSize
-      ? availableStock <= 0
-      : false
-    : availableStock <= 0 ||
-      product?.in_stock === false ||
-      product?.status === "Out of Stock";
-
-  const canBuy = hasSizeStock ? Boolean(selectedSize) && availableStock > 0 : !isOutOfStock;
+  const canBuy = hasSizeStock ? Boolean(selectedSize) && !isOutOfStock : !isOutOfStock;
 
   const formatProductName = (name, category) => {
     const normalizedName = String(name || "").trim();
@@ -256,21 +248,6 @@ Please assist me with this order.`
       return false;
     }
 
-    if (hasSizeStock && selectedSizeStock <= 0) {
-      alert(`${selectedSize} is out of stock.`);
-      return false;
-    }
-
-    if (hasSizeStock && quantity > selectedSizeStock) {
-      alert("Selected quantity is above available stock for this size.");
-      return false;
-    }
-
-    if (!hasSizeStock && quantity > availableStock) {
-      alert("Selected quantity is above available stock.");
-      return false;
-    }
-
     return true;
   };
 
@@ -294,18 +271,10 @@ Please assist me with this order.`
       (item) => item.id === product.id && item.size === cartItem.size
     );
 
-    const existingQuantity = existingItem ? Number(existingItem.quantity || 1) : 0;
-    const nextQuantity = existingQuantity + quantity;
-
-    if (nextQuantity > availableStock) {
-      alert("Selected quantity is above available stock.");
-      return false;
-    }
-
     const updatedCart = existingItem
       ? existingCart.map((item) =>
           item.id === product.id && item.size === cartItem.size
-            ? { ...item, quantity: nextQuantity }
+            ? { ...item, quantity: Number(item.quantity || 1) + quantity }
             : item
         )
       : [...existingCart, cartItem];
@@ -401,14 +370,10 @@ Please assist me with this order.`
 
               <div className="details-size-options">
                 {availableSizes.map((size) => {
-                  const stock = Number(sizeStock[size] || 0);
-                  const isOut = stock <= 0;
-
                   return (
                     <button
                       key={size}
                       type="button"
-                      disabled={isOut}
                       className={selectedSize === size ? "active-size" : ""}
                       onClick={() => {
                         setSelectedSize(size);
@@ -416,7 +381,6 @@ Please assist me with this order.`
                       }}
                     >
                       {size}
-                      {isOut && <small>Out</small>}
                     </button>
                   );
                 })}
@@ -427,13 +391,11 @@ Please assist me with this order.`
           <p className={`stock-status ${isOutOfStock ? "out" : canBuy ? "in" : ""}`}>
             {hasSizeStock
               ? selectedSize
-                ? availableStock > 0
-                  ? `In stock for size ${selectedSize}`
-                  : `Out of stock for size ${selectedSize}`
-                : "Select a size to check availability"
+                ? `Sales team will confirm availability for size ${selectedSize}`
+                : "Select a size for the sales team to confirm availability"
               : isOutOfStock
               ? "Out of stock"
-              : "In stock"}
+              : "Sales team will confirm availability before delivery"}
           </p>
 
           <div className="quantity-box">
@@ -447,13 +409,8 @@ Please assist me with this order.`
             <span>{quantity}</span>
 
             <button
-              disabled={!canBuy || quantity >= availableStock}
+              disabled={!canBuy}
               onClick={() => {
-                if (quantity >= availableStock) {
-                  alert("You have reached the available stock limit.");
-                  return;
-                }
-
                 setQuantity(quantity + 1);
               }}
             >
