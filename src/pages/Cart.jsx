@@ -81,28 +81,24 @@ function Cart() {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  const removeItem = (id) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
+  const getCartItemKey = (item) => `${item?.id || ""}::${item?.size || ""}`;
+
+  const removeItem = (targetItem) => {
+    const targetKey = getCartItemKey(targetItem);
+    const updatedCart = cart.filter(
+      (item) => getCartItemKey(item) !== targetKey
+    );
     saveCart(updatedCart);
   };
 
-  const updateQuantity = (id, change) => {
+  const updateQuantity = (targetItem, change) => {
+    const targetKey = getCartItemKey(targetItem);
+
     const updatedCart = cart.map((item) => {
-      if (item.id !== id) return item;
+      if (getCartItemKey(item) !== targetKey) return item;
 
       const currentQuantity = Math.max(1, Number(item.quantity || 1));
       const newQuantity = Math.max(1, currentQuantity + change);
-
-      /*
-       * This local stock check is only for user experience.
-       * PostgreSQL performs the real stock validation.
-       */
-      const locallyKnownStock = Number(item.stock || 0);
-
-      if (locallyKnownStock > 0 && newQuantity > locallyKnownStock) {
-        alert(`Only ${locallyKnownStock} item(s) appear to be available.`);
-        return item;
-      }
 
       return {
         ...item,
@@ -186,6 +182,7 @@ function Cart() {
       .map(
         (item, index) =>
           `Product ${index + 1}: ${item.name}
+Size: ${item.size || "Not selected"}
 Qty: ${item.quantity}
 Price: GH₵ ${Number(item.price).toFixed(2)}
 Subtotal: GH₵ ${Number(item.subtotal).toFixed(2)}
@@ -228,12 +225,13 @@ Please confirm my order.`;
 
     try {
       /*
-       * Only product IDs and quantities are submitted.
+       * Only product IDs, selected sizes and quantities are submitted.
        *
        * No client-supplied price, subtotal, total, stock or status is sent.
        */
       const secureItems = cart.map((item) => ({
         id: item.id,
+        size: item.size || null,
         quantity: Math.max(1, Number(item.quantity || 1)),
       }));
 
@@ -384,7 +382,7 @@ Please confirm my order.`;
                   Number(item.price || 0) * quantity;
 
                 return (
-                  <div className="cart-item" key={item.id}>
+                  <div className="cart-item" key={getCartItemKey(item)}>
                     <img
                       src={getProductImage(item)}
                       alt={item.name || "Product"}
@@ -401,11 +399,15 @@ Please confirm my order.`;
                         GH₵ {Number(item.price || 0).toFixed(2)}
                       </p>
 
+                      {item.size ? (
+                        <p className="cart-size">Size: {item.size}</p>
+                      ) : null}
+
                       <div className="cart-quantity">
                         <button
                           type="button"
                           onClick={() =>
-                            updateQuantity(item.id, -1)
+                            updateQuantity(item, -1)
                           }
                         >
                           -
@@ -416,7 +418,7 @@ Please confirm my order.`;
                         <button
                           type="button"
                           onClick={() =>
-                            updateQuantity(item.id, 1)
+                            updateQuantity(item, 1)
                           }
                         >
                           +
@@ -434,7 +436,7 @@ Please confirm my order.`;
                       <button
                         type="button"
                         className="remove-cart-btn"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item)}
                       >
                         Remove
                       </button>

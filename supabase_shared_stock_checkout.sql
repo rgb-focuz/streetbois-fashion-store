@@ -137,10 +137,13 @@ begin
     raise exception 'Too many products in one order.';
   end if;
 
-  create temporary table if not exists checkout_order_lines (
+  drop table if exists checkout_order_lines;
+
+  create temporary table checkout_order_lines (
     product_id uuid,
     name text,
     category text,
+    selected_size text,
     price numeric,
     image_url text,
     quantity integer,
@@ -149,8 +152,6 @@ begin
     group_category text,
     group_price numeric
   ) on commit drop;
-
-  truncate table checkout_order_lines;
 
   for item in select * from jsonb_array_elements(p_items)
   loop
@@ -187,6 +188,7 @@ begin
       product_id,
       name,
       category,
+      selected_size,
       price,
       image_url,
       quantity,
@@ -199,6 +201,7 @@ begin
       product_row.id,
       product_row.name,
       product_row.category,
+      nullif(trim(coalesce(item->>'size', '')), ''),
       product_row.price,
       product_row.image_url,
       item_quantity,
@@ -218,6 +221,7 @@ begin
       'id', product_id,
       'name', name,
       'category', category,
+      'size', selected_size,
       'price', price,
       'quantity', quantity,
       'subtotal', subtotal,

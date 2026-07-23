@@ -65,6 +65,18 @@
   font-weight: bold;
 }
 
+.cart-size {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: #fff7dc;
+  color: #111;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .cart-quantity {
   display: flex;
   align-items: center;
