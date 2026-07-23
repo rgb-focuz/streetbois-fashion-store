@@ -368,7 +368,10 @@ Please assist me with this order.`
 
           {hasSizeStock && (
             <div className="details-size-box">
-              <p>Size:</p>
+              <div className="details-size-heading">
+                <p>Variation available</p>
+                <span>Select size</span>
+              </div>
 
               <div className="details-size-options">
                 {availableSizes.map((size) => {
@@ -393,8 +396,8 @@ Please assist me with this order.`
           <p className={`stock-status ${isOutOfStock ? "out" : canBuy ? "in" : ""}`}>
             {hasSizeStock
               ? selectedSize
-                ? `Selected size: ${selectedSize}`
-                : "Select your preferred size"
+                ? `Size ${selectedSize} selected for this order`
+                : "Choose your size before adding to cart or ordering"
               : isOutOfStock
               ? "Out of stock"
               : "Available for order"}

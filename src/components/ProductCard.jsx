@@ -45,6 +45,11 @@ function ProductCard({ product }) {
     navigate(`/product/${product.id}`);
   };
 
+  const openDetailsFromAction = (event) => {
+    event.stopPropagation();
+    openDetails();
+  };
+
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
@@ -67,6 +72,14 @@ function ProductCard({ product }) {
         <div className="universal-price-row">
           <span className="universal-price">GHC {product.price}</span>
           {hasOldPrice && <del>GHC {oldPrice}</del>}
+        </div>
+        <div className="product-action-row" aria-label={`${displayName} actions`}>
+          <button type="button" className="universal-cart-btn" onClick={openDetailsFromAction}>
+            Cart
+          </button>
+          <button type="button" className="universal-order-btn" onClick={openDetailsFromAction}>
+            Order
+          </button>
         </div>
       </div>
     </div>

@@ -69,6 +69,42 @@
   font-size: 13px;
 }
 
+.product-action-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+.universal-cart-btn,
+.universal-order-btn {
+  border: 0;
+  border-radius: 5px;
+  color: #111;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  height: 34px;
+  line-height: 1;
+  padding: 0 10px;
+  transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+.universal-cart-btn {
+  background: #f6b800;
+}
+
+.universal-order-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+.universal-cart-btn:hover,
+.universal-order-btn:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
 .universal-discount-badge {
   background: #fff3e8;
   border-radius: 2px;
@@ -122,5 +158,17 @@
   .universal-price-row del,
   .universal-discount-badge {
     font-size: 11px;
+  }
+
+  .product-action-row {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .universal-cart-btn,
+  .universal-order-btn {
+    font-size: 11px;
+    height: 31px;
+    padding: 0 6px;
   }
 }

@@ -931,17 +931,51 @@
   color: #f59e0b;
 }
 
-.details-size-box p {
+.details-size-heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.details-size-box p,
+.details-size-heading p {
   color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.details-size-heading span {
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .details-size-options button {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  color: #111827;
+  height: 40px;
+  min-height: 40px;
+  min-width: 50px;
+  padding: 0 14px;
+}
+
+.details-size-options button.active-size {
+  background: #fff7ed;
+  border-color: #f58220;
+  box-shadow: inset 0 0 0 1px #f58220;
   color: #111827;
 }
 
 .stock-status {
   color: #b45309;
   font-size: 14px;
+  font-weight: 800;
 }
 
 .quantity-box {
