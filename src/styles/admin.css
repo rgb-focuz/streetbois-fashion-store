@@ -5249,45 +5249,6 @@
   font-weight: 900;
 }
 
-.physical-sale-cell {
-  display: grid;
-  grid-template-columns: 70px minmax(120px, 1fr);
-  gap: 8px;
-  min-width: 250px;
-}
-
-.physical-sale-cell input {
-  width: 100%;
-  border: 1px solid var(--admin-border);
-  border-radius: 10px;
-  padding: 9px 10px;
-  font-weight: 700;
-  color: var(--admin-text);
-  background: var(--admin-surface);
-}
-
-.physical-sale-cell input:focus {
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-  outline: none;
-}
-
-.physical-sale-btn {
-  grid-column: 1 / -1;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: #0f172a;
-  color: #fff;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.physical-sale-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 /* ================= Admin Professional Finish ================= */
 
 :root {

@@ -119,12 +119,24 @@ function ProductDetails() {
   }, [selectedRegion, selectedTown]);
 
   const sizeStock = product?.size_stock || {};
+  const adminSizeStockSizes =
+    sizeStock && typeof sizeStock === "object" && !Array.isArray(sizeStock)
+      ? Object.keys(sizeStock)
+      : [];
+  const adminListedSizes = Array.isArray(product?.sizes)
+    ? product.sizes.map(String).filter(Boolean)
+    : [];
   const isSneakerProduct = String(product?.category || "")
     .toLowerCase()
     .includes("sneaker");
-  const availableSizes = isSneakerProduct
-    ? DEFAULT_SNEAKER_SIZES
-    : Object.keys(sizeStock);
+  const availableSizes =
+    adminSizeStockSizes.length > 0
+      ? adminSizeStockSizes
+      : adminListedSizes.length > 0
+      ? adminListedSizes
+      : isSneakerProduct
+      ? DEFAULT_SNEAKER_SIZES
+      : [];
   const hasSizeStock = availableSizes.length > 0;
 
   const isOutOfStock =
