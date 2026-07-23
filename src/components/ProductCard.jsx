@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { optimizeSupabaseImage } from "../utils/images";
 import "../styles/productCard.css";
 
-function ProductCard({ product, showWhatsApp = true }) {
+function ProductCard({ product }) {
   const navigate = useNavigate();
 
   const productImage =
@@ -32,52 +32,25 @@ function ProductCard({ product, showWhatsApp = true }) {
   };
 
   const displayName = formatProductName(product.name, product.category);
+  const currentPrice = Number(product.price || 0);
+  const oldPrice = Number(
+    product.old_price || product.original_price || product.compare_at_price || 0
+  );
+  const hasOldPrice = oldPrice > currentPrice && currentPrice > 0;
+  const discountPercent = hasOldPrice
+    ? Math.round(((oldPrice - currentPrice) / oldPrice) * 100)
+    : 0;
 
   const openDetails = () => {
     navigate(`/product/${product.id}`);
   };
 
-  const addToCart = (event, { goToCheckout = false } = {}) => {
-    event.stopPropagation();
-
-    const cart = JSON.parse(localStorage.getItem("streetbois-cart")) || [];
-    const existingProduct = cart.find((item) => item.id === product.id);
-
-    const updatedCart = existingProduct
-      ? cart.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                quantity: Number(item.quantity || 1) + 1,
-                image_url: item.image_url || productImage,
-                thumbnail_url: item.thumbnail_url || productThumbnail,
-              }
-            : item
-        )
-      : [
-          ...cart,
-          {
-            ...product,
-            quantity: 1,
-            image_url: productImage,
-            thumbnail_url: productThumbnail,
-          },
-        ];
-
-    localStorage.setItem("streetbois-cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-
-    if (goToCheckout) {
-      navigate("/cart");
-      return;
-    }
-
-    alert("Product added to cart");
-  };
-
   return (
     <div className="universal-product-card" onClick={openDetails}>
       <div className="product-image-wrap">
+        {hasOldPrice && (
+          <span className="universal-discount-badge">-{discountPercent}%</span>
+        )}
         <img
           src={productThumbnail || productImage}
           alt={displayName}
@@ -90,31 +63,10 @@ function ProductCard({ product, showWhatsApp = true }) {
       </div>
 
       <div className="universal-product-info">
-        <div className="product-title-row">
-          <h3 title={displayName}>{displayName}</h3>
+        <h3 title={displayName}>{displayName}</h3>
+        <div className="universal-price-row">
           <span className="universal-price">GHC {product.price}</span>
-        </div>
-
-        <div className="product-action-row">
-          <button
-            type="button"
-            className="universal-cart-btn"
-            onClick={addToCart}
-          >
-            Cart
-          </button>
-
-          {showWhatsApp && (
-            <button
-              type="button"
-              className="universal-whatsapp-btn"
-              onClick={(event) => {
-                addToCart(event, { goToCheckout: true });
-              }}
-            >
-              Order
-            </button>
-          )}
+          {hasOldPrice && <del>GHC {oldPrice}</del>}
         </div>
       </div>
     </div>

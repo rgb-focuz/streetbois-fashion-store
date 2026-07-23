@@ -778,7 +778,7 @@
   color: #111827;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(260px, 390px) minmax(360px, 1fr) minmax(280px, 350px);
+  grid-template-columns: minmax(300px, 430px) minmax(360px, 1fr) minmax(280px, 350px);
   justify-content: center;
   min-height: auto;
   padding: 28px 7% 64px;
@@ -796,7 +796,7 @@
 .product-gallery-panel {
   gap: 10px;
   max-width: none;
-  padding: 16px;
+  padding: 12px;
   position: static;
 }
 
@@ -805,12 +805,17 @@
   border: 0;
   border-radius: 3px;
   box-shadow: none;
-  max-height: 390px;
+  max-height: 430px;
   max-width: none;
+  overflow: hidden;
 }
 
 .product-details-image img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   padding: 0;
+  width: 100%;
 }
 
 .product-thumbnail-row {
