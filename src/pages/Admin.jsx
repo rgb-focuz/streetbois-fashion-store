@@ -277,6 +277,15 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
     return String(value || "")
       .split(/[\n,;|]+/)
+      .flatMap((size) => {
+        const trimmedSize = size.trim();
+
+        if (/^\d{1,3}(?:\.\d{2,3})+$/.test(trimmedSize)) {
+          return trimmedSize.split(".");
+        }
+
+        return [trimmedSize];
+      })
       .map((size) => size.trim())
       .filter(Boolean)
       .filter((size) => {
@@ -953,13 +962,18 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       const rows = Object.entries(sizeStock).map(([size, stock]) => ({
         size,
         stock: String(stock ?? ""),
-      }));
+      })).flatMap((row) =>
+        parseSizeList(row.size).map((size) => ({
+          size,
+          stock: row.stock,
+        }))
+      );
 
       return rows.length > 0 ? rows : [createEmptySizeRow()];
     }
 
     if (Array.isArray(sizes) && sizes.length > 0) {
-      return sizes.map((size) => ({
+      return sizes.flatMap((size) => parseSizeList(size)).map((size) => ({
         size,
         stock: "",
       }));
@@ -977,9 +991,9 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       const size = String(row.size || "").trim();
       const stock = Number(row.stock || 0);
 
-      if (size) {
-        sizeStock[size] = stock < 0 ? 0 : stock;
-      }
+      parseSizeList(size).forEach((parsedSize) => {
+        sizeStock[parsedSize] = stock < 0 ? 0 : stock;
+      });
     });
 
     return Object.keys(sizeStock).length > 0 ? sizeStock : null;
@@ -987,7 +1001,7 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
 
   const getSizesFromSizeStock = (sizeStock) => {
     if (!sizeStock) return null;
-    return Object.keys(sizeStock);
+    return Object.keys(sizeStock).flatMap((size) => parseSizeList(size));
   };
 
   const getTotalStockFromSizeStock = (sizeStock, fallbackStock = 0) => {
@@ -1006,12 +1020,14 @@ const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
       !Array.isArray(sizeStock)
     ) {
       return Object.entries(sizeStock)
-        .map(([size, stock]) => `${size}: ${stock}`)
+        .flatMap(([size, stock]) =>
+          parseSizeList(size).map((parsedSize) => `${parsedSize}: ${stock}`)
+        )
         .join(", ");
     }
 
     if (Array.isArray(sizes) && sizes.length > 0) {
-      return sizes.join(", ");
+      return sizes.flatMap((size) => parseSizeList(size)).join(", ");
     }
 
     return "Not set";

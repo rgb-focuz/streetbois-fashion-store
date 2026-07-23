@@ -26,6 +26,30 @@ const GHANA_LOCATIONS = {
   "Western North": ["Sefwi Wiawso", "Bibiani", "Juaboso", "Enchi", "Awaso", "Sefwi Bekwai"],
 };
 
+const normalizeProductSizes = (values) => {
+  const seenSizes = new Set();
+
+  return values
+    .flatMap((value) => {
+      const sizeText = String(value || "").trim();
+      if (!sizeText) return [];
+
+      if (/^\d{1,3}(?:\.\d{2,3})+$/.test(sizeText)) {
+        return sizeText.split(".");
+      }
+
+      return sizeText.split(/[\n,;|]+/);
+    })
+    .map((size) => size.trim())
+    .filter(Boolean)
+    .filter((size) => {
+      const normalizedSize = size.toLowerCase();
+      if (seenSizes.has(normalizedSize)) return false;
+      seenSizes.add(normalizedSize);
+      return true;
+    });
+};
+
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -117,10 +141,10 @@ function ProductDetails() {
   const sizeStock = product?.size_stock || {};
   const adminSizeStockSizes =
     sizeStock && typeof sizeStock === "object" && !Array.isArray(sizeStock)
-      ? Object.keys(sizeStock)
+      ? normalizeProductSizes(Object.keys(sizeStock))
       : [];
   const adminListedSizes = Array.isArray(product?.sizes)
-    ? product.sizes.map(String).filter(Boolean)
+    ? normalizeProductSizes(product.sizes)
     : [];
   const availableSizes =
     adminSizeStockSizes.length > 0
